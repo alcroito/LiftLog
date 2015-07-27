@@ -1,0 +1,30 @@
+<RCC>
+    <qresource prefix="/LiftLog">
+        <file>main.qml</file>
+        <file>components/RectangleButton.qml</file>
+        <file>components/NavigationBar.qml</file>
+        <file>components/testing_ground.qml</file>
+        <file>pages/WelcomePage.qml</file>
+        <file>pages/DashboardPage.qml</file>
+        <file>pages/WorkoutPage.qml</file>
+        <file>components/TextInputStyled.qml</file>
+        <file>components/Shadow.qml</file>
+        <file>components/SwitchStyleIOS.qml</file>
+        <file>+android/UI.js</file>
+        <file>+ios/UI.js</file>
+        <file>+osx/UI.js</file>
+        <file>UI.js</file>
+        <file>components/SwitchStyled.qml</file>
+        <file>components/SetAndRep.qml</file>
+        <file>components/ExerciseStatsInput.qml</file>
+        <file>components/DateAndWeight.qml</file>
+        <file>components/TopNotification.qml</file>
+        <file>qmldir</file>
+        <file>pages/qmldir</file>
+        <file>components/qmldir</file>
+        <file>utils/qmldir</file>
+        <file>utils/dummy.js</file>
+        <file>utils/Bean.qml</file>
+        <file>components/FinishWorkoutButton.qml</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>assets/fonts/icomoon.ttf</file>
+        <file>assets/db/db_initial_install.sql</file>
+        <file>assets/db/liftlog.sqlite3</file>
+    </qresource>
+</RCC>

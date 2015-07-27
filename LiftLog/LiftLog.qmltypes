@@ -1,0 +1,56 @@
+import QtQuick.tooling 1.1
+
+// Decide wether this will help with the Enum problem in Qt Quick Designer.
+
+// There always is a single Module object that contains all
+// Component objects.
+Module {
+    // A Component object directly corresponds to a type exported
+    // in a plugin with a call to qmlRegisterType.
+    Component {
+
+        // The name is a unique identifier used to refer to this type.
+        // It is recommended you simply use the C++ type name.
+        name: "Unit"
+
+        // The name of the prototype Component.
+        prototype: "QObject"
+
+        // The name of the default property.
+        defaultProperty: "weightSystem"
+
+        // The name of the type containing attached properties
+        // and methods.
+        //attachedType: "QQuickAnimationAttached"
+
+        // The list of exports determines how a type can be imported.
+        // Each string has the format "URI/Name version" and matches the
+        // arguments to qmlRegisterType. Usually types are only exported
+        // once, if at all.
+        // If the "URI/" part of the string is missing that means the
+        // type should be put into the package defined by the URI the
+        // module was imported with.
+        // For example if this module was imported with 'import Foo 4.8'
+        // the Animation object would be found in the package Foo and
+        // QtQuick.
+        //exports: [
+        //    "Animation 4.7",
+        //    "QtQuick/Animation 1.0"
+        //]
+
+        // The meta object revisions for the exports specified in 'exports'.
+        // Describes with revisioned properties will be visible in an export.
+        // The list must have exactly the same length as the 'exports' list.
+        // For example the 'animations' propery described below will only be
+        // available through the QtQuick/Animation 1.0 export.
+        //exportMetaObjectRevisions: [0, 1]
+
+        Enum {
+            name: "WeightSystem"
+            values: {
+                "Metric": 0,
+                "Imperial": 1
+            }
+        }
+    }
+}

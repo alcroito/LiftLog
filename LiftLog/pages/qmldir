@@ -1,0 +1,4 @@
+Module LiftLog.pages
+DashboardPage 1.0 DashboardPage.qml
+WelcomePage 1.0 WelcomePage.qml
+WorkoutPage 1.0 WorkoutPage.qml
