@@ -3,6 +3,8 @@
 #include <QSqlError>
 #include <QDebug>
 
+QString const WorkoutSetEntity::EMPTY_STATE = "empty";
+
 WorkoutModel::WorkoutModel(QObject* parent) : QAbstractItemModel(parent), root(0)
 {
 }
@@ -41,6 +43,24 @@ int WorkoutModel::columnCount(const QModelIndex &parent) const
         return root->columnCount();
 }
 
+int WorkoutModel::exerciseCount()
+{
+    return rowCount();
+}
+
+int WorkoutModel::setsCountForExercise(int exerciseIndex)
+{
+    QModelIndex exerciseModelIndex = index(exerciseIndex, 0);
+    return rowCount(exerciseModelIndex);
+}
+
+QVariant WorkoutModel::getSet(int exerciseIndex, int setIndex) {
+    QModelIndex exerciseModelIndex = index(exerciseIndex, 0);
+    QModelIndex setModelIndex = index(setIndex, 0, exerciseModelIndex);
+    WorkoutTreeNode *item = static_cast<WorkoutTreeNode*>(setModelIndex.internalPointer());
+    return item->data();
+}
+
 QVariant WorkoutModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
@@ -69,8 +89,11 @@ QVariant WorkoutModel::data(const QModelIndex &index, int role) const
 
     if (itemDataType == qMetaTypeId<WorkoutSetEntity*>()) {
         switch (role) {
-            case RepSetCountRole:
-                return itemData.value<WorkoutSetEntity*>()->repCount;
+            case RepsDoneCountRole:
+                return itemData.value<WorkoutSetEntity*>()->repsDoneCount;
+                break;
+            case RepsToDoCountRole:
+                return itemData.value<WorkoutSetEntity*>()->repsToDoCount;
                 break;
             case RepSetStateRole:
                 return itemData.value<WorkoutSetEntity*>()->state;
@@ -81,11 +104,50 @@ QVariant WorkoutModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
+bool WorkoutTreeNode::setData(const QVariant &value, int role)
+{
+    QVariant itemData = this->data();
+    int itemDataType = itemData.userType();
+
+    if (itemDataType == qMetaTypeId<WorkoutExerciseEntity*>()) {
+        switch (role) {
+            case WorkoutModel::ExerciseNameRole:
+                itemData.value<WorkoutExerciseEntity*>()->name = value.toString();
+                return true;
+
+            case WorkoutModel::ExerciseWeightRole:
+                itemData.value<WorkoutExerciseEntity*>()->defaultWeight = value.toInt();
+                return true;
+
+            case WorkoutModel::ExerciseSetsAndRepsRole:
+                itemData.value<WorkoutExerciseEntity*>()->setsAndRepsString = value.toString();
+                return true;
+        }
+    }
+
+    if (itemDataType == qMetaTypeId<WorkoutSetEntity*>()) {
+        switch (role) {
+            case WorkoutModel::RepsDoneCountRole:
+                itemData.value<WorkoutSetEntity*>()->repsDoneCount = value.toInt();
+                return true;
+
+            case WorkoutModel::RepsToDoCountRole:
+                itemData.value<WorkoutSetEntity*>()->repsToDoCount = value.toInt();
+                return true;
+
+            case WorkoutModel::RepSetStateRole:
+                itemData.value<WorkoutSetEntity*>()->state = value.toString();
+                return true;
+        }
+    }
+    return false;
+}
+
 Qt::ItemFlags WorkoutModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return 0;
-    return QAbstractItemModel::flags(index);
+    return Qt::ItemIsEditable | QAbstractItemModel::flags(index);
 }
 
 QVariant WorkoutModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -129,6 +191,27 @@ QModelIndex WorkoutModel::parent(const QModelIndex &index) const
     return createIndex(parentItem->row(), 0, parentItem);
 }
 
+WorkoutTreeNode* WorkoutModel::getModelItem(const QModelIndex &index) const
+{
+    if (index.isValid()) {
+        WorkoutTreeNode* item = static_cast<WorkoutTreeNode*>(index.internalPointer());
+        if (item)
+            return item;
+    }
+    return root;
+}
+
+bool WorkoutModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    WorkoutTreeNode* item = getModelItem(index);
+    bool result = item->setData(value, role);
+
+    if (result)
+        emit dataChanged(index, index);
+
+    return result;
+}
+
 WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB(qint64 workoutDay)
 {
     QSqlQuery query;
@@ -163,7 +246,6 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB(qint64 workoutDay)
 
         for (int i = 0; i < setCount; ++i) {
             WorkoutSetEntity* set = new WorkoutSetEntity(repCount);
-            set->state = "empty";
             exercise->setsAndReps.append(set);
         }
         workout->exercises.append(exercise);
@@ -192,7 +274,8 @@ QHash<int, QByteArray> WorkoutModel::roleNames() const {
     roles[ExerciseNameRole] = "name";
     roles[ExerciseSetsAndRepsRole] = "setsAndReps";
     roles[ExerciseWeightRole] = "weight";
-    roles[RepSetCountRole] = "repCount";
+    roles[RepsDoneCountRole] = "repsDoneCount";
+    roles[RepsToDoCountRole] = "repsToDoCount";
     roles[RepSetStateRole] = "state";
 
     return roles;

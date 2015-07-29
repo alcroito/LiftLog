@@ -48,7 +48,7 @@ Item {
             text: "FINISH WORKOUT"
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
-            font.pointSize: units.sp(10)
+            font.pixelSize: 10 * units.fontScale
             z: 1
         }
 

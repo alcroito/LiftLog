@@ -5,36 +5,20 @@ import QtQuick.Controls.Styles 1.3
 import LiftLog 1.0
 import "../components"
 
-Item {
+BasicPage {
     id: root
-    width: appState.windowWidth
-    height: appState.windowHeight
-
-    Rectangle {
-        id: background
-        color: "#ecf0f1"
-        anchors.fill: parent
-    }
-
-    NavigationBar {
-        id: navigation_bar
-        transformOrigin: Item.Center
-        anchors.top: parent.top
-        anchors.topMargin: 0
-        width: parent.width
-    }
 
     ColumnLayout {
-        id: columnLayout1
-        spacing: 15
+        id: layout
+        spacing: 15 * units.scale
 
         anchors.right: parent.right
-        anchors.rightMargin: 20
+        anchors.rightMargin: 20 * units.scale
         anchors.left: parent.left
-        anchors.leftMargin: 20
+        anchors.leftMargin: 20 * units.scale
 
-        anchors.top: navigation_bar.bottom
-        anchors.topMargin: 20
+        anchors.top: parent.top
+        anchors.topMargin: 20 * units.scale
 
         Text {
             id: welcomeText
@@ -43,17 +27,17 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             textFormat: Text.RichText
             horizontalAlignment: Text.AlignHCenter
-            font.pointSize: units.sp(12)
+            font.pixelSize: 10 * units.fontScale
         }
 
         RowLayout {
             id: rowLayout3
-            spacing: 20
+            spacing: 20 * units.scale
 
             Label {
                 id: label1
                 text: qsTr("Name")
-                font.pointSize: units.sp(12)
+                font.pixelSize: 10 * units.fontScale
                 Layout.minimumWidth: 100
             }
 
@@ -66,12 +50,12 @@ Item {
 
         RowLayout {
             id: rowLayout1
-            spacing: 20
+            spacing: 20 * units.scale
 
             Label {
                 id: label2
                 text: qsTr("Unit System")
-                font.pointSize: units.sp(12)
+                font.pixelSize: 10 * units.fontScale
                 Layout.minimumWidth: 100
             }
 
@@ -93,7 +77,7 @@ Item {
 
                 style: ComboBoxStyle {
                     font {
-                        pointSize: units.sp(12)
+                        pixelSize: 10 * units.fontScale
                     }
                 }
             }
@@ -101,12 +85,12 @@ Item {
 
         RowLayout {
             id: rowLayout2
-            spacing: 20
+            spacing: 20 * units.scale
 
             Label {
                 id: label3
                 text: qsTr("Auto-add weight")
-                font.pointSize: 12
+                font.pixelSize: 10 * units.fontScale
                 Layout.minimumWidth: 100
             }
 
@@ -121,7 +105,7 @@ Item {
         text: "Save and Continue"
         anchors.horizontalCenterOffset: 0
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 20
+        anchors.bottomMargin: 20 * units.scale
         anchors.horizontalCenter: parent.horizontalCenter
 
         onClicked: {

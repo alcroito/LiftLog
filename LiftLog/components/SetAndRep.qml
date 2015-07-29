@@ -5,15 +5,17 @@ Item {
     id: root
 
     property int outerSideLength: 45
-
     width: outerSideLength * units.scale
     height: outerSideLength * units.scale
 
     property alias text: label.text
-    property int reps: 5
+    property int repsDone: 5
     property int repsToDo: 5
+    property int exerciseIndex: -1
+    property int setIndex: -1
+    signal clicked(int repsDone, int repsToDo)
+
     state: "empty"
-    signal clicked(int reps, int repsToDo)
 
     Rectangle {
         id: circle
@@ -38,17 +40,17 @@ Item {
             onClicked: {
                 if (root.state == "empty") {
                     root.state = "active"
-                    reps = repsToDo
-                    label.text = reps
+                    repsDone = repsToDo
+                    label.text = repsDone
                 } else if (root.state == "active") {
-                    reps = reps - 1
-                    if (reps == -1) {
+                    repsDone = repsDone - 1
+                    if (repsDone == -1) {
                         root.state = "empty"
                     } else {
-                        label.text = reps
+                        label.text = repsDone
                     }
                 }
-                root.clicked(reps, repsToDo)
+                root.clicked(repsDone, repsToDo)
             }
         }
 

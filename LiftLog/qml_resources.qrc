@@ -26,5 +26,6 @@
         <file>utils/dummy.js</file>
         <file>utils/Bean.qml</file>
         <file>components/FinishWorkoutButton.qml</file>
+        <file>pages/BasicPage.qml</file>
     </qresource>
 </RCC>

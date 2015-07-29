@@ -4,119 +4,105 @@ import QtQuick.Layouts 1.1
 import LiftLog 1.0
 import "../components"
 
-Item {
+BasicPage {
     id: root
-    width: appState.windowWidth
-    height: appState.windowHeight
 
-    Rectangle {
-        id: background
-        color: "#ecf0f1"
-        anchors.fill: parent
+    FontLoader {
+        id: icomoon
+        source: "qrc:/assets/fonts/icomoon.ttf"
+    }
 
-        NavigationBar {
-            id: navigation_bar
-            anchors.top: parent.top
-            anchors.topMargin: 0
-            width: parent.width
+    GridLayout {
+        id: layout
+
+        anchors.left: parent.left
+        anchors.leftMargin: 20 * units.scale
+        anchors.right: parent.right
+        anchors.rightMargin: 20 * units.scale
+
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 10 * units.scale
+        anchors.top: parent.top
+        anchors.topMargin: 20 * units.scale
+
+        rowSpacing: 10 * units.scale
+        columnSpacing: 10 * units.scale
+        columns: 2
+        rows: 3
+
+        property int buttonWidth: width * 0.4
+
+        RectangleButton {
+            id: newWorkoutButton
+            iconText: "\uEA0A"
+            labelText: "New workout"
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            onClicked: {
+                pageStack.showWorkoutPage()
+            }
         }
 
-        FontLoader {
-            id: icomoon
-            source: "qrc:/assets/fonts/icomoon.ttf"
+        RectangleButton {
+            id: historyButton
+            iconText: "\ue94e"
+            labelText: "History"
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            onClicked: Qt.quit()
         }
 
-        GridLayout {
-            id: gridLayout1
-            anchors.right: parent.right
-            anchors.rightMargin: 20
-            anchors.left: parent.left
-            anchors.leftMargin: 20
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 10
+        RectangleButton {
+            id: graphButton
+            iconText: "\ue99b"
+            labelText: "Graph"
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+        }
 
-            anchors.top: navigation_bar.bottom
-            anchors.topMargin: 20
-            rowSpacing: 10
-            columnSpacing: 10
-            columns: 2
-            rows: 3
+        RectangleButton {
+            id: settingsButton
+            iconText: "\ue994"
+            labelText: "Settings"
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+        }
 
-            property int buttonWidth: width * 0.4
+        //            RectangleButton {
+        //                iconText: ""
+        //                labelText: "Remove DB"
+        //                Layout.fillWidth: true
+        //                Layout.fillHeight: true
+        //                onClicked: {
+        //                    dbManager.deleteDBFileAndReInit()
+        //                    pageStack.showWelcomePage()
+        //                }
+        //            }
 
-            RectangleButton {
-                id: newWorkoutButton
-                iconText: "\uEA0A"
-                labelText: "New workout"
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                onClicked: {
-                    pageStack.showWorkoutPage()
-                }
+        //            Label {
+        //                text: qsTr("Welcome back, %1").arg(appState.currentUser.name)
+        //                opacity: appState.getActiveUserId() !== 0 ? 1 : 0
+        //            }
+        Connections {
+            target: LocalNotificationService
+            onNotificationFired: {
+                console.log("Notification signal emitted with id " + notificationId)
             }
+        }
 
-            RectangleButton {
-                id: historyButton
-                iconText: "\ue94e"
-                labelText: "History"
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                onClicked: Qt.quit()
+        Connections {
+            target: graphButton
+            onClicked: {
+                LocalNotificationService.cancelNotification("id5")
             }
+        }
 
-            RectangleButton {
-                id: graphButton
-                iconText: "\ue99b"
-                labelText: "Graph"
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-            }
-
-            RectangleButton {
-                id: settingsButton
-                iconText: "\ue994"
-                labelText: "Settings"
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-            }
-
-//            RectangleButton {
-//                iconText: ""
-//                labelText: "Remove DB"
-//                Layout.fillWidth: true
-//                Layout.fillHeight: true
-//                onClicked: {
-//                    dbManager.deleteDBFileAndReInit()
-//                    pageStack.showWelcomePage()
-//                }
-//            }
-
-//            Label {
-//                text: qsTr("Welcome back, %1").arg(appState.currentUser.name)
-//                opacity: appState.getActiveUserId() !== 0 ? 1 : 0
-//            }
-
-            Connections {
-                target: LocalNotificationService
-                onNotificationFired: {
-                    console.log("Notification signal emitted with id " + notificationId)
-                }
-            }
-
-            Connections {
-                target: graphButton
-                onClicked: {
-                    LocalNotificationService.cancelNotification("id5")
-                }
-            }
-
-            RectangleButton {
-                iconText: "\uea0c"
-                labelText: "Help"
-                Layout.fillWidth: true
-                Layout.preferredHeight: parent.height / 4
-                Layout.columnSpan: 2
-            }
+        RectangleButton {
+            iconText: "\uea0c"
+            labelText: "Help"
+            Layout.fillWidth: true
+            Layout.preferredHeight: parent.height / 4
+            Layout.columnSpan: 2
         }
     }
 }

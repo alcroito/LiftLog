@@ -36,6 +36,7 @@ APP_QML_FILES += \
     LiftLog/components/ExerciseStatsInput.qml \
     LiftLog/components/TopNotification.qml \
     LiftLog/pages/WorkoutPage.qml \
+    LiftLog/pages/BasicPage.qml \
     LiftLog/components/DateAndWeight.qml
 
 

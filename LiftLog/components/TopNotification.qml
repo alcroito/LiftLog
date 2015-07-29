@@ -66,8 +66,8 @@ Rectangle {
         horizontalAlignment: Text.AlignHCenter
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
-        anchors.topMargin: 4
-        font.pixelSize: units.sp(8)
+        anchors.topMargin: 4 * units.scale
+        font.pixelSize: 8 * units.fontScale
     }
 
     Timer {
@@ -88,10 +88,10 @@ Rectangle {
         color: "#ffffff"
         text: "00:00"
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 5
+        anchors.bottomMargin: 5 * units.scale
         anchors.horizontalCenter: parent.horizontalCenter
         font.bold: true
-        font.pixelSize: units.sp(11)
+        font.pixelSize: 11 * units.fontScale
     }
 
     Item {
@@ -122,7 +122,7 @@ Rectangle {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
 
-            font.pixelSize: units.sp(14)
+            font.pixelSize: 14 * units.fontScale
         }
     }
 }

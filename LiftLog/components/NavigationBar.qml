@@ -7,15 +7,9 @@ Rectangle {
     height: 40 * units.scale
     color: "#000000"
     z: 5
-    state: "hiddenBackButton"
     signal backClicked
-
-    states: [
-        State {
-            name: "hiddenBackButton"
-            PropertyChanges { target: backButton; opacity: 0 }
-        }
-    ]
+    property alias text: label.text
+    property bool showBackButton: false
 
     FontLoader {
         id: icomoon
@@ -31,6 +25,7 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         font.family: icomoon.name
         font.pixelSize: units.sp(12)
+        opacity: showBackButton ? 1 : 0
 
         MouseArea {
             anchors.fill: parent
