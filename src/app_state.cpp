@@ -4,14 +4,16 @@
 #include <QScreen>
 
 #include "application.h"
-#include "appstate.h"
+#include "app_state.h"
 #include "user.h"
 #include "punits.h"
 #include "workout_model.h"
 
+AppState* AppState::instance = 0;
+
 AppState::AppState(QObject *parent) : QObject(parent), current_user(new User()), currentWorkoutModel(new WorkoutModel), windowWidth(320), windowHeight(480)
 {
-
+    instance = this;
 }
 
 void AppState::loadActiveUserOnDBInit() {
@@ -179,7 +181,7 @@ void AppState::saveCurrentUser() {
         qDebug() << query.lastError();
     }
     else {
-        query.prepare("INSERT INTO settings (active_id_user) VALUES (:id_user)");
+        query.prepare("UPDATE settings SET active_id_user = :id_user");
         query.bindValue(":id_user", current_user->getId());
         result = query.exec();
 

@@ -32,8 +32,11 @@ public:
 
     qint32 getWindowHeight() const;
     void setWindowHeight(const qint32 &value);
+
     void figureOutBestWindowSize(QScreen* screen);
     void computeScaleFactors(QtQuickControlsApplication* app, QScreen* screen);
+
+    static AppState* getInstance() { return instance; }
 
 signals:
     void currentUserChanged();
@@ -44,7 +47,6 @@ signals:
 public slots:
     qint64 getActiveUserId();
     bool isActiveUserSet();
-
     void saveCurrentUser();
     void loadActiveUserOnDBInit();
     void clearActiveUserOnDBClose();
@@ -53,6 +55,7 @@ private:
     QSharedPointer<WorkoutModel> currentWorkoutModel;
     qint32 windowWidth;
     qint32 windowHeight;
+    static AppState* instance;
 };
 
 #endif // APPSTATE_H

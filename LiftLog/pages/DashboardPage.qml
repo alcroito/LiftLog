@@ -68,16 +68,16 @@ BasicPage {
             Layout.fillHeight: true
         }
 
-        //            RectangleButton {
-        //                iconText: ""
-        //                labelText: "Remove DB"
-        //                Layout.fillWidth: true
-        //                Layout.fillHeight: true
-        //                onClicked: {
-        //                    dbManager.deleteDBFileAndReInit()
-        //                    pageStack.showWelcomePage()
-        //                }
-        //            }
+        RectangleButton {
+            iconText: ""
+            labelText: "Remove DB"
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            onClicked: {
+                dbManager.deleteDBFileAndReInit()
+                pageStack.showWelcomePage()
+            }
+        }
 
         //            Label {
         //                text: qsTr("Welcome back, %1").arg(appState.currentUser.name)

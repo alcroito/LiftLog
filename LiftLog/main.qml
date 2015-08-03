@@ -57,12 +57,14 @@ ApplicationWindow {
             State {
                 name: "welcome"
                 PropertyChanges { target: pageStack; initialItem: welcomePage }
-                when: dbManager.isFirstLaunch
+                // Fix to use a property instead of function call, so that QML emulation layer
+                // shows the proper page.
+                when: !appState.isActiveUserSet()
             },
             State {
                 name: "dashboard"
                 PropertyChanges { target: pageStack; initialItem: dashboardPage }
-                when: !dbManager.isFirstLaunch
+                when: appState.isActiveUserSet()
             }
         ]
 
@@ -82,7 +84,8 @@ ApplicationWindow {
         }
 
         function showWorkoutPage() {
-            appState.currentWorkoutModel.get()
+            appState.currentWorkoutModel.getLastNotCompletedWorkoutOrCreateNew()
+            appState.currentWorkoutModel.getWorkoutData()
             push({item: workoutPage})
         }
 

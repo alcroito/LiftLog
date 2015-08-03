@@ -6,8 +6,8 @@
 
 #include "application.h"
 #include "punits.h"
-#include "dbmanager.h"
-#include "appstate.h"
+#include "db_manager.h"
+#include "app_state.h"
 #include "user.h"
 #include "local_notification_service.h"
 #include "workout_model.h"

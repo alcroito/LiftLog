@@ -1,4 +1,4 @@
-#include "dbmanager.h"
+#include "db_manager.h"
 #include <QDir>
 #include <QDebug>
 #include <QSqlQuery>
@@ -7,8 +7,11 @@
 #include <QFile>
 #include <QDir>
 
+DBManager* DBManager::instance = 0;
+
 DBManager::DBManager(QObject *parent) : QObject(parent), db(QSqlDatabase::addDatabase("QSQLITE")), firstLaunch(true)
 {
+    instance = this;
 }
 
 void DBManager::init() {
@@ -163,3 +166,35 @@ void DBManager::deleteDBFile()
     emit dbDestroyed();
 }
 
+DBTransaction::DBTransaction() : commited(false), rolledBack(false) {
+    bool result = QSqlDatabase::database().transaction();
+    if (!result) {
+        qDebug() << "Error starting transaction.";
+    }
+}
+
+DBTransaction::~DBTransaction() {
+    rollback();
+}
+
+void DBTransaction::commit() {
+    if (!commited && !rolledBack) {
+        bool result = QSqlDatabase::database().commit();
+        if (!result) {
+            qDebug() << "Error committing transaction.";
+            qDebug() << QSqlDatabase::database().lastError();
+        }
+        commited = true;
+    }
+}
+
+void DBTransaction::rollback() {
+    if (!commited && !rolledBack) {
+        bool result = QSqlDatabase::database().rollback();
+        if (!result) {
+            qDebug() << "Error rolling back transaction.";
+            qDebug() << QSqlDatabase::database().lastError();
+        }
+        rolledBack = true;
+    }
+}

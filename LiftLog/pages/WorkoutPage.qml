@@ -66,7 +66,10 @@ BasicPage {
             }
         }
         footer: FinishWorkoutButton {
-            onClicked: goBack()
+            onClicked: {
+                appState.currentWorkoutModel.saveWorkoutData()
+                goBack()
+            }
         }
     }
 }

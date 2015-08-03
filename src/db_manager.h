@@ -4,6 +4,18 @@
 #include <QSqlDatabase>
 #include <QObject>
 
+// Rollbacks a database transaction when object goes out of scope, unless explicitly commited.
+class DBTransaction {
+public:
+    DBTransaction();
+    ~DBTransaction();
+    void commit();
+    void rollback();
+
+private:
+    bool commited;
+    bool rolledBack;
+};
 
 class DBManager: public QObject
 {
@@ -23,7 +35,9 @@ public:
     void deleteDBFile();
     bool copyInitDB(QString destination_path);
 
-Q_SIGNALS:
+    static DBManager* getInstance() { return instance; }
+
+signals:
     void isFirstLaunchChanged();
     void dbInitialized();
     void dbDestroyed();
@@ -35,6 +49,7 @@ private:
     QSqlDatabase db;
     bool ok;
     bool firstLaunch;
+    static DBManager* instance;
 };
 
 #endif // DBMANAGER_H

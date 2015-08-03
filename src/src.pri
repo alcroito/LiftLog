@@ -1,20 +1,28 @@
 SOURCES += \
     $$PWD/main.cpp \
-    $$PWD/dbmanager.cpp \
     $$PWD/user.cpp \
-    $$PWD/appstate.cpp \
     $$PWD/local_notification_service.cpp \
-    $$PWD/workout_model.cpp
+    $$PWD/workout_model.cpp \
+    $$PWD/workout_entity.cpp \
+    $$PWD/workout_exercise_entity.cpp \
+    $$PWD/workout_set_entity.cpp \
+    $$PWD/workout_tree_node.cpp \
+    $$PWD/db_manager.cpp \
+    $$PWD/app_state.cpp
 
 HEADERS += \
-    $$PWD/dbmanager.h \
     $$PWD/pieutilsplugin.h \
     $$PWD/punits.h \
     $$PWD/user.h \
-    $$PWD/appstate.h \
     $$PWD/local_notification_service.h \
     $$PWD/application.h \
-    $$PWD/workout_model.h
+    $$PWD/workout_model.h \
+    $$PWD/workout_entity.h \
+    $$PWD/workout_set_entity.h \
+    $$PWD/workout_exercise_entity.h \
+    $$PWD/workout_tree_node.h \
+    $$PWD/app_state.h \
+    $$PWD/db_manager.h
 
 ios {
     HEADERS += \
