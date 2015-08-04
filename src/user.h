@@ -11,8 +11,10 @@ class User : public QObject
     Q_ENUMS(WeightSystem)
     Q_PROPERTY(qint64 id READ getId WRITE setId NOTIFY idChanged)
     Q_PROPERTY(QString name READ getName WRITE setName NOTIFY nameChanged)
-    Q_PROPERTY(WeightSystem weightSystem READ weightSystem WRITE setWeightSystem NOTIFY weightSystemChanged)
+    Q_PROPERTY(WeightSystem weightSystem READ getWeightSystem WRITE setWeightSystem NOTIFY weightSystemChanged)
     Q_PROPERTY(bool autoAddWeight READ getAutoAddWeight WRITE setAutoAddWeight NOTIFY autoAddWeightChanged)
+    Q_PROPERTY(qint64 lastIdWorkoutTemplate READ getLastIdWorkoutTemplate WRITE setLastIdWorkoutTemplate NOTIFY lastIdWorkoutTemplateChanged)
+    Q_PROPERTY(qint64 nextWorkoutTemplateDay READ getNextWorkoutTemplateDay WRITE setNextWorkoutTemplateDay NOTIFY nextWorkoutTemplateDayChanged)
 
 public:
     explicit User(QObject *parent = 0);
@@ -25,7 +27,7 @@ public:
     QString getName() const;
     void setName(const QString &value);
 
-    User::WeightSystem weightSystem() const;
+    User::WeightSystem getWeightSystem() const;
     void setWeightSystem(const WeightSystem value);
 
     bool getAutoAddWeight() const;
@@ -33,6 +35,12 @@ public:
 
     qint64 getId() const;
     void setId(const qint64 &value);
+
+    qint64 getLastIdWorkoutTemplate() const;
+    void setLastIdWorkoutTemplate(const qint64 &value);
+
+    qint64 getNextWorkoutTemplateDay() const;
+    void setNextWorkoutTemplateDay(const qint64 &value);
 
     static qint64 getNextUserId();
 
@@ -42,15 +50,16 @@ signals:
     void weightSystemChanged();
     void autoAddWeightChanged();
     void idChanged();
-public slots:
+    void lastIdWorkoutTemplateChanged();
+    void nextWorkoutTemplateDayChanged();
 
 private:
     qint64 id;
     QString name;
-    WeightSystem weight_system;
-    bool auto_add_weight;
-    qint64 last_id_workout_template;
-    qint64 last_workout_template_day;
+    WeightSystem weightSystem;
+    bool autoAddWeight;
+    qint64 lastIdWorkoutTemplate;
+    qint64 nextWorkoutTemplateDay;
 };
 
 #endif // USER_H

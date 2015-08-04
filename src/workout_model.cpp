@@ -34,10 +34,8 @@ void WorkoutModel::clear() {
 void WorkoutModel::getWorkoutData() {
     clear();
 
-    // @TODO replace with proper logic of getting the next workout day after the last
-    // previous one done, or if none was done, the first workout day of a workout template.
-    int randomNumber = rand() % 2;
-    workoutEntity = fetchWorkoutDataFromDB(randomNumber);
+    qint64 workoutDay = AppState::getInstance()->getCurrentUser()->getNextWorkoutTemplateDay();
+    workoutEntity = fetchWorkoutDataFromDB(workoutDay);
     root = parseEntityToTree(workoutEntity);
 }
 
@@ -59,6 +57,43 @@ void WorkoutModel::saveWorkoutData()
     result = query.exec();
     if (!result) {
         qDebug() << "Error updating workout data.";
+        qDebug() << query.lastError();
+        return;
+    }
+
+    // Gets max day for workout template, to re-start the day numbering
+    // in case the last workout was the last day.
+    query.prepare("SELECT MAX(wte.day) "
+                  "FROM workout_template_exercises wte "
+                  "WHERE wte.id_workout_template = :id_workout_template");
+
+    query.bindValue(":id_workout_template", AppState::getInstance()->getCurrentUser()->getLastIdWorkoutTemplate());
+
+    result = query.exec();
+    if (!result) {
+        qDebug() << "Error getting max template day for workout.";
+        qDebug() << query.lastError();
+        return;
+    }
+
+    qint64 newWorkoutDay = AppState::getInstance()->getCurrentUser()->getNextWorkoutTemplateDay();
+    if (query.next() && !query.isNull(0)) {
+        qint64 maxWorkoutDay = query.value(0).toInt() + 1;
+        newWorkoutDay = (newWorkoutDay + 1) % maxWorkoutDay;
+        AppState::getInstance()->getCurrentUser()->setNextWorkoutTemplateDay(newWorkoutDay);
+    }
+
+    query.prepare("UPDATE user "
+                  "SET last_id_workout_template = :last_id_workout_template, last_workout_template_day = :last_workout_template_day "
+                  "WHERE id_user = :id_user");
+
+    query.bindValue(":last_id_workout_template", AppState::getInstance()->getCurrentUser()->getLastIdWorkoutTemplate());
+    query.bindValue(":last_workout_template_day", newWorkoutDay);
+    query.bindValue(":id_user", AppState::getInstance()->getCurrentUser()->getId());
+
+    result = query.exec();
+    if (!result) {
+        qDebug() << "Error updating user data.";
         qDebug() << query.lastError();
         return;
     }
@@ -171,14 +206,17 @@ qint64 WorkoutModel::getLastNotCompletedWorkoutOrCreateNew()
 
     qint64 id_user = AppState::getInstance()->getCurrentUser()->getId();
     qint64 id_workout = getLastNotCompletedWorkoutId(id_user);
+    qint64 day = AppState::getInstance()->getCurrentUser()->getNextWorkoutTemplateDay();
 
     if (!id_workout) {
         QSqlQuery query;
         bool result;
-        query.prepare("INSERT INTO user_workout (id_user, id_workout_template, date_started, date_ended, last_updated, user_weight, completed) VALUES "
-                      "(:id_user, :id_workout_template, :date_started, :date_ended, :last_updated, :user_weight, :completed)");
+        query.prepare("INSERT INTO user_workout (id_user, id_workout_template, day, date_started, date_ended, last_updated, user_weight, completed) VALUES "
+                      "(:id_user, :id_workout_template, :day, :date_started, :date_ended, :last_updated, :user_weight, :completed)");
         query.bindValue(":id_user", id_user);
-        query.bindValue(":id_workout_template", 1);
+        int workoutTemplateId = AppState::getInstance()->getCurrentUser()->getLastIdWorkoutTemplate();
+        query.bindValue(":id_workout_template", workoutTemplateId);
+        query.bindValue(":day", day);
         QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
         query.bindValue(":date_started", currentDateTime);
         query.bindValue(":date_ended", QVariant());
@@ -216,7 +254,7 @@ QVariant WorkoutModel::data(const QModelIndex &index, int role) const
                 return itemData.value<WorkoutExerciseEntity*>()->name;
 
             case ExerciseWeightRole:
-                return itemData.value<WorkoutExerciseEntity*>()->defaultWeight;
+                return itemData.value<WorkoutExerciseEntity*>()->workWeight;
 
             case ExerciseSetsAndRepsRole:
                 return itemData.value<WorkoutExerciseEntity*>()->setsAndRepsString;
@@ -239,7 +277,6 @@ QVariant WorkoutModel::data(const QModelIndex &index, int role) const
 
     return QVariant();
 }
-
 
 
 Qt::ItemFlags WorkoutModel::flags(const QModelIndex &index) const
@@ -362,7 +399,14 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB(qint64 workoutDay)
                   INNER JOIN exercise e ON e.id_exercise = wte.id_exercise \
                   INNER JOIN set_and_rep sr ON sr.id_set_and_rep = e.id_default_set_and_rep \
                   INNER JOIN user_workout uw ON uw.id_workout_template = wt.id_workout_template \
-                  LEFT JOIN user_workout_exercise_weight uwew ON uwew.id_exercise = e.id_exercise AND uwew.delta = wte.delta \
+                  LEFT JOIN user_workout_exercise_weight uwew ON uwew.id_exercise = e.id_exercise AND uwew.delta = wte.delta AND uwew.id_workout = \
+                    /* Extracts the id_workout of previous workout with the same day, to use as a source for completed weights */ \
+                    (SELECT uw2.id_workout \
+                    FROM user_workout uw1 \
+                    INNER JOIN user_workout uw2 ON uw2.id_workout < uw1.id_workout AND uw2.day = uw1.day \
+                    WHERE uw1.id_workout = uw.id_workout \
+                    ORDER BY uw2.id_workout DESC \
+                    LIMIT 1) \
                   WHERE uw.id_workout = :id_workout AND wte.day = :workout_day \
                   ORDER BY wte.delta");
     query.bindValue(":id_workout", idWorkout);

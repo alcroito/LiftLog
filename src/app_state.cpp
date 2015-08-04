@@ -156,10 +156,10 @@ void AppState::saveCurrentUser() {
                       "VALUES (:id_user, :name, :weight_system, :auto_add_weight, :last_id_workout_template, :last_workout_template_day)");
         query.bindValue(":id_user", current_user->getId());
         query.bindValue(":name", current_user->getName());
-        query.bindValue(":weight_system", current_user->weightSystem());
+        query.bindValue(":weight_system", current_user->getWeightSystem());
         query.bindValue(":auto_add_weight", current_user->getAutoAddWeight());
-        query.bindValue(":last_id_workout_template", 0);
-        query.bindValue(":last_workout_template_day", 0);
+        query.bindValue(":last_id_workout_template", current_user->getLastIdWorkoutTemplate());
+        query.bindValue(":last_workout_template_day", current_user->getNextWorkoutTemplateDay());
         result = query.exec();
     }
     else {
@@ -169,10 +169,10 @@ void AppState::saveCurrentUser() {
                       );
         query.bindValue(":id_user", current_user->getId());
         query.bindValue(":name", current_user->getName());
-        query.bindValue(":weight_system", current_user->weightSystem());
+        query.bindValue(":weight_system", current_user->getWeightSystem());
         query.bindValue(":auto_add_weight", current_user->getAutoAddWeight());
-        query.bindValue(":last_id_workout_template", 0);
-        query.bindValue(":last_workout_template_day", 0);
+        query.bindValue(":last_id_workout_template", current_user->getLastIdWorkoutTemplate());
+        query.bindValue(":last_workout_template_day", current_user->getNextWorkoutTemplateDay());
         result = query.exec();
     }
 
@@ -210,5 +210,7 @@ void AppState::loadCurrentUser() {
         current_user->setName(query.value(1).toString());
         current_user->setWeightSystem((User::WeightSystem) query.value(2).toInt());
         current_user->setAutoAddWeight(query.value(3).toBool());
+        current_user->setLastIdWorkoutTemplate(query.value(4).toInt());
+        current_user->setNextWorkoutTemplateDay(query.value(5).toInt());
     }
 }

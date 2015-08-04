@@ -8,7 +8,8 @@ SOURCES += \
     $$PWD/workout_set_entity.cpp \
     $$PWD/workout_tree_node.cpp \
     $$PWD/db_manager.cpp \
-    $$PWD/app_state.cpp
+    $$PWD/app_state.cpp \
+    $$PWD/workout_template_list_model.cpp
 
 HEADERS += \
     $$PWD/pieutilsplugin.h \
@@ -22,7 +23,8 @@ HEADERS += \
     $$PWD/workout_exercise_entity.h \
     $$PWD/workout_tree_node.h \
     $$PWD/app_state.h \
-    $$PWD/db_manager.h
+    $$PWD/db_manager.h \
+    $$PWD/workout_template_list_model.h
 
 ios {
     HEADERS += \

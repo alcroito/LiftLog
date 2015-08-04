@@ -11,6 +11,7 @@
 #include "user.h"
 #include "local_notification_service.h"
 #include "workout_model.h"
+#include "workout_template_list_model.h"
 
 int main(int argc, char *argv[])
 {
@@ -24,6 +25,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<AppState>(uri, 1, 0, "AppState");
     qmlRegisterSingletonType<LocalNotificationService>(uri, 1, 0, "LocalNotificationService", localNotificationServiceSingletonTypeProvider);
     qmlRegisterType<WorkoutModel>(uri, 1, 0, "WorkoutModel");
+    qmlRegisterType<WorkoutTemplateListModel>(uri, 1, 0, "WorkoutTemplateListModel");
     //qmlRegisterUncreatableType<PUnits>(uri, 0, 1, "PUnits", "Not instantiable");
 
     // Initialize the units class.

@@ -31,7 +31,7 @@ BasicPage {
         }
 
         RowLayout {
-            id: rowLayout3
+            id: rowLayout1
             spacing: 20 * units.scale
 
             Label {
@@ -49,7 +49,34 @@ BasicPage {
         }
 
         RowLayout {
-            id: rowLayout1
+            id: workoutLayout
+            spacing: 20 * units.scale
+
+            Label {
+                id: workoutLabel
+                text: qsTr("Initial workout")
+                font.pixelSize: 10 * units.fontScale
+                Layout.minimumWidth: 100
+            }
+
+
+            ComboBox {
+                id: workoutComboBox
+                Layout.fillWidth: true
+                textRole: "name"
+                model: WorkoutTemplateListModel {
+                    id: workoutTemplateList
+                }
+                style: ComboBoxStyle {
+                    font {
+                        pixelSize: 10 * units.fontScale
+                    }
+                }
+            }
+        }
+
+        RowLayout {
+            id: rowLayout3
             spacing: 20 * units.scale
 
             Label {
@@ -61,13 +88,13 @@ BasicPage {
 
 
             ComboBox {
-                id: comboBox1
+                id: weightSystemComboBox
                 Layout.fillWidth: true
 
                 property int metric: User.Metric
 
                 model: ListModel {
-                    id: cbItems
+                    id: weightSystemModel
 
                     // Fix this to properly use Enums. It works in app code, but dies in
                     // Qt Quick Designer.
@@ -84,7 +111,7 @@ BasicPage {
         }
 
         RowLayout {
-            id: rowLayout2
+            id: rowLayout4
             spacing: 20 * units.scale
 
             Label {
@@ -110,8 +137,9 @@ BasicPage {
 
         onClicked: {
             appState.currentUser.name = textInput1.text
-            appState.currentUser.weightSystem = cbItems.get(comboBox1.currentIndex).value
+            appState.currentUser.weightSystem = weightSystemModel.get(weightSystemComboBox.currentIndex).value
             appState.currentUser.autoAddWeight = autoAddWeight.checked
+            appState.currentUser.lastIdWorkoutTemplate = workoutTemplateList.getItemDataForIndexAndRole(workoutComboBox.currentIndex, WorkoutTemplateListModel.IdRole)
 
             appState.saveCurrentUser()
             pageStack.showDashboardPage()
