@@ -27,5 +27,12 @@
         <file>utils/Bean.qml</file>
         <file>components/FinishWorkoutButton.qml</file>
         <file>pages/BasicPage.qml</file>
+        <file>pages/SideWindow.qml</file>
+        <file>pages/ModalPopup.qml</file>
+        <file>components/Separator.qml</file>
+        <file>components/SwipeArea.qml</file>
+        <file>pages/CalendarPage.qml</file>
+        <file>components/CalendarNavigation.qml</file>
+        <file>components/Calendar.qml</file>
     </qresource>
 </RCC>

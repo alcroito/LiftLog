@@ -3,3 +3,6 @@ BasicPage 1.0 BasicPage.qml
 DashboardPage 1.0 DashboardPage.qml
 WelcomePage 1.0 WelcomePage.qml
 WorkoutPage 1.0 WorkoutPage.qml
+SideWindow 1.0 SideWindow.qml
+ModalPopup 1.0 ModalPopup.qml
+CalendarPage 1.0 CalendarPage.qml

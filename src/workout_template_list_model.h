@@ -7,7 +7,7 @@
 class WorkoutTemplateListModel : public QSqlTableModel
 {
     Q_OBJECT
-     Q_ENUMS(WorkoutTemplateRoles)
+    Q_ENUMS(WorkoutTemplateRoles)
 public:
     explicit WorkoutTemplateListModel(QObject *parent = 0);
 

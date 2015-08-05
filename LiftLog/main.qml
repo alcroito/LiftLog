@@ -48,6 +48,16 @@ ApplicationWindow {
         }
     }
 
+    Component {
+        id: calendarPage
+        CalendarPage {
+            Component.onCompleted: {
+                console.log("Calendar page loaded")
+            }
+            onGoBack: pageStack.goBack()
+        }
+    }
+
     StackView {
         id: pageStack
         anchors.fill: parent
@@ -87,6 +97,10 @@ ApplicationWindow {
             appState.currentWorkoutModel.getLastNotCompletedWorkoutOrCreateNew()
             appState.currentWorkoutModel.getWorkoutData()
             push({item: workoutPage})
+        }
+
+        function showCalendarPage() {
+            push({item: calendarPage})
         }
 
         function goBack() {

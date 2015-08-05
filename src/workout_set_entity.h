@@ -14,9 +14,11 @@ public:
     WorkoutSetEntity() : setId(ID_NOT_SET), repsToDoCount(NO_REPS_DONE), repsDoneCount(NO_REPS_DONE), state(EMPTY_STATE) {}
     WorkoutSetEntity(qint32 newRepsToDoCount) : setId(ID_NOT_SET), repsToDoCount(newRepsToDoCount), repsDoneCount(NO_REPS_DONE), state(EMPTY_STATE) {}
 
-    const static qint64 ID_NOT_SET = -1;
-    const static qint32 NO_REPS_DONE = -1;
+    const static qint64 ID_NOT_SET;
+    const static qint32 NO_REPS_DONE;
     const static QString EMPTY_STATE;
+    const static QString BLINKING_STATE;
+    const static QString CROSSED_STATE;
 
     qint64 getSetId() const { return setId; }
     void setSetId(const qint64 &value) { setId = value; emit setIdChanged(); }
@@ -25,14 +27,18 @@ public:
     qint32 getRepsDoneCount() const { return repsDoneCount; }
     void setRepsDoneCount(const qint32 &value) { repsDoneCount = value; emit repsDoneCountChanged(); }
     QString getState() const { return state; }
-    void setState(const QString &value) { state = value; emit stateChanged(); }
+    void setState(const QString &value) { state = value; emit stateChanged(state); }
+
+    bool isInvalid() { return setId == ID_NOT_SET || state == CROSSED_STATE; }
+    bool isBlinking() { return state == BLINKING_STATE; }
 
 public slots:
     bool isCompleted() { return state != "empty"; }
+    bool isSuccessful() { return repsDoneCount == repsToDoCount; }
 signals:
     void repsToDoCountChanged();
     void repsDoneCountChanged();
-    void stateChanged();
+    void stateChanged(QString value);
     void setIdChanged();
 
 private:

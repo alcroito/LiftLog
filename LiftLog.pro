@@ -37,7 +37,14 @@ APP_QML_FILES += \
     LiftLog/components/TopNotification.qml \
     LiftLog/pages/WorkoutPage.qml \
     LiftLog/pages/BasicPage.qml \
-    LiftLog/components/DateAndWeight.qml
+    LiftLog/pages/SideWindow.qml \
+    LiftLog/pages/ModalPopup.qml \
+    LiftLog/pages/CalendarPage.qml \
+    LiftLog/components/DateAndWeight.qml \
+    LiftLog/components/Separator.qml \
+    LiftLog/components/SwipeArea.qml \
+    LiftLog/components/CalendarNavigation.qml \
+    LiftLog/components/Calendar.qml
 
 
 FONTS += \

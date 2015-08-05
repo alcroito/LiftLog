@@ -9,10 +9,11 @@ SOURCES += \
     $$PWD/workout_tree_node.cpp \
     $$PWD/db_manager.cpp \
     $$PWD/app_state.cpp \
-    $$PWD/workout_template_list_model.cpp
+    $$PWD/workout_template_list_model.cpp \
+    $$PWD/calendar_model.cpp
 
 HEADERS += \
-    $$PWD/pieutilsplugin.h \
+#    $$PWD/pieutilsplugin.h \
     $$PWD/punits.h \
     $$PWD/user.h \
     $$PWD/local_notification_service.h \
@@ -24,7 +25,8 @@ HEADERS += \
     $$PWD/workout_tree_node.h \
     $$PWD/app_state.h \
     $$PWD/db_manager.h \
-    $$PWD/workout_template_list_model.h
+    $$PWD/workout_template_list_model.h \
+    $$PWD/calendar_model.h
 
 ios {
     HEADERS += \

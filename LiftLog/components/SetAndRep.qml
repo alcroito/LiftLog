@@ -1,18 +1,24 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.2
+import LiftLog 1.0
 
 Item {
     id: root
 
     property int outerSideLength: 45
+    property color redColor: "#e1352d"
+    property color whiteColor: "#ffffff"
+    property color borderColor: "#cccccc"
+    property color crossedColor: "#f6f6f6"
+    property color crossedStrokeColor: "#a0a0a0"
+
     width: outerSideLength * units.scale
     height: outerSideLength * units.scale
 
     property alias text: label.text
     property int repsDone: 5
     property int repsToDo: 5
-    property int exerciseIndex: -1
-    property int setIndex: -1
+    property var setModelIndex
     signal clicked(int repsDone, int repsToDo)
 
     state: "empty"
@@ -25,8 +31,38 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         radius: (outerSideLength * units.scale) / 2
         border.width: 1 * units.scale
-        border.color: Qt.darker("#dadada")
-        color: "#ffffff"
+        border.color: borderColor
+        color: whiteColor
+        SequentialAnimation {
+            id: blinkingAnimation
+
+            // Before infinitely blinking, wait for a small bit of time,
+            // so that when the workout page loads, the animation isn't half way done.
+            PauseAnimation {
+                duration: 500
+            }
+
+            SequentialAnimation {
+                loops: Animation.Infinite
+                ColorAnimation {
+                    target: circle
+                    property: "color"
+
+                    easing.type: Easing.Linear
+                    from: whiteColor
+                    to: redColor
+                    duration: 1000
+                }
+                ColorAnimation {
+                    target: circle
+                    property: "color"
+                    easing.type: Easing.Linear
+                    from: redColor
+                    to: whiteColor
+                    duration: 1000
+                }
+            }
+        }
 
         Label {
             id: label
@@ -38,18 +74,29 @@ Item {
         MouseArea {
             anchors.fill: parent
             onClicked: {
-                if (root.state == "empty") {
-                    root.state = "active"
-                    repsDone = repsToDo
-                    label.text = repsDone
+
+                // Use additional variables, so no accidental modification is done to the component bindings.
+                var newState = root.state
+                var newRepsDone = repsDone
+                var newRepsToDo = repsToDo
+
+                if (newState == "empty" || newState == "blinking") {
+                    newState = "active"
+                    newRepsDone = newRepsToDo
                 } else if (root.state == "active") {
-                    repsDone = repsDone - 1
-                    if (repsDone == -1) {
-                        root.state = "empty"
-                    } else {
-                        label.text = repsDone
+                    newRepsDone = newRepsDone - 1
+                    if (newRepsDone == -1) {
+                        newState = "empty"
                     }
                 }
+
+                // Set the model values, which will in turn modify this component's values, because of the bindings
+                // done to the model values.
+                appState.currentWorkoutModel.setData(setModelIndex, newRepsDone, WorkoutModel.RepsDoneCountRole)
+                appState.currentWorkoutModel.setData(setModelIndex, newRepsToDo, WorkoutModel.RepsToDoCountRole)
+                appState.currentWorkoutModel.setData(setModelIndex, newState, WorkoutModel.RepsSetStateRole)
+
+                // Signal parent about this set being clicked.
                 root.clicked(repsDone, repsToDo)
             }
         }
@@ -57,7 +104,7 @@ Item {
         Canvas {
             id: cross
 
-            property int sideLength: 14 * units.scale
+            property int sideLength: 16 * units.scale
 
             width: sideLength
             height: sideLength
@@ -67,8 +114,8 @@ Item {
 
             onPaint: {
                 var ctx = cross.getContext('2d')
-                ctx.lineWidth = 1
-                ctx.strokeStyle = Qt.darker("gray")
+                ctx.lineWidth = 1.5 * units.scale
+                ctx.strokeStyle = crossedStrokeColor
 
                 // Left-top to bottom-right cross line
                 ctx.beginPath()
@@ -90,20 +137,26 @@ Item {
         State {
             name: "empty"
             PropertyChanges { target: label; text: "" }
+            PropertyChanges { target: circle; color: whiteColor }
         },
         State {
             name: "standard"
         },
         State {
             name: "active"
-            PropertyChanges { target: circle; color: "#e1352d" }
-            PropertyChanges { target: label; color: "white" }
+            PropertyChanges { target: circle; color: redColor }
+            PropertyChanges { target: label; color: whiteColor }
         },
         State {
             name: "crossed"
             PropertyChanges { target: label; text: "" }
-            PropertyChanges { target: circle; border.width: 0; color: "#dadada" }
+            PropertyChanges { target: circle; border.width: 0; color: crossedColor }
             PropertyChanges { target: cross; opacity: 1 }
+        },
+        State {
+            name: "blinking"
+            PropertyChanges { target: label; text: "" }
+            PropertyChanges { target: blinkingAnimation; running: true }
         }
     ]
 }

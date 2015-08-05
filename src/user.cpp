@@ -90,6 +90,68 @@ qint64 User::getNextUserId()
     return id;
 }
 
+bool User::loadById(qint64 idUser)
+{
+    QSqlQuery query;
+    query.prepare("SELECT id_user, name, weight_system, auto_add_weight, last_id_workout_template, last_workout_template_day "
+                  "FROM user WHERE id_user = :id_user");
+    query.bindValue(":id_user", idUser);
+    bool result = query.exec();
+    bool userLoaded = result && query.next();
+    if (userLoaded) {
+        setId(idUser);
+        setName(query.value(1).toString());
+        setWeightSystem((User::WeightSystem) query.value(2).toInt());
+        setAutoAddWeight(query.value(3).toBool());
+        setLastIdWorkoutTemplate(query.value(4).toInt());
+        setNextWorkoutTemplateDay(query.value(5).toInt());
+    }
+    else {
+        qDebug() << "Error loading user by id.";
+        qDebug() << query.lastError();
+    }
+
+    return userLoaded;
+}
+
+bool User::save()
+{
+    bool result;
+    QSqlQuery query;
+    if (!getId()) {
+        setId(getNextUserId());
+        query.prepare("INSERT INTO user (id_user, name, weight_system, auto_add_weight, last_id_workout_template, last_workout_template_day) "
+                      "VALUES (:id_user, :name, :weight_system, :auto_add_weight, :last_id_workout_template, :last_workout_template_day)");
+        query.bindValue(":id_user", getId());
+        query.bindValue(":name", getName());
+        query.bindValue(":weight_system", getWeightSystem());
+        query.bindValue(":auto_add_weight", getAutoAddWeight());
+        query.bindValue(":last_id_workout_template", getLastIdWorkoutTemplate());
+        query.bindValue(":last_workout_template_day", getNextWorkoutTemplateDay());
+        result = query.exec();
+    }
+    else {
+        query.prepare("UPDATE user "
+                      "SET name = :name, weight_system = :weight_system, auto_add_weight = :auto_add_weight, last_id_workout_template = :last_id_workout_template, last_workout_template_day = :last_workout_template_day "
+                      "WHERE id_user = :id_user"
+                      );
+        query.bindValue(":id_user", getId());
+        query.bindValue(":name", getName());
+        query.bindValue(":weight_system", getWeightSystem());
+        query.bindValue(":auto_add_weight", getAutoAddWeight());
+        query.bindValue(":last_id_workout_template", getLastIdWorkoutTemplate());
+        query.bindValue(":last_workout_template_day", getNextWorkoutTemplateDay());
+        result = query.exec();
+    }
+
+    if (!result) {
+        qDebug() << "Error saving user.";
+        qDebug() << query.lastError();
+    }
+
+    return result;
+}
+
 void User::clear() {
     id = 0;
     name = "";

@@ -16,6 +16,10 @@ Item {
     property int exerciseIndex: -1
     property bool setsCompleted: false
     property string nextWeightText: "20KG"
+    property string currentWeightText: "20KG"
+    property string successText: qsTr("Congrats! %1 next time")
+    property string failureText: qsTr("Try reapeating %1 next time, or deload!")
+    property bool exerciseIsSuccessful: true
 
     state: "standard"
 
@@ -75,22 +79,16 @@ Item {
                 type: "empty"
             }
             ListElement {
-                type: "empty"
-            }
-            ListElement {
                 type: "standard"
             }
             ListElement {
                 type: "active"
             }
             ListElement {
-                type: "standard"
+                type: "crossed"
             }
             ListElement {
-                type: "standard"
-            }
-            ListElement {
-                type: "standard"
+                type: "blinking"
             }
         }
 
@@ -110,21 +108,16 @@ Item {
             rootIndex: exerciseModelIndex
             delegate: SetAndRep {
                 state: model.state
-                text: ""
+                text: model.repsDoneCount
                 repsDone: model.repsDoneCount
                 repsToDo: model.repsToDoCount
-                exerciseIndex: root.exerciseIndex
-                setIndex: index
+                setModelIndex: setsDelegateModel.modelIndex(index)
                 onClicked: {
-                    // Modify the model reps done and state properties.
-                    // @TODO Fix this to actually modify via the model setData method
-                    // Instead of directly modifying the data source.
-                    appState.currentWorkoutModel.getSet(
-                                exerciseIndex, index).repsDoneCount = repsDone
-                    appState.currentWorkoutModel.getSet(exerciseIndex,
-                                                        index).state = state
-                    // Sets the sets completed flag.
+                    // Modifies the setsCompleted flag.
                     checkIfAllSetsCompleted(root.exerciseIndex)
+
+                    // Modifies the exerciseIsSuccessful flag.
+                    checkIfExerciseIsSuccessful(root.exerciseIndex)
 
                     // Signal parent about the pressed set and if all sets are completed.
                     root.clicked(index, repsDone, repsToDo, setsCompleted)
@@ -170,9 +163,18 @@ Item {
 
             Label {
                 id: setsCompletedLabel
-                text: qsTr("Congrats! %1 next time").arg(nextWeightText)
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.verticalCenter: parent.verticalCenter
+
+                Binding on text {
+                    value: successText.arg(nextWeightText)
+                    when: exerciseIsSuccessful
+                }
+
+                Binding on text {
+                    value: failureText.arg(currentWeightText)
+                    when: !exerciseIsSuccessful
+                }
             }
 
             MouseArea {
@@ -260,5 +262,19 @@ Item {
         var theModel = appState.currentWorkoutModel
         var setsCount = theModel.setsCountForExercise(exerciseIndex)
         setsCompleted = root.getCompletedSetsCount(exerciseIndex) === setsCount
+    }
+
+    function checkIfExerciseIsSuccessful(exerciseIndex) {
+        exerciseIsSuccessful = true
+        var theModel = appState.currentWorkoutModel
+        var setsCount = theModel.setsCountForExercise(exerciseIndex)
+        for (var setIndex = 0; setIndex < setsCount; setIndex++) {
+            var setAndRep = theModel.getSet(exerciseIndex, setIndex)
+            var success = setAndRep.isSuccessful()
+            if (!success) {
+                exerciseIsSuccessful = false
+                break
+            }
+        }
     }
 }

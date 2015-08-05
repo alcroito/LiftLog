@@ -44,6 +44,9 @@ public:
 
     static qint64 getNextUserId();
 
+    bool loadById(qint64 idUser);
+    bool save();
+
     void clear();
 signals:
     void nameChanged();

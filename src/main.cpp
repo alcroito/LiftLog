@@ -12,6 +12,7 @@
 #include "local_notification_service.h"
 #include "workout_model.h"
 #include "workout_template_list_model.h"
+#include "calendar_model.h"
 
 int main(int argc, char *argv[])
 {
@@ -26,7 +27,8 @@ int main(int argc, char *argv[])
     qmlRegisterSingletonType<LocalNotificationService>(uri, 1, 0, "LocalNotificationService", localNotificationServiceSingletonTypeProvider);
     qmlRegisterType<WorkoutModel>(uri, 1, 0, "WorkoutModel");
     qmlRegisterType<WorkoutTemplateListModel>(uri, 1, 0, "WorkoutTemplateListModel");
-    //qmlRegisterUncreatableType<PUnits>(uri, 0, 1, "PUnits", "Not instantiable");
+    qmlRegisterType<CalendarModel>(uri, 1, 0, "CalendarModel");
+    qmlRegisterUncreatableType<PUnits>(uri, 0, 1, "PUnits", "Not instantiable");
 
     // Initialize the units class.
     QQmlContext* rootContext = engine.rootContext();

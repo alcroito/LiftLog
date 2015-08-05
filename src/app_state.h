@@ -50,8 +50,9 @@ public slots:
     void saveCurrentUser();
     void loadActiveUserOnDBInit();
     void clearActiveUserOnDBClose();
+    QString getWeightString(qreal weight, bool withBodyWeight = false, bool withSpaceBetween = false);
 private:
-    QSharedPointer<User> current_user;
+    QSharedPointer<User> currentUser;
     QSharedPointer<WorkoutModel> currentWorkoutModel;
     qint32 windowWidth;
     qint32 windowHeight;

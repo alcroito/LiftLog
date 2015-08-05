@@ -2,6 +2,7 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QScreen>
+#include <QStringBuilder>
 
 #include "application.h"
 #include "app_state.h"
@@ -11,14 +12,14 @@
 
 AppState* AppState::instance = 0;
 
-AppState::AppState(QObject *parent) : QObject(parent), current_user(new User()), currentWorkoutModel(new WorkoutModel), windowWidth(320), windowHeight(480)
+AppState::AppState(QObject *parent) : QObject(parent), currentUser(new User()), currentWorkoutModel(new WorkoutModel), windowWidth(320), windowHeight(480)
 {
     instance = this;
 }
 
 void AppState::loadActiveUserOnDBInit() {
     if (isActiveUserSet()) {
-        current_user->setId(getActiveUserId());
+        currentUser->setId(getActiveUserId());
         loadCurrentUser();
     } else {
         qDebug() << "Active user not set.";
@@ -27,8 +28,42 @@ void AppState::loadActiveUserOnDBInit() {
 
 void AppState::clearActiveUserOnDBClose() {
     // Reset the current user as if there is none set.
-    current_user->clear();
+    currentUser->clear();
 }
+
+QString AppState::getWeightString(qreal weight, bool withBodyWeight, bool withSpaceBetween)
+{
+    User::WeightSystem system = currentUser->getWeightSystem();
+    QString weightSuffix;
+    QString prefix;
+    QString result;
+
+    if (system == User::Metric) {
+        weightSuffix = "KG";
+    } else {
+        weightSuffix = "LB";
+        weight *= 2;
+    }
+
+    if (withBodyWeight) {
+        prefix = "BW";
+        if (weight != 0) prefix += "+";
+        QTextStream(&result) << prefix;
+    }
+
+    if (weight != 0) {
+        QTextStream(&result) << weight;
+
+        if (withSpaceBetween) {
+            QTextStream(&result) << " ";
+        }
+
+        QTextStream(&result) << weightSuffix;
+    }
+
+    return result;
+}
+
 qint32 AppState::getWindowHeight() const
 {
     return windowHeight;
@@ -102,13 +137,13 @@ void AppState::setWindowWidth(const qint32 &value)
 
 User* AppState::getCurrentUser()
 {
-    return current_user.data();
+    return currentUser.data();
 }
 
 void AppState::setCurrentUser(User* value)
 {
-    current_user.clear();
-    current_user = QSharedPointer<User>(value);
+    currentUser.clear();
+    currentUser = QSharedPointer<User>(value);
     emit currentUserChanged();
 }
 
@@ -148,45 +183,19 @@ bool AppState::isActiveUserSet()
 
 void AppState::saveCurrentUser() {
     qDebug() << "Saving current user.";
-    bool result;
-    QSqlQuery query;
-    if (!current_user->getId()) {
-        current_user->setId(User::getNextUserId());
-        query.prepare("INSERT INTO user (id_user, name, weight_system, auto_add_weight, last_id_workout_template, last_workout_template_day) "
-                      "VALUES (:id_user, :name, :weight_system, :auto_add_weight, :last_id_workout_template, :last_workout_template_day)");
-        query.bindValue(":id_user", current_user->getId());
-        query.bindValue(":name", current_user->getName());
-        query.bindValue(":weight_system", current_user->getWeightSystem());
-        query.bindValue(":auto_add_weight", current_user->getAutoAddWeight());
-        query.bindValue(":last_id_workout_template", current_user->getLastIdWorkoutTemplate());
-        query.bindValue(":last_workout_template_day", current_user->getNextWorkoutTemplateDay());
-        result = query.exec();
-    }
-    else {
-        query.prepare("UPDATE user "
-                      "SET name = :name, weight_system = :weight_system, auto_add_weight = :auto_add_weight, last_id_workout_template = :last_id_workout_template, last_workout_template_day  = :last_workout_template_day "
-                      "WHERE id_user = :id_user"
-                      );
-        query.bindValue(":id_user", current_user->getId());
-        query.bindValue(":name", current_user->getName());
-        query.bindValue(":weight_system", current_user->getWeightSystem());
-        query.bindValue(":auto_add_weight", current_user->getAutoAddWeight());
-        query.bindValue(":last_id_workout_template", current_user->getLastIdWorkoutTemplate());
-        query.bindValue(":last_workout_template_day", current_user->getNextWorkoutTemplateDay());
-        result = query.exec();
-    }
+    bool userSaved = currentUser->save();
 
-    if (!result) {
+    if (!userSaved) {
         qDebug() << "Error saving current user.";
-        qDebug() << query.lastError();
     }
     else {
+        QSqlQuery query;
         query.prepare("UPDATE settings SET active_id_user = :id_user");
-        query.bindValue(":id_user", current_user->getId());
-        result = query.exec();
+        query.bindValue(":id_user", currentUser->getId());
+        bool result = query.exec();
 
         if (!result) {
-            qDebug() << "Error saving the current active user.";
+            qDebug() << "Error updating the active user id.";
             qDebug() << query.lastError();
         }
     }
@@ -194,23 +203,5 @@ void AppState::saveCurrentUser() {
 
 void AppState::loadCurrentUser() {
     qDebug() << "Loading current user.";
-    bool result;
-    QSqlQuery query;
-
-    current_user->setId(getActiveUserId());
-    query.prepare("SELECT id_user, name, weight_system, auto_add_weight, last_id_workout_template, last_workout_template_day "
-                  "FROM user WHERE id_user = :id_user");
-    query.bindValue(":id_user", current_user->getId());
-    result = query.exec();
-    if (!result || !query.next()) {
-        qDebug() << "Error loading current user.";
-        qDebug() << query.lastError();
-    }
-    else {
-        current_user->setName(query.value(1).toString());
-        current_user->setWeightSystem((User::WeightSystem) query.value(2).toInt());
-        current_user->setAutoAddWeight(query.value(3).toBool());
-        current_user->setLastIdWorkoutTemplate(query.value(4).toInt());
-        current_user->setNextWorkoutTemplateDay(query.value(5).toInt());
-    }
+    currentUser->loadById(getActiveUserId());
 }

@@ -49,7 +49,7 @@ BasicPage {
             labelText: "History"
             Layout.fillWidth: true
             Layout.fillHeight: true
-            onClicked: Qt.quit()
+            onClicked: pageStack.showCalendarPage()
         }
 
         RectangleButton {
@@ -58,6 +58,9 @@ BasicPage {
             labelText: "Graph"
             Layout.fillWidth: true
             Layout.fillHeight: true
+            onClicked: {
+                root.state = "modalPopupShown"
+            }
         }
 
         RectangleButton {
