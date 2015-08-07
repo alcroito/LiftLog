@@ -46,7 +46,8 @@ void LocalNotificationService::scheduleNotification(QString id, QDateTime date, 
 
 void LocalNotificationService::scheduleNotification(QString id, qint64 interval, QString title, QString text, QString actionText, qint32 badgeNumber)
 {
-    QDateTime date = QDateTime::currentDateTime().addSecs(interval);
+    // @TODO Find out what kind of timezone should be used, or if UTC is ok.
+    QDateTime date = QDateTime::currentDateTimeUtc().addSecs(interval);
     implementation->scheduleNotification(id, date, title, text, actionText, badgeNumber);
 }
 

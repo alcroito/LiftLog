@@ -35,6 +35,8 @@ public:
     void deleteDBFile();
     bool copyInitDB(QString destination_path);
 
+    QString getLastExecutedQuery(const QSqlQuery& query);
+
     static DBManager* getInstance() { return instance; }
 
 signals:
@@ -51,5 +53,7 @@ private:
     bool firstLaunch;
     static DBManager* instance;
 };
+
+#define debugQuery(query) qDebug() << DBManager::getInstance()->getLastExecutedQuery(query)
 
 #endif // DBMANAGER_H

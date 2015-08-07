@@ -11,14 +11,16 @@ class WorkoutSetEntity : public QObject {
     Q_PROPERTY(qint32 repsDoneCount READ getRepsDoneCount WRITE setRepsDoneCount NOTIFY repsDoneCountChanged)
     Q_PROPERTY(QString state READ getState WRITE setState NOTIFY stateChanged)
 public:
-    WorkoutSetEntity() : setId(ID_NOT_SET), repsToDoCount(NO_REPS_DONE), repsDoneCount(NO_REPS_DONE), state(EMPTY_STATE) {}
-    WorkoutSetEntity(qint32 newRepsToDoCount) : setId(ID_NOT_SET), repsToDoCount(newRepsToDoCount), repsDoneCount(NO_REPS_DONE), state(EMPTY_STATE) {}
+    WorkoutSetEntity() : QObject(), setId(ID_NOT_SET), repsToDoCount(NO_REPS_DONE), repsDoneCount(NO_REPS_DONE), state(EMPTY_STATE) {}
+    WorkoutSetEntity(qint32 newRepsToDoCount) : QObject(), setId(ID_NOT_SET), repsToDoCount(newRepsToDoCount), repsDoneCount(NO_REPS_DONE), state(EMPTY_STATE) {}
+    virtual ~WorkoutSetEntity();
 
     const static qint64 ID_NOT_SET;
     const static qint32 NO_REPS_DONE;
     const static QString EMPTY_STATE;
     const static QString BLINKING_STATE;
     const static QString CROSSED_STATE;
+    const static QString ACTIVE_STATE;
 
     qint64 getSetId() const { return setId; }
     void setSetId(const qint64 &value) { setId = value; emit setIdChanged(); }
@@ -33,8 +35,8 @@ public:
     bool isBlinking() { return state == BLINKING_STATE; }
 
 public slots:
-    bool isCompleted() { return state != "empty"; }
     bool isSuccessful() { return repsDoneCount == repsToDoCount; }
+    bool isAttempted() { return repsDoneCount != NO_REPS_DONE; }
 signals:
     void repsToDoCountChanged();
     void repsDoneCountChanged();

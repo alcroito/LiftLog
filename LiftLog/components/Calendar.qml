@@ -14,7 +14,29 @@ Item {
     property color activeCellColor: "#e74c3c"
     property color grayCellColor: "#e2e2e2"
     property color grayCellTextColor: "#ffffff"
-    property var calendarModel
+
+    signal movedToPrevMonth(var newDate)
+    signal movedToNextMonth(var newDate)
+    signal dateClicked(var date)
+
+    function goPrevMonth() {
+        var date = calendarSliderModel.goPrevMonth()
+        calendarList.positionViewAtIndex(1, ListView.Center)
+        calendarList.currentIndex = 1
+        return date
+    }
+
+    function goNextMonth() {
+        var date = calendarSliderModel.goNextMonth()
+        calendarList.positionViewAtIndex(1, ListView.Center)
+        calendarList.currentIndex = 1
+        return date
+    }
+
+    function refresh() {
+        // Refreshes the current month list of workouts.
+        var calendarGridInstance = calendarList.currentItem.getGridView().getModel().refresh()
+    }
 
     ListModel {
         id: daysModel
@@ -49,99 +71,224 @@ Item {
         anchors.rightMargin: 13 * units.scale
         anchors.leftMargin: 13 * units.scale
         height: childrenRect.height
-        anchors.topMargin: 6 * units.scale
+        anchors.topMargin: 10 * units.scale
 
         ListView {
             id: dayLabels
-            width: 294
+            width: contentItem.childrenRect.width
             height: 20 * units.scale
-            anchors.left: parent.left
-            anchors.leftMargin: 8 * units.scale
-            spacing: 15 * units.scale
+            interactive: false
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: 0
             orientation: Qt.Horizontal
 
             anchors.top: parent.top
             anchors.topMargin: 0
             model: daysModel
-            delegate: Text {
-                text: name
-                font.bold: true
-                font.pixelSize: 9 * units.fontScale
+            delegate: Item {
+                width: calendarList.sideSizeOuter
+
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: name
+                    font.bold: true
+                    font.pixelSize: 9 * units.fontScale
+                }
+            }
+        }
+    }
+
+    CalendarSliderModel {
+        id: calendarSliderModel
+    }
+
+    ListView {
+        id: calendarList
+        orientation: Qt.Horizontal
+        spacing: 0
+        highlightFollowsCurrentItem: false
+
+        width: parent.width
+        height: contentItem.childrenRect.height
+        flickDeceleration: 1000
+        maximumFlickVelocity: 1000
+        boundsBehavior: Flickable.DragOverBounds
+
+        anchors.top: background.bottom
+        anchors.topMargin: 10 * units.scale
+        anchors.horizontalCenter: parent.horizontalCenter
+
+        snapMode: ListView.SnapOneItem
+
+        clip: true
+        model: calendarSliderModel
+
+        property int sideSize: 40 * units.scale
+        property int sideSizeOuter: 42 * units.scale
+
+        Component.onCompleted: {
+            calendarList.currentIndex = 1
+            calendarList.positionViewAtIndex(1, ListView.Center)
+        }
+
+        onMovementEnded: {
+            // Set the currentIndex to the item that is currently visible in the listview.
+            calendarList.currentIndex = calendarList.indexAt(calendarList.contentX, calendarList.contentY);
+
+            // If the item is not the middle one, we move to the previous or next month.
+            if (calendarList.currentIndex == 0) {
+                root.movedToPrevMonth(goPrevMonth())
+            }
+            if (calendarList.currentIndex == 2) {
+                root.movedToNextMonth(goNextMonth())
             }
         }
 
-        GridView {
-            id: calendarGrid
+        delegate: Row {
+            Item {
+                id: beforeSpacing
+                width: (calendarList.width - calendarList.sideSizeOuter * 7) / 2
+                height: 1
+            }
 
-            property int sideSize: 40 * units.scale
-            property int sideSizeOuter: 42 * units.scale
+            function getGridView() {
+                return calendarGrid
+            }
 
-            width: parent.width
-            height: contentItem.childrenRect.height
+            GridView {
+                id: calendarGrid
 
-            anchors.top: dayLabels.bottom
-            anchors.topMargin: 10 * units.scale
+                width: calendarList.sideSizeOuter * 7
+                height: contentItem.childrenRect.height
 
-            model: calendarModel
-            cellWidth: sideSizeOuter
-            cellHeight: sideSizeOuter
+                model: monthModel
+                cellWidth: calendarList.sideSizeOuter
+                cellHeight: calendarList.sideSizeOuter
+                interactive: false
 
-            delegate: Item {
-                id: cellOuterBackground
-                width: calendarGrid.sideSizeOuter
-                height: calendarGrid.sideSizeOuter
+                function getModel() {
+                    return model
+                }
 
-                Rectangle {
-                    id: cellBackground
-                    width: calendarGrid.sideSize
-                    height: calendarGrid.sideSize
-                    border.color: borderColor
-                    anchors.left: parent.left
-                    anchors.top: parent.top
-                    color: defaultCellColor
-                    state: model.state
+                delegate: Item {
+                    id: cellOuterBackground
+                    width: calendarList.sideSizeOuter
+                    height: calendarList.sideSizeOuter
 
-                    Text {
-                        id: cellLabel
-                        text: model.text
-                        verticalAlignment: Text.AlignVCenter
-                        horizontalAlignment: Text.AlignHCenter
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
+                    Rectangle {
+                        id: cellBackground
+                        width: calendarList.sideSize
+                        height: calendarList.sideSize
+                        border.color: borderColor
+                        anchors.left: parent.left
+                        anchors.top: parent.top
+                        color: defaultCellColor
+                        state: model.state
 
-                    states: [
-                        State {
-                            name: "empty"
-                            PropertyChanges {
-                                target: cellBackground
-                                opacity: 0
+                        Text {
+                            id: cellLabel
+                            text: model.text
+                            verticalAlignment: Text.AlignVCenter
+                            horizontalAlignment: Text.AlignHCenter
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        MouseArea {
+                            id: cellClickArea
+                            anchors.fill: parent
+                            property string initialState
+
+                            onPressed: {
+                                initialState = cellBackground.state
                             }
-                        },
-                        State {
-                            name: "gray"
-                            PropertyChanges {
-                                target: cellBackground
-                                color: grayCellColor
+
+                            onPressAndHold: {
+                                if (initialState != "gray" && initialState != "active" && initialState != "empty") {
+                                    cellBackground.state = "hold"
+                                }
                             }
-                            PropertyChanges {
-                                target: cellLabel
-                                color: grayCellTextColor
+
+                            onReleased: {
+                                if (cellBackground.state == "hold") {
+                                    cellBackground.state = initialState
+                                    cellClickArea.clicked(mouse)
+                                }
                             }
-                        },
-                        State {
-                            name: "active"
-                            PropertyChanges {
-                                target: cellBackground
-                                color: activeCellColor
-                            }
-                            PropertyChanges {
-                                target: cellLabel
-                                color: "white"
+
+                            onClicked: {
+                                if (cellBackground.state != "empty" && cellBackground.state != "gray")
+                                dateClicked(model.date)
                             }
                         }
-                    ]
+
+                        states: [
+                            State {
+                                name: "empty"
+                                PropertyChanges {
+                                    target: cellBackground
+                                    opacity: 0
+                                }
+                            },
+                            State {
+                                name: "gray"
+                                PropertyChanges {
+                                    target: cellBackground
+                                    color: grayCellColor
+                                }
+                                PropertyChanges {
+                                    target: cellLabel
+                                    color: grayCellTextColor
+                                }
+                            },
+                            State {
+                                name: "hold"
+                                PropertyChanges {
+                                    target: cellBackground
+                                    color: Qt.lighter(activeCellColor)
+                                }
+                            },
+                            State {
+                                name: "active"
+                                PropertyChanges {
+                                    target: cellBackground
+                                    color: activeCellColor
+                                }
+                                PropertyChanges {
+                                    target: cellLabel
+                                    color: "white"
+                                }
+                            }
+                        ]
+
+                        transitions: [
+                            Transition {
+                                from: ""
+                                to: "hold"
+
+                                ColorAnimation {
+                                    target: cellBackground
+                                    duration: 400
+                                }
+                            },
+                            Transition {
+                                from: "hold"
+                                to: ""
+
+                                ColorAnimation {
+                                    target: cellBackground
+                                    duration: 400
+                                }
+                            }
+                        ]
+                    }
                 }
+            }
+
+            Item {
+                id: afterSpacing
+                width: (calendarList.width - calendarList.sideSizeOuter * 7) / 2
+                height: 1
             }
         }
     }

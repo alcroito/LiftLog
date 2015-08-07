@@ -51,6 +51,8 @@ public slots:
     void loadActiveUserOnDBInit();
     void clearActiveUserOnDBClose();
     QString getWeightString(qreal weight, bool withBodyWeight = false, bool withSpaceBetween = false);
+    qreal getWeightTransformed(qreal weight);
+    qreal getWeightTransformed(qreal weight, int from, int to);
 private:
     QSharedPointer<User> currentUser;
     QSharedPointer<WorkoutModel> currentWorkoutModel;

@@ -11,8 +11,9 @@ BasicPage {
     showNavigationBarSpreadsheetButton: true
     navigationBar.onBackClicked: goBack()
 
-    CalendarModel {
-        id: calendarModel
+    Stack.onStatusChanged: {
+        if (Stack.status == Stack.Active)
+            calendar.refresh()
     }
 
     CalendarNavigation {
@@ -23,20 +24,28 @@ BasicPage {
         anchors.leftMargin: 0
 
         onLeftClicked: {
-            calendarModel.goPrevMonth()
-            calendarDate = calendarModel.getDate()
+            calendarDate = calendar.goPrevMonth()
         }
 
         onRightClicked: {
-            calendarModel.goNextMonth()
-            calendarDate = calendarModel.getDate()
+            calendarDate = calendar.goNextMonth()
         }
     }
 
     Calendar {
         id: calendar
 
-        calendarModel: calendarModel
+        onMovedToPrevMonth: {
+            navigation.calendarDate = newDate
+        }
+
+        onMovedToNextMonth: {
+            navigation.calendarDate = newDate
+        }
+
+        onDateClicked: {
+            pageStack.showSpecificWorkoutPage(date)
+        }
 
         anchors.right: parent.right
         anchors.rightMargin: 0

@@ -2,6 +2,7 @@
 #include <QSqlQuery>
 #include <QDebug>
 #include <QSqlError>
+#include "workout_entity.h"
 
 User::User(QObject *parent) : QObject(parent), id(0), weightSystem(User::Metric), autoAddWeight(true), lastIdWorkoutTemplate(0), nextWorkoutTemplateDay(0)
 {
@@ -17,6 +18,7 @@ void User::setName(const QString &value)
     name = value;
     emit nameChanged();
 }
+
 User::WeightSystem User::getWeightSystem() const
 {
     return weightSystem;
@@ -27,6 +29,7 @@ void User::setWeightSystem(const User::WeightSystem value)
     weightSystem = value;
     emit weightSystemChanged();
 }
+
 bool User::getAutoAddWeight() const
 {
     return autoAddWeight;
@@ -69,6 +72,28 @@ void User::setNextWorkoutTemplateDay(const qint64 &value)
 {
     nextWorkoutTemplateDay = value;
     emit nextWorkoutTemplateDayChanged();
+}
+
+qreal User::getUserWeight()
+{
+    qreal weight = WorkoutEntity::initialUserWeight;
+
+    QSqlQuery query;
+    query.prepare("SELECT user_weight FROM user_workout WHERE id_user = :id_user ORDER BY date_started DESC LIMIT 1");
+    query.bindValue(":id_user", getId());
+    bool result = query.exec();
+    if (!result) {
+        qDebug() << "Error getting user weight.";
+        qDebug() << query.lastError();
+    }
+
+    while (query.next()) {
+        if (!query.isNull(0)) {
+            weight = query.value(0).toReal();
+        }
+    }
+
+    return weight;
 }
 
 qint64 User::getNextUserId()

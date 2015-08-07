@@ -70,6 +70,18 @@ bool DBManager::copyInitDB(QString destination_path) {
     return result;
 }
 
+QString DBManager::getLastExecutedQuery(const QSqlQuery &query)
+{
+    QString str = query.lastQuery();
+    qDebug() << query.boundValues();
+    QMapIterator<QString, QVariant> it(query.boundValues());
+    while (it.hasNext()) {
+        it.next();
+        str.replace(it.key(),it.value().toString());
+    }
+    return str;
+}
+
 bool DBManager::isFirstLaunch() { return firstLaunch; }
 
 void DBManager::setIsFirstLaunch(float new_value) { firstLaunch = new_value; emit isFirstLaunchChanged(); }

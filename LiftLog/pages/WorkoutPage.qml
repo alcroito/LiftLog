@@ -9,13 +9,44 @@ BasicPage {
     id: root
     showNavigationBarBackButton: true
     showNavigationBarSettingsButton: true
-    navigationBar.onBackClicked: goBack()
+    navigationBar.onBackClicked: {
+        goBack()
+    }
+
+    onGoBack: {
+        if (!appState.currentWorkoutModel.workoutEntity.forceSave && !appState.currentWorkoutModel.workoutEntity.shouldBeSaved) {
+            appState.currentWorkoutModel.deleteWorkoutData()
+        }
+
+        pageStack.goBack()
+    }
 
     TopNotification {
         id: topNotification
         anchors.top: parent.top
         anchors.topMargin: 0
     }
+
+    function updateUserWeightAndSystem(userWeight, weightSystem) {
+        appState.currentWorkoutModel.workoutEntity.userWeight = userWeight
+        appState.currentUser.weightSystem = weightSystem
+
+        // Enable the button back.
+        exercises.headerItem.enabled = true
+    }
+
+    function checkIfWorkoutShouldBeSaved() {
+        // Count how many sets were completed, if none were completed, we don't want
+        // to save this workout in the DB.
+        var setsCompleted = appState.currentWorkoutModel.getCompletedSetsCountForAllExercises();
+        if (setsCompleted > 0) {
+            appState.currentWorkoutModel.workoutEntity.shouldBeSaved = true
+        } else {
+            appState.currentWorkoutModel.workoutEntity.shouldBeSaved = false
+        }
+    }
+
+    Component.onCompleted: checkIfWorkoutShouldBeSaved()
 
     VisualDataModel {
         id: exercisesDelegateModel
@@ -31,14 +62,17 @@ BasicPage {
             onClicked: {
                 // Always reset to the standard state, so that in case if all sets were completed,
                 // the timer until the completed label appears is always reset.
-                state = "standard"
+                setStandardState()
 
                 // Reset all blinking sets.
                 appState.currentWorkoutModel.resetBlinkingSets()
 
+                // Check if workout should be saved based on number of attempted sets.
+                checkIfWorkoutShouldBeSaved()
+
                 // Display completed state.
                 if (setsCompleted) {
-                    state = "completed"
+                    setCompletedState()
                     topNotification.hide(true)
                 }
                 // Hide notification if no reps are done.
@@ -48,6 +82,12 @@ BasicPage {
                 } else if (reps <= repsToDo) {
                     topNotification.hide(true)
                     topNotification.start()
+                }
+            }
+            Component.onCompleted: {
+                checkIfCompletedAndSuccesful(exerciseIndex)
+                if (setsCompleted) {
+                    setCompletedState(true)
                 }
             }
         }
@@ -68,25 +108,43 @@ BasicPage {
         clip: true
         orientation: Qt.Vertical
         header: DateAndWeight {
-            weightText: appState.getWeightString(appState.currentWorkoutModel.workoutEntity.userWeight)
+            id: dateAndWeight
+            workoutDate: appState.currentWorkoutModel.workoutEntity.dateStarted
+            weightText: appState.getWeightString(appState.currentWorkoutModel.workoutEntity.userWeight, User.Metric, appState.currentUser.weightSystem)
+
+            onBodyWeightClicked: {
+                // Disable button so you don't accidentally double click.
+                dateAndWeight.enabled = false
+
+                // Show body weight page.
+                pageStack.showBodyWeightPage(appState.currentWorkoutModel.workoutEntity.userWeight, appState.currentUser.weightSystem)
+            }
         }
         footer: FinishWorkoutButton {
+            id: bottomButton
+            Binding {
+                when: appState.currentWorkoutModel.workoutEntity.completed
+                property: "text"
+                target: bottomButton
+                value: qsTr("UPDATE WORKOUT")
+            }
+
             onClicked: {
+                topNotification.hide(true)
+                // Explicitly save, even if empty.
+                appState.currentWorkoutModel.workoutEntity.shouldBeSaved = true
                 appState.currentWorkoutModel.saveWorkoutData()
                 goBack()
             }
         }
     }
 
-    SwipeArea {
-        id: settingsSwipeArea
-        onSwipeLeft: showSettings()
-
-        anchors.top: parent.top
-        anchors.topMargin: 0
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 0
-        anchors.right: parent.right
-        anchors.rightMargin: 0
+    modalPopup.onAcceptClicked: {
+        console.log("B")
+        if (modalPopup.operation === modalPopup.popupDeleteOperation) {
+            appState.currentWorkoutModel.deleteWorkoutData()
+            goBack()
+        }
     }
+
 }

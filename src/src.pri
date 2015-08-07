@@ -10,7 +10,8 @@ SOURCES += \
     $$PWD/db_manager.cpp \
     $$PWD/app_state.cpp \
     $$PWD/workout_template_list_model.cpp \
-    $$PWD/calendar_model.cpp
+    $$PWD/calendar_model.cpp \
+    $$PWD/calendar_slider_model.cpp
 
 HEADERS += \
 #    $$PWD/pieutilsplugin.h \
@@ -26,7 +27,8 @@ HEADERS += \
     $$PWD/app_state.h \
     $$PWD/db_manager.h \
     $$PWD/workout_template_list_model.h \
-    $$PWD/calendar_model.h
+    $$PWD/calendar_model.h \
+    $$PWD/calendar_slider_model.h
 
 ios {
     HEADERS += \

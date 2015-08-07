@@ -11,13 +11,18 @@ Item {
 
     property Component pageComponent
     property alias navigationBar: navigationBar
-    property alias sideWindow: sideWindow
+    property bool sideWindowShown: false
     property alias modalPopup: modalPopup
+    property alias rootContainer: root
+    property alias rootBackground: background
     property bool showNavigationBar: true
     property bool showNavigationBarBackButton: false
     property bool showNavigationBarSettingsButton: false
     property bool showNavigationBarSpreadsheetButton: false
+    property bool showNavigationBarDoneButton: false
     default property alias content: innerItem.data
+    property bool needToShowModalPopup: false
+    property string transitionOrientation: "horizontal"
 
     signal goBack
 
@@ -37,8 +42,9 @@ Item {
             showBackButton: showNavigationBarBackButton
             showSettingsButton: showNavigationBarSettingsButton
             showSpreadsheetsButton: showNavigationBarSpreadsheetButton
+            showDoneButton: showNavigationBarDoneButton
             onSettingsClicked: {
-                showSettings()
+                showSideWindow()
             }
         }
 
@@ -55,17 +61,64 @@ Item {
         }
 
         MouseArea {
-            id: sideWindowCloseRegion
-            onClicked: root.state = ""
-            anchors.fill: parent
-            enabled: root.state == "sideWindowShown"
+            id: sideWindowDragArea
+            width: 20 * units.scale
+
+            // Propagate clicks to any elements beneath when drag area is small.
+            // When drag area is full screen (side window shown state), the background element is disabled,
+            // so clicks won't propogate to, which is what we want.
+            propagateComposedEvents: true
+
+            property int startX
+            property int bigDelta: appWindow.width * 0.25
+
+            anchors.top: parent.top
+            anchors.topMargin: 0
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 0
+            anchors.right: parent.right
+            anchors.rightMargin: 0
+
+            drag.target: rootBackground
+            drag.axis: Drag.XAxis
+            drag.minimumX: -appState.windowWidth * 0.85
+            drag.maximumX: 0
+
+            enabled: showNavigationBarSettingsButton
+
+            onPressed: {
+                startX = mapToItem(null, mouse.x, 0).x
+
+                // Need to disable anchor, so drag works.
+                rootBackground.anchors.left = undefined
+            }
+
+            onReleased: {
+                var deltax = Math.abs(mapToItem(null, mouse.x, 0).x - startX);
+                if (deltax > bigDelta && !sideWindowShown) {
+                    showSideWindow()
+                } else {
+                    hideSideWindow()
+                }
+            }
         }
+
     }
 
     SideWindow {
         id: sideWindow
-        anchors.left: parent.right
-        anchors.leftMargin: 0
+        anchors.fill: parent
+        popup: modalPopup
+        z: -1
+
+        // Disable it by default, so it doesn't steal mouse events for example
+        // when the modal popup is shown.
+        enabled: false
+
+        onCloseAndShowPopup: {
+            needToShowModalPopup = true
+            hideSideWindow()
+        }
     }
 
     ModalPopup {
@@ -73,29 +126,82 @@ Item {
         enabled: false
         opacity: 0
 
+        function showModalPopup() {
+            root.showModalPopup()
+        }
+
+        function hideModalPopup() {
+            root.hideModalPopup()
+        }
+
         onAcceptClicked: {
-            root.state = ""
+            hideModalPopup()
         }
 
         onRejectClicked: {
-            root.state = ""
+            hideModalPopup()
         }
     }
 
-    function showSettings() {
+    function showSideWindow() {
         root.state = "sideWindowShown"
+        sideWindowShown = true
+    }
+
+    function hideSideWindow() {
+        root.state = ""
+        slideSettingsOutAnimation.start()
+        sideWindowShown = false
+    }
+
+    function showModalPopup() {
+        root.state = "modalPopupShown"
+    }
+
+    function hideModalPopup() {
+        root.state = ""
+    }
+
+    SequentialAnimation {
+        id: slideSettingsOutAnimation
+
+        PropertyAnimation {
+            target: background
+            property: "x"
+            to: 0
+            duration: 200
+        }
+
+        PropertyAction {
+            target: background
+            property: "anchors.left"
+            value: rootContainer.left
+        }
     }
 
     states: [
         State {
-            name: "sideWindowShown"
+            name: ""
+            // Reset mouse drag area width, it doesn't
+            // get restored to initial value, after an anchor change for some reason.
             PropertyChanges {
-                target: sideWindow
-                anchors.leftMargin: -appState.windowWidth * 0.85
+                target: sideWindowDragArea
+                width: 20 * units.scale
             }
+        },
+        State {
+            name: "sideWindowShown"
+
+            // Disable anchor so that we can move the background to the left.
+            AnchorChanges {
+                target: background
+                anchors.left: undefined
+            }
+
+            // Move the background to the left.
             PropertyChanges {
                 target: background
-                anchors.leftMargin: -appState.windowWidth * 0.85
+                x: -appState.windowWidth * 0.85
             }
 
             // Make sure to disable mouse events on the navigation bar
@@ -103,6 +209,25 @@ Item {
             PropertyChanges {
                 target: navigationBar
                 enabled: false
+            }
+
+            PropertyChanges {
+                target: navigationBar.backButton
+                enabled: false
+            }
+
+            // Enable side window clicking.
+            PropertyChanges {
+                target: sideWindow
+                enabled: true
+            }
+
+            // Make the drag area occupy the whole visible 15% space
+            // so that clicking on the visible area, closes the
+            // side window.
+            AnchorChanges {
+                target: sideWindowDragArea
+                anchors.left: rootBackground.left
             }
         },
         State {
@@ -112,6 +237,11 @@ Item {
                 enabled: true
                 opacity: 1
             }
+
+            PropertyChanges {
+                target: rootBackground
+                enabled: false
+            }
         }
     ]
 
@@ -120,7 +250,7 @@ Item {
             from: ""
             to: "sideWindowShown"
             PropertyAnimation {
-                property: "leftMargin"
+                property: "x"
                 duration: 200
             }
         },
@@ -128,8 +258,14 @@ Item {
             from: "sideWindowShown"
             to: ""
             PropertyAnimation {
-                property: "leftMargin"
-                duration: 100
+                property: "x"
+                duration: 200
+            }
+            onRunningChanged: {
+                if (state == "" && (!running) && needToShowModalPopup) {
+                    needToShowModalPopup = false
+                    showModalPopup()
+                }
             }
         },
         Transition {

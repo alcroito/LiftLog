@@ -45,7 +45,7 @@ Item {
         Label {
             id: textLabel
             color: "#ffffff"
-            text: "FINISH WORKOUT"
+            text: qsTr("FINISH WORKOUT")
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
             font.pixelSize: 10 * units.fontScale

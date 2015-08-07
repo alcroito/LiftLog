@@ -6,3 +6,4 @@ WorkoutPage 1.0 WorkoutPage.qml
 SideWindow 1.0 SideWindow.qml
 ModalPopup 1.0 ModalPopup.qml
 CalendarPage 1.0 CalendarPage.qml
+BodyWeightPage 1.0 BodyWeightPage.qml

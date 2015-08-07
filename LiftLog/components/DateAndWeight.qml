@@ -12,6 +12,9 @@ Item {
     property alias dateText: dateLabel.text
     property alias weightText: weightLabel.text
 
+    signal dateClicked
+    signal bodyWeightClicked
+
     Rectangle {
         id: inner
         color: "white"
@@ -43,6 +46,11 @@ Item {
                         text = Qt.formatDateTime(workoutDate, dateFormat)
                     }
                 }
+
+                MouseArea {
+                    anchors.fill: date
+                    onClicked: dateClicked()
+                }
             }
 
             Rectangle {
@@ -59,6 +67,11 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.verticalCenter: parent.verticalCenter
                     color: "#000000"
+                }
+
+                MouseArea {
+                    anchors.fill: weight
+                    onClicked: bodyWeightClicked()
                 }
             }
         }

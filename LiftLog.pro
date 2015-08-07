@@ -40,15 +40,18 @@ APP_QML_FILES += \
     LiftLog/pages/SideWindow.qml \
     LiftLog/pages/ModalPopup.qml \
     LiftLog/pages/CalendarPage.qml \
+    LiftLog/pages/BodyWeightPage.qml \
     LiftLog/components/DateAndWeight.qml \
     LiftLog/components/Separator.qml \
     LiftLog/components/SwipeArea.qml \
     LiftLog/components/CalendarNavigation.qml \
-    LiftLog/components/Calendar.qml
+    LiftLog/components/Calendar.qml \
+    LiftLog/components/CustomStackViewDelegate.qml
 
 
 FONTS += \
     icomoon.ttf
+    opensans.ttf
 
 SQL_FILES += \
     assets/db/db_initial_install.sql \

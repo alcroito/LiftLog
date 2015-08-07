@@ -10,11 +10,17 @@ Rectangle {
 
     signal backClicked
     signal settingsClicked
+    signal spreadsheetClicked
+    signal doneClicked
 
     property alias text: label.text
+    property alias pixelSize: label.font.pixelSize
     property bool showBackButton: false
     property bool showSettingsButton: false
     property bool showSpreadsheetsButton: false
+    property bool showDoneButton: false
+
+    property alias backButton: backButton
 
     FontLoader {
         id: icomoon
@@ -46,11 +52,8 @@ Rectangle {
         id: label
         color: "#ffffff"
         text: "LIFT LOG"
-        anchors.bottomMargin: 10 * units.scale
-        anchors.topMargin: 8 * units.scale
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.top: parent.top
+        anchors.verticalCenter: parent.verticalCenter
         font.bold: true
         z: 1
         font.pixelSize: 14 * units.fontScale
@@ -96,7 +99,29 @@ Rectangle {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: settingsClicked()
+            onClicked: spreadsheetClicked()
+        }
+    }
+
+    Label {
+        id: doneButton
+        height: root.height
+        width: 40 * units.scale
+        color: "#ffffff"
+        text: qsTr("Done")
+        anchors.rightMargin: 10 * units.scale
+
+        verticalAlignment: Text.AlignVCenter
+        horizontalAlignment: Text.AlignHCenter
+        anchors.right: parent.right
+
+        font.pixelSize: 12 * units.fontScale
+        enabled: showDoneButton
+        visible: showDoneButton
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: doneClicked()
         }
     }
 }

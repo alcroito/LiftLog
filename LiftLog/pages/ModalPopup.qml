@@ -9,6 +9,7 @@ Item {
     id: root
     width: appState.windowWidth
     height: appState.windowHeight
+
     property color backgroundColor: "#dcdcdc"
     property color textColor: "#e1352d"
     property color borderColor: "#c6c6c6"
@@ -16,6 +17,16 @@ Item {
     property alias bodyText: bodyLabel.text
     property alias acceptButtonText: acceptButton.text
     property alias rejectButtonText: rejectButton.text
+
+    function prepareDeleteWorkout(op) {
+        subjectText = qsTr("Delete Workout")
+        bodyText = qsTr("Are you sure you want to delete this workout?")
+        operation = op
+    }
+
+    property string operation
+    property string popupDeleteOperation: "delete"
+
     signal acceptClicked
     signal rejectClicked
     signal anyClicked

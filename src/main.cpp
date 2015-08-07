@@ -3,6 +3,8 @@
 #include <QScreen>
 #include <QDebug>
 #include <QtQml>
+#include <QFont>
+#include <QFontDatabase>
 
 #include "application.h"
 #include "punits.h"
@@ -13,11 +15,18 @@
 #include "workout_model.h"
 #include "workout_template_list_model.h"
 #include "calendar_model.h"
+#include "calendar_slider_model.h"
 
 int main(int argc, char *argv[])
 {
     srand(time(NULL));
     QtQuickControlsApplication app(argc, argv);
+
+    // Set up font.
+    qDebug() << QFontDatabase().addApplicationFont(":/assets/fonts/open_sans.ttf");
+    app.setFont(QFont("Open Sans"));
+
+    // Engine.
     QQmlApplicationEngine engine;
 
     // Set up QML types.
@@ -28,6 +37,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<WorkoutModel>(uri, 1, 0, "WorkoutModel");
     qmlRegisterType<WorkoutTemplateListModel>(uri, 1, 0, "WorkoutTemplateListModel");
     qmlRegisterType<CalendarModel>(uri, 1, 0, "CalendarModel");
+    qmlRegisterType<CalendarSliderModel>(uri, 1, 0, "CalendarSliderModel");
     qmlRegisterUncreatableType<PUnits>(uri, 0, 1, "PUnits", "Not instantiable");
 
     // Initialize the units class.
@@ -53,7 +63,7 @@ int main(int argc, char *argv[])
 
     // Add search path for QML modules and components.
     engine.addImportPath("qrc:///");
-    engine.load(QUrl(QStringLiteral("qrc:///LiftLog/main.qml")));
+    engine.load(QUrl(QStringLiteral("qrc:///LiftLog/main.qml")));    
 
     // Init local notification service.
     LocalNotificationService* localNotificationService = LocalNotificationService::getInstance();

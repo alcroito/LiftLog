@@ -42,12 +42,15 @@ public:
     qint64 getNextWorkoutTemplateDay() const;
     void setNextWorkoutTemplateDay(const qint64 &value);
 
+    qreal getUserWeight();
+
     static qint64 getNextUserId();
 
     bool loadById(qint64 idUser);
     bool save();
 
     void clear();
+
 signals:
     void nameChanged();
     void weightSystemChanged();

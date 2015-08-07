@@ -2,6 +2,7 @@
 #define WORKOUTTREENODE_H
 
 #include <QVariant>
+#include <QDebug>
 
 class WorkoutTreeNode {
 public:

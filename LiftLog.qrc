@@ -1,6 +1,9 @@
 <RCC>
     <qresource prefix="/">
         <file>assets/fonts/icomoon.ttf</file>
+        <file>assets/fonts/open_sans.ttf</file>
+        <file>assets/fonts/open_sans_bold.ttf</file>
+        <file>assets/fonts/open_sans_light.ttf</file>
         <file>assets/db/db_initial_install.sql</file>
         <file>assets/db/liftlog.sqlite3</file>
     </qresource>

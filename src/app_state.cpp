@@ -31,6 +31,28 @@ void AppState::clearActiveUserOnDBClose() {
     currentUser->clear();
 }
 
+qreal AppState::getWeightTransformed(qreal weight)
+{
+    User::WeightSystem system = currentUser->getWeightSystem();
+    if (system == User::Imperial) {
+        weight *= 2;
+    }
+
+    return weight;
+}
+
+qreal AppState::getWeightTransformed(qreal weight, int from, int to)
+{
+    if (from == User::Imperial && to == User::Metric) {
+        weight /= 2;
+    }
+    else if (from == User::Metric && to == User::Imperial) {
+        weight *= 2;
+    }
+
+    return weight;
+}
+
 QString AppState::getWeightString(qreal weight, bool withBodyWeight, bool withSpaceBetween)
 {
     User::WeightSystem system = currentUser->getWeightSystem();

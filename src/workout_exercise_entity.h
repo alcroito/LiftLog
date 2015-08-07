@@ -9,7 +9,7 @@ class WorkoutSetEntity;
 class WorkoutExerciseEntity : public QObject {
     Q_OBJECT
 public:
-    ~WorkoutExerciseEntity();
+    virtual ~WorkoutExerciseEntity();
     qint64 idExercise;
     QString name;
     qreal workWeight;

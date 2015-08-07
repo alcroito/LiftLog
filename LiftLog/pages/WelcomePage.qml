@@ -42,9 +42,11 @@ BasicPage {
             }
 
             TextField {
-                id: textInput1
+                id: nameInput
                 Layout.fillWidth: true
                 text: ""
+                activeFocusOnPress: true
+                focus: true
             }
         }
 
@@ -58,7 +60,6 @@ BasicPage {
                 font.pixelSize: 10 * units.fontScale
                 Layout.minimumWidth: 100
             }
-
 
             ComboBox {
                 id: workoutComboBox
@@ -136,7 +137,7 @@ BasicPage {
         anchors.horizontalCenter: parent.horizontalCenter
 
         onClicked: {
-            appState.currentUser.name = textInput1.text
+            appState.currentUser.name = nameInput.text
             appState.currentUser.weightSystem = weightSystemModel.get(weightSystemComboBox.currentIndex).value
             appState.currentUser.autoAddWeight = autoAddWeight.checked
             appState.currentUser.lastIdWorkoutTemplate = workoutTemplateList.getItemDataForIndexAndRole(workoutComboBox.currentIndex, WorkoutTemplateListModel.IdRole)

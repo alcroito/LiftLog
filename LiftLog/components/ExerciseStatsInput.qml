@@ -19,6 +19,7 @@ Item {
     property string currentWeightText: "20KG"
     property string successText: qsTr("Congrats! %1 next time")
     property string failureText: qsTr("Try reapeating %1 next time, or deload!")
+    property bool immediateCompletedTransition
     property bool exerciseIsSuccessful: true
 
     state: "standard"
@@ -73,6 +74,7 @@ Item {
             }
         }
 
+        // Just for testing purposes in Qt Quick Designer.
         ListModel {
             id: circlesModel
             ListElement {
@@ -113,11 +115,7 @@ Item {
                 repsToDo: model.repsToDoCount
                 setModelIndex: setsDelegateModel.modelIndex(index)
                 onClicked: {
-                    // Modifies the setsCompleted flag.
-                    checkIfAllSetsCompleted(root.exerciseIndex)
-
-                    // Modifies the exerciseIsSuccessful flag.
-                    checkIfExerciseIsSuccessful(root.exerciseIndex)
+                    checkIfCompletedAndSuccesful(root.exerciseIndex)
 
                     // Signal parent about the pressed set and if all sets are completed.
                     root.clicked(index, repsDone, repsToDo, setsCompleted)
@@ -211,6 +209,7 @@ Item {
 
     transitions: [
         Transition {
+            id: standardToCompletedTransition
             from: "standard"
             to: "completed"
             SequentialAnimation {
@@ -246,13 +245,21 @@ Item {
         }
     ]
 
+    Binding {
+        target: standardToCompletedTransition
+        property: "enabled"
+        value: "false"
+        when: immediateCompletedTransition
+    }
+
+
     function getCompletedSetsCount(exerciseIndex) {
         var completedExercisesCount = 0
         var theModel = appState.currentWorkoutModel
         var setsCount = theModel.setsCountForExercise(exerciseIndex)
         for (var setIndex = 0; setIndex < setsCount; setIndex++) {
             var setAndRep = theModel.getSet(exerciseIndex, setIndex)
-            if (setAndRep.isCompleted())
+            if (setAndRep.isAttempted())
                 completedExercisesCount++
         }
         return completedExercisesCount
@@ -276,5 +283,26 @@ Item {
                 break
             }
         }
+    }
+
+    function checkIfCompletedAndSuccesful(index) {
+        // Modifies the setsCompleted flag.
+        checkIfAllSetsCompleted(index)
+
+        // Modifies the exerciseIsSuccessful flag.
+        checkIfExerciseIsSuccessful(index)
+    }
+
+    function setStandardState() {
+        root.state = "standard"
+        immediateCompletedTransition = false
+    }
+
+    function setCompletedState(immediate) {
+        if (immediate === true) {
+            immediateCompletedTransition = true
+        }
+
+        root.state = "completed"
     }
 }

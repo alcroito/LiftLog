@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QAbstractItemModel>
+#include <QDate>
 
 class WorkoutEntity;
 class WorkoutSetEntity;
@@ -30,7 +31,6 @@ public:
 
     explicit WorkoutModel(QObject* parent = 0);
     ~WorkoutModel();
-    void clear();
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
@@ -45,23 +45,34 @@ public:
     QModelIndex parent(const QModelIndex &index) const;
 
     WorkoutTreeNode* getModelItem(const QModelIndex &index) const;
-    WorkoutEntity* fetchWorkoutDataFromDB(qint64 workoutDay = 0);
+    WorkoutEntity* fetchWorkoutDataFromDB();
     WorkoutTreeNode* parseEntityToTree(WorkoutEntity* entity);
 
     qint64 getLastNotCompletedWorkoutId(qint64 idUser);
 
+
+
 public slots:
+    void clear();
     bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
     int exerciseCount();
     int setsCountForExercise(int exerciseIndex);
     QVariant getSet(int exerciseIndex, int setIndex);
     QModelIndex getSetModelIndex(int exerciseIndex, int setIndex);
     void resetBlinkingSets();
+    int getCompletedSetsCountForAllExercises();
 
     // DB manipulation methods.
-    qint64 getLastNotCompletedWorkoutOrCreateNew();
+    bool createStartingWorkoutEntry(qint64 idUser, qint64 day, QDateTime date, qreal userWeight);
+
+    void getLastNotCompletedWorkoutOrCreateNew();
+
+    void getWorkoutOnDateOrCreateNewAtDate(QDate date);
+    void getWorkoutOnDate(QDate date);
+
     void getWorkoutData();
     void saveWorkoutData();
+    void deleteWorkoutData();
 
 signals:
     void exerciseCountChanged();
@@ -73,7 +84,8 @@ protected:
 private:
     WorkoutTreeNode* root;
     WorkoutEntity* workoutEntity;
-    qint64 idWorkout;
+    qint64 workoutId;
+    qint64 workoutDay;
 };
 
 #endif // WORKOUT_MODEL_H

@@ -5,9 +5,19 @@
 #include "app_state.h"
 #include "user.h"
 
-CalendarModel::CalendarModel(QObject *parent) : QAbstractListModel(parent), currentMonth(QDate::currentDate())
+CalendarModel::CalendarModel(QObject *parent) : QAbstractListModel(parent), currentMonth(QDateTime::currentDateTimeUtc().date())
 {
     populateDatesListWithGivenMonth();
+}
+
+CalendarModel::CalendarModel(QDate date, QObject *parent) : QAbstractListModel(parent), currentMonth(date)
+{
+    populateDatesListWithGivenMonth();
+}
+
+CalendarModel::~CalendarModel()
+{
+
 }
 
 void CalendarModel::populateDatesListWithGivenMonth() {
@@ -52,18 +62,6 @@ void CalendarModel::populateDatesListWithGivenMonth() {
     }
 }
 
-QString getLastExecutedQuery(const QSqlQuery& query)
-{
-    QString str = query.lastQuery();
-    qDebug() << query.boundValues();
-    QMapIterator<QString, QVariant> it(query.boundValues());
-    while (it.hasNext()) {
-        it.next();
-        str.replace(it.key(),it.value().toString());
-    }
-    return str;
-}
-
 QMultiHash<QDate, qint64> CalendarModel::getWorkoutDates() {
     QMultiHash<QDate, qint64> datesToWorkouts;
 
@@ -106,7 +104,6 @@ void CalendarModel::switchMonth(QDate newDate) {
 
     currentMonth = newDate;
     populateDatesListWithGivenMonth();
-
 }
 
 void CalendarModel::goPrevMonth()
@@ -126,6 +123,11 @@ QDate CalendarModel::getDate()
     return currentMonth;
 }
 
+void CalendarModel::refresh()
+{
+    switchMonth(currentMonth);
+}
+
 int CalendarModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
@@ -141,7 +143,9 @@ QVariant CalendarModel::data(const QModelIndex &index, int role) const
     if (role == TextRole)
         return calendarDate.getText();
     else if (role == StateRole)
-        return calendarDate.state;
+        return calendarDate.getState();
+    else if (role == DateRole)
+        return calendarDate.date;
     return QVariant();
 }
 
@@ -149,6 +153,7 @@ QHash<int, QByteArray> CalendarModel::roleNames() const {
     QHash<int, QByteArray> roles;
     roles[TextRole] = "text";
     roles[StateRole] = "state";
+    roles[DateRole] = "date";
     return roles;
 }
 
@@ -160,4 +165,9 @@ QString CalendarDate::getText() const
 QString CalendarDate::getState() const
 {
     return state;
+}
+
+QDate CalendarDate::getDate() const
+{
+    return date;
 }

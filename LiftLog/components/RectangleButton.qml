@@ -17,6 +17,7 @@ Item {
             name: "pressed"
             PropertyChanges {
                 target: pressedShadow; opacity: 0.1
+                enabled: false
             }
         }
     ]

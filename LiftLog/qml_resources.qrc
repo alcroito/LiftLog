@@ -34,5 +34,7 @@
         <file>pages/CalendarPage.qml</file>
         <file>components/CalendarNavigation.qml</file>
         <file>components/Calendar.qml</file>
+        <file>pages/BodyWeightPage.qml</file>
+        <file>components/CustomStackViewDelegate.qml</file>
     </qresource>
 </RCC>

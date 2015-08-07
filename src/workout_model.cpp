@@ -2,6 +2,7 @@
 #include <QSqlError>
 #include <QDebug>
 #include <QDateTime>
+#include <QQmlEngine>
 
 #include "workout_model.h"
 #include "app_state.h"
@@ -13,7 +14,7 @@
 #include "workout_entity.h"
 #include "workout_tree_node.h"
 
-WorkoutModel::WorkoutModel(QObject* parent) : QAbstractItemModel(parent), root(0), workoutEntity(0), idWorkout(0)
+WorkoutModel::WorkoutModel(QObject* parent) : QAbstractItemModel(parent), root(0), workoutEntity(0), workoutId(0), workoutDay(0)
 {
 }
 
@@ -25,8 +26,12 @@ WorkoutModel::~WorkoutModel()
 void WorkoutModel::clear() {
     if (root) delete root;
     root = 0;
-    if (workoutEntity) delete workoutEntity;
+    if (workoutEntity) {
+        delete workoutEntity;
+    }
     workoutEntity = 0;
+    workoutId = 0;
+    workoutDay = 0;
 }
 
 int WorkoutModel::rowCount(const QModelIndex &parent) const
@@ -125,6 +130,8 @@ QVariant WorkoutModel::data(const QModelIndex &index, int role) const
     if (itemDataType == qMetaTypeId<WorkoutEntity*>()) {
         switch (role) {
             case WorkoutEntityRole:
+                WorkoutEntity* entity = qvariant_cast<WorkoutEntity*>(itemData);
+                QQmlEngine::setObjectOwnership(entity, QQmlEngine::CppOwnership);
                 return itemData;
         }
     }
@@ -144,6 +151,8 @@ QVariant WorkoutModel::data(const QModelIndex &index, int role) const
                 return itemData.value<WorkoutExerciseEntity*>()->setsAndRepsString;
 
             case ExerciseEntityRole:
+                WorkoutExerciseEntity* entity = qvariant_cast<WorkoutExerciseEntity*>(itemData);
+                QQmlEngine::setObjectOwnership(entity, QQmlEngine::CppOwnership);
                 return itemData;
         }
     }
@@ -253,7 +262,9 @@ QModelIndex WorkoutModel::getSetModelIndex(int exerciseIndex, int setIndex) {
 QVariant WorkoutModel::getSet(int exerciseIndex, int setIndex) {
     QModelIndex setModelIndex = getSetModelIndex(exerciseIndex, setIndex);
     WorkoutTreeNode *item = static_cast<WorkoutTreeNode*>(setModelIndex.internalPointer());
-    return item->data();
+    WorkoutSetEntity* set = qvariant_cast<WorkoutSetEntity*>(item->data());
+    QQmlEngine::setObjectOwnership(set, QQmlEngine::CppOwnership);
+    return QVariant::fromValue(set);
 }
 
 void WorkoutModel::resetBlinkingSets()
@@ -268,6 +279,23 @@ void WorkoutModel::resetBlinkingSets()
             }
         }
     }
+}
+
+int WorkoutModel::getCompletedSetsCountForAllExercises()
+{
+    int completed = 0;
+
+    for (int i = 0; i < workoutEntity->exercises.count(); ++i) {
+        WorkoutExerciseEntity* exercise = workoutEntity->exercises.value(i);
+        for (int j = 0; j < exercise->setsAndReps.count(); j++) {
+            WorkoutSetEntity* set = exercise->setsAndReps.value(j);
+            if (set->isAttempted()) {
+                completed++;
+            }
+        }
+    }
+
+    return completed;
 }
 
 qint64 WorkoutModel::getLastNotCompletedWorkoutId(qint64 idUser) {
@@ -292,41 +320,94 @@ qint64 WorkoutModel::getLastNotCompletedWorkoutId(qint64 idUser) {
     return id_workout;
 }
 
-qint64 WorkoutModel::getLastNotCompletedWorkoutOrCreateNew()
-{
+bool WorkoutModel::createStartingWorkoutEntry(qint64 idUser, qint64 day, QDateTime date, qreal userWeight) {
+    QSqlQuery query;
+    query.prepare("INSERT INTO user_workout (id_user, id_workout_template, day, date_started, date_ended, last_updated, user_weight, completed) VALUES "
+                  "(:id_user, :id_workout_template, :day, :date_started, :date_ended, :last_updated, :user_weight, :completed)");
 
+    query.bindValue(":id_user", idUser);
+
+    int workoutTemplateId = AppState::getInstance()->getCurrentUser()->getLastIdWorkoutTemplate();
+    query.bindValue(":id_workout_template", workoutTemplateId);
+
+    query.bindValue(":day", day);
+    query.bindValue(":date_started", date);
+    query.bindValue(":date_ended", QVariant());
+    query.bindValue(":last_updated", date);
+    query.bindValue(":user_weight", userWeight);
+    query.bindValue(":completed", false);
+
+    bool result = query.exec();
+    if (!result) {
+        qDebug() << "Error inserting new user workout.";
+        qDebug() << query.lastError();
+    }
+
+    return result;
+}
+
+void WorkoutModel::getLastNotCompletedWorkoutOrCreateNew()
+{
     qint64 id_user = AppState::getInstance()->getCurrentUser()->getId();
     qint64 id_workout = getLastNotCompletedWorkoutId(id_user);
     qint64 day = AppState::getInstance()->getCurrentUser()->getNextWorkoutTemplateDay();
+    qreal weight = AppState::getInstance()->getCurrentUser()->getUserWeight();
 
     if (!id_workout) {
-        QSqlQuery query;
-        bool result;
-        query.prepare("INSERT INTO user_workout (id_user, id_workout_template, day, date_started, date_ended, last_updated, user_weight, completed) VALUES "
-                      "(:id_user, :id_workout_template, :day, :date_started, :date_ended, :last_updated, :user_weight, :completed)");
-        query.bindValue(":id_user", id_user);
-        int workoutTemplateId = AppState::getInstance()->getCurrentUser()->getLastIdWorkoutTemplate();
-        query.bindValue(":id_workout_template", workoutTemplateId);
-        query.bindValue(":day", day);
-        QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
-        query.bindValue(":date_started", currentDateTime);
-        query.bindValue(":date_ended", QVariant());
-        query.bindValue(":last_updated", currentDateTime);
-        query.bindValue(":user_weight", 50);
-        query.bindValue(":completed", false);
-        result = query.exec();
-        if (!result) {
-            qDebug() << "Error inserting new user workout.";
-            qDebug() << query.lastError();
-        }
+        QDateTime current = QDateTime::currentDateTimeUtc();
+        createStartingWorkoutEntry(id_user, day, current, weight);
     }
 
     id_workout = getLastNotCompletedWorkoutId(id_user);
-    idWorkout = id_workout;
-    return id_workout;
+    workoutId = id_workout;
+    workoutDay = AppState::getInstance()->getCurrentUser()->getNextWorkoutTemplateDay();
 }
 
-WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB(qint64 workoutDay)
+void WorkoutModel::getWorkoutOnDate(QDate date)
+{
+     qint64 idUser = AppState::getInstance()->getCurrentUser()->getId();
+
+     QSqlQuery query;
+     QString queryString = "SELECT id_workout, day "
+                           "FROM user_workout "
+                           "WHERE strftime('%Y-%m-%d', date_started) = strftime('%Y-%m-%d', '%1') "
+                           "AND id_user = :id_user "
+                           "ORDER BY date_started DESC LIMIT 1";
+     queryString = queryString.arg(date.toString("yyyy-MM-dd"));
+     query.prepare(queryString);
+
+     query.bindValue(":id_user", idUser);
+
+     bool result = query.exec();
+
+     if (!result) {
+         qDebug() << "Error getting last workout for given date.";
+         qDebug() << query.lastError();
+     }
+     else {
+         while (query.next()) {
+             if (!query.isNull(0)) {
+                 workoutId = query.value(0).toInt();
+                 workoutDay = query.value(1).toInt();
+             }
+         }
+     }
+}
+
+void WorkoutModel::getWorkoutOnDateOrCreateNewAtDate(QDate date) {
+    getWorkoutOnDate(date);
+    if (!workoutId) {
+        QTime time(12, 0, 0, 0);
+        QDateTime dateTime(date, time, Qt::UTC);
+        qint64 idUser = AppState::getInstance()->getCurrentUser()->getId();
+        qint64 day = AppState::getInstance()->getCurrentUser()->getNextWorkoutTemplateDay();
+        qreal weight = AppState::getInstance()->getCurrentUser()->getUserWeight();
+        createStartingWorkoutEntry(idUser, day, dateTime, weight);
+        getWorkoutOnDate(date);
+    }
+}
+
+WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
 {
     QSqlQuery query;
     query.prepare("SELECT wt.name AS workout_name, e.name AS exercise_name, COALESCE(uwew.weight + e.default_weight_increment, e.default_weight) AS work_weight, "
@@ -347,7 +428,7 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB(qint64 workoutDay)
                     LIMIT 1) \
                   WHERE uw.id_workout = :id_workout AND wte.day = :workout_day \
                   ORDER BY wte.delta");
-    query.bindValue(":id_workout", idWorkout);
+    query.bindValue(":id_workout", workoutId);
     query.bindValue(":workout_day", workoutDay);
     bool result = query.exec();
     if (!result) {
@@ -359,8 +440,8 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB(qint64 workoutDay)
     QSqlQuery queryStats;
     queryStats.prepare("SELECT id_exercise, delta, set_number, reps_done "
                        "FROM user_workout_exercise_stats "
-                       "WHERE id_workout = :id_workout ORDER BY id_exercise, delta, set_number");
-    queryStats.bindValue(":id_workout", idWorkout);
+                       "WHERE id_workout = :id_workout ORDER BY delta, set_number");
+    queryStats.bindValue(":id_workout", workoutId);
     bool resultStats = queryStats.exec();
     if (!resultStats) {
         qDebug() << "Error getting workout stats data.";
@@ -369,7 +450,9 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB(qint64 workoutDay)
     }
 
     WorkoutEntity* workout = new WorkoutEntity;
-    workout->workoutId = idWorkout;
+    workout->workoutId = workoutId;
+    workout->shouldBeSaved = false;
+    workout->forceSave = false;
     bool first = true;
     bool firstSet = true;
 
@@ -379,6 +462,11 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB(qint64 workoutDay)
             workout->day = query.value(10).toInt();
             workout->dateStarted = query.value(11).toDateTime();
             workout->dateEnded = query.value(12).toDateTime();
+
+            // Force save if workout was explicitly saved by pressing save button.
+            if (workout->dateEnded.isValid()) {
+                workout->forceSave = true;
+            }
             workout->lastUpdated = query.value(13).toDateTime();
             workout->userWeight = query.value(14).toReal();
             workout->completed = query.value(15).toBool();
@@ -406,25 +494,31 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB(qint64 workoutDay)
 
         for (int i = 0; i < setsToCreate; ++i) {
             WorkoutSetEntity* set = new WorkoutSetEntity(repCount);
-            queryStats.next();
             set->setSetId(i);
-
-            // Pre-populate already done sets.
-            if (queryStats.isValid() && !queryStats.isNull(3)) {
-                int repsDone = queryStats.value(3).toInt();
-                set->setRepsDoneCount(repsDone);
-            }
 
             // First set should blink to attract attention.
             if (firstSet) {
-                set->setState("blinking");
+                set->setState(WorkoutSetEntity::BLINKING_STATE);
                 firstSet = false;
             }
 
             // Display sets as crossed, which should not be completed.
             if (i >= setCount) {
-                set->setState("crossed");
+                set->setState(WorkoutSetEntity::CROSSED_STATE);
                 set->setRepsToDoCount(WorkoutSetEntity::NO_REPS_DONE);
+            }
+            else {
+                // Only go to next stats row if current set is valid.
+                queryStats.next();
+            }
+
+            // Pre-populate already done sets.
+            if (!set->isInvalid() && queryStats.isValid() && !queryStats.isNull(3)) {
+                int repsDone = queryStats.value(3).toInt();
+                set->setRepsDoneCount(repsDone);
+                if (repsDone != WorkoutSetEntity::NO_REPS_DONE) {
+                    set->setState(WorkoutSetEntity::ACTIVE_STATE);
+                }
             }
 
             exercise->setsAndReps.append(set);
@@ -452,10 +546,7 @@ WorkoutTreeNode* WorkoutModel::parseEntityToTree(WorkoutEntity* entity) {
 }
 
 void WorkoutModel::getWorkoutData() {
-    clear();
-
-    qint64 workoutDay = AppState::getInstance()->getCurrentUser()->getNextWorkoutTemplateDay();
-    workoutEntity = fetchWorkoutDataFromDB(workoutDay);
+    workoutEntity = fetchWorkoutDataFromDB();
     root = parseEntityToTree(workoutEntity);
 }
 
@@ -465,74 +556,112 @@ void WorkoutModel::saveWorkoutData()
     QSqlQuery query;
     bool result;
 
-    query.prepare("UPDATE user_workout "
-                  "SET date_ended = :date_ended, last_updated = :last_updated, completed = 1 "
-                  "WHERE id_workout = :id_workout");
+    // Update the workout to being completed, and set the appropriate dates.
+    if (!workoutEntity->completed) {
+        query.prepare("UPDATE user_workout "
+                      "SET date_ended = :date_ended, last_updated = :last_updated, user_weight = :user_weight, completed = 1 "
+                      "WHERE id_workout = :id_workout");
 
-    QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
-    query.bindValue(":date_ended", currentDateTime);
-    query.bindValue(":last_updated", currentDateTime);
-    query.bindValue(":id_workout", idWorkout);
+        QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
+        query.bindValue(":date_ended", currentDateTime);
+        query.bindValue(":last_updated", currentDateTime);
+        query.bindValue(":user_weight", workoutEntity->userWeight);
+        query.bindValue(":id_workout", workoutId);
 
-    result = query.exec();
-    if (!result) {
-        qDebug() << "Error updating workout data.";
-        qDebug() << query.lastError();
-        return;
+        result = query.exec();
+        if (!result) {
+            qDebug() << "Error updating workout data.";
+            qDebug() << query.lastError();
+            return;
+        }
+    }
+    // Just update the last updated date.
+    else {
+        query.prepare("UPDATE user_workout "
+                      "SET last_updated = :last_updated, user_weight = :user_weight "
+                      "WHERE id_workout = :id_workout");
+
+        QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
+        query.bindValue(":last_updated", currentDateTime);
+        query.bindValue(":user_weight", workoutEntity->userWeight);
+        query.bindValue(":id_workout", workoutId);
+
+        result = query.exec();
+        if (!result) {
+            qDebug() << "Error updating workout data.";
+            qDebug() << query.lastError();
+            return;
+        }
     }
 
-    // Gets max day for workout template, to re-start the day numbering
-    // in case the last workout was the last day.
-    query.prepare("SELECT MAX(wte.day) "
-                  "FROM workout_template_exercises wte "
-                  "WHERE wte.id_workout_template = :id_workout_template");
 
-    query.bindValue(":id_workout_template", AppState::getInstance()->getCurrentUser()->getLastIdWorkoutTemplate());
+    // Only do the following when creating a new workout, not when updating an existing one.
+    if (!workoutEntity->completed) {
+        // Gets max day for workout template, to re-start the day numbering
+        // in case the last workout was the last day.
+        query.prepare("SELECT MAX(wte.day) "
+                      "FROM workout_template_exercises wte "
+                      "WHERE wte.id_workout_template = :id_workout_template");
 
-    result = query.exec();
-    if (!result) {
-        qDebug() << "Error getting max template day for workout.";
-        qDebug() << query.lastError();
-        return;
+        query.bindValue(":id_workout_template", AppState::getInstance()->getCurrentUser()->getLastIdWorkoutTemplate());
+
+        result = query.exec();
+        if (!result) {
+            qDebug() << "Error getting max template day for workout.";
+            qDebug() << query.lastError();
+            return;
+        }
+
+        // Save the user next workout day, the last workout id used, and any other changes that were done to the user.
+        User* user = AppState::getInstance()->getCurrentUser();
+
+        qint64 newWorkoutDay = AppState::getInstance()->getCurrentUser()->getNextWorkoutTemplateDay();
+        if (query.next() && !query.isNull(0)) {
+            qint64 maxWorkoutDay = query.value(0).toInt() + 1;
+            newWorkoutDay = (newWorkoutDay + 1) % maxWorkoutDay;
+            user->setNextWorkoutTemplateDay(newWorkoutDay);
+        }
+
+        user->save();
+    } else {
+        // Save the last workout id used, and any other changes that were done to the user.
+        User* user = AppState::getInstance()->getCurrentUser();
+        user->save();
     }
 
-    qint64 newWorkoutDay = AppState::getInstance()->getCurrentUser()->getNextWorkoutTemplateDay();
-    if (query.next() && !query.isNull(0)) {
-        qint64 maxWorkoutDay = query.value(0).toInt() + 1;
-        newWorkoutDay = (newWorkoutDay + 1) % maxWorkoutDay;
-        AppState::getInstance()->getCurrentUser()->setNextWorkoutTemplateDay(newWorkoutDay);
-    }
-
-    query.prepare("UPDATE user "
-                  "SET last_id_workout_template = :last_id_workout_template, last_workout_template_day = :last_workout_template_day "
-                  "WHERE id_user = :id_user");
-
-    query.bindValue(":last_id_workout_template", AppState::getInstance()->getCurrentUser()->getLastIdWorkoutTemplate());
-    query.bindValue(":last_workout_template_day", newWorkoutDay);
-    query.bindValue(":id_user", AppState::getInstance()->getCurrentUser()->getId());
-
-    result = query.exec();
-    if (!result) {
-        qDebug() << "Error updating user data.";
-        qDebug() << query.lastError();
-        return;
-    }
-
+    // Save exercise stats.
     for (int i = 0; i < workoutEntity->exercises.count(); ++i) {
         WorkoutExerciseEntity* exercise = workoutEntity->exercises.value(i);
 
-        query.prepare("INSERT INTO user_workout_exercise_weight (id_workout, id_exercise, delta, weight)"
-                      "VALUES (:id_workout, :id_exercise, :delta, :weight)");
-        query.bindValue(":id_workout", idWorkout);
-        query.bindValue(":id_exercise", exercise->idExercise);
-        query.bindValue(":delta", exercise->delta);
-        query.bindValue(":weight", exercise->workWeight);
+        if (!workoutEntity->completed) {
+            query.prepare("INSERT INTO user_workout_exercise_weight (id_workout, id_exercise, delta, weight)"
+                          "VALUES (:id_workout, :id_exercise, :delta, :weight)");
+            query.bindValue(":id_workout", workoutId);
+            query.bindValue(":id_exercise", exercise->idExercise);
+            query.bindValue(":delta", exercise->delta);
+            query.bindValue(":weight", exercise->workWeight);
 
-        bool result = query.exec();
-        if (!result) {
-            qDebug() << "Error inserting workout exercise weight data.";
-            qDebug() << query.lastError();
-            return;
+            bool result = query.exec();
+            if (!result) {
+                qDebug() << "Error saving workout exercise weight data.";
+                qDebug() << query.lastError();
+                return;
+            }
+        } else {
+            query.prepare("UPDATE user_workout_exercise_weight "
+                          "SET weight = :weight "
+                          "WHERE id_workout = :id_workout AND id_exercise = :id_exercise AND delta = :delta");
+            query.bindValue(":id_workout", workoutId);
+            query.bindValue(":id_exercise", exercise->idExercise);
+            query.bindValue(":delta", exercise->delta);
+            query.bindValue(":weight", exercise->workWeight);
+
+            bool result = query.exec();
+            if (!result) {
+                qDebug() << "Error saving workout exercise weight data.";
+                qDebug() << query.lastError();
+                return;
+            }
         }
 
         for (int j = 0; j < exercise->setsAndReps.count(); j++) {
@@ -541,17 +670,29 @@ void WorkoutModel::saveWorkoutData()
             // If next set is an invalid one (crossed for example, don't save it, nor the next ones).
             if (set->isInvalid()) break;
 
-            query.prepare("INSERT INTO user_workout_exercise_stats (id_workout, id_exercise, delta, set_number, reps_done)"
-                          "VALUES (:id_workout, :id_exercise, :delta, :set_number, :reps_done)");
-            query.bindValue(":id_workout", idWorkout);
-            query.bindValue(":id_exercise", exercise->idExercise);
-            query.bindValue(":delta", exercise->delta);
-            query.bindValue(":set_number", set->getSetId());
-            query.bindValue(":reps_done", set->getRepsDoneCount());
+            if (!workoutEntity->completed) {
+                query.prepare("INSERT INTO user_workout_exercise_stats (id_workout, id_exercise, delta, set_number, reps_done)"
+                              "VALUES (:id_workout, :id_exercise, :delta, :set_number, :reps_done)");
+                query.bindValue(":id_workout", workoutId);
+                query.bindValue(":id_exercise", exercise->idExercise);
+                query.bindValue(":delta", exercise->delta);
+                query.bindValue(":set_number", set->getSetId());
+                query.bindValue(":reps_done", set->getRepsDoneCount());
+            }
+            else {
+                query.prepare("UPDATE user_workout_exercise_stats "
+                              "SET reps_done = :reps_done "
+                              "WHERE id_workout = :id_workout AND id_exercise = :id_exercise AND delta = :delta AND set_number = :set_number");
+                query.bindValue(":id_workout", workoutId);
+                query.bindValue(":id_exercise", exercise->idExercise);
+                query.bindValue(":delta", exercise->delta);
+                query.bindValue(":set_number", set->getSetId());
+                query.bindValue(":reps_done", set->getRepsDoneCount());
+            }
 
             bool result = query.exec();
             if (!result) {
-                qDebug() << "Error inserting workout exercise stats data.";
+                qDebug() << "Error saving workout exercise stats data.";
                 qDebug() << query.lastError();
                 return;
             }
@@ -559,4 +700,51 @@ void WorkoutModel::saveWorkoutData()
     }
 
     transaction.commit();
+}
+
+void WorkoutModel::deleteWorkoutData()
+{
+    if (!workoutId) {
+        qDebug() << "Can't delete a workout that has no id.";
+        return;
+    }
+
+    QSqlQuery query;
+    bool result;
+
+    query.prepare("DELETE FROM user_workout "
+                  "WHERE id_workout = :id_workout");
+
+    query.bindValue(":id_workout", workoutId);
+
+    result = query.exec();
+    if (!result) {
+        qDebug() << "Error deleting workout data.";
+        qDebug() << query.lastError();
+        return;
+    }
+
+    query.prepare("DELETE FROM user_workout_exercise_weight "
+                  "WHERE id_workout = :id_workout");
+
+    query.bindValue(":id_workout", workoutId);
+
+    result = query.exec();
+    if (!result) {
+        qDebug() << "Error deleting workout weight stats.";
+        qDebug() << query.lastError();
+        return;
+    }
+
+    query.prepare("DELETE FROM user_workout_exercise_stats "
+                  "WHERE id_workout = :id_workout");
+
+    query.bindValue(":id_workout", workoutId);
+
+    result = query.exec();
+    if (!result) {
+        qDebug() << "Error deleting workout stats.";
+        qDebug() << query.lastError();
+        return;
+    }
 }

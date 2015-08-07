@@ -2,12 +2,12 @@ import QtQuick 2.0
 
 MouseArea {
     id: root
-    width: 20
+    width: 20 * units.scale
 
     property int startX
     property int startY
-    property int bigDelta: 40
-    property int smallDelta: 40
+    property int bigDelta: 40 * units.scale
+    property int smallDelta: 40 * units.scale
     property bool handled: false
     signal swipeLeft
     signal swipeRight

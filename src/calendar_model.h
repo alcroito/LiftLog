@@ -13,6 +13,8 @@ public:
     CalendarDate(QDate newDate, QString newState) : date(newDate), state(newState) {}
     QString getText() const;
     QString getState() const;
+    QDate getDate() const;
+
     QDate date;
     QString state;
 };
@@ -24,10 +26,13 @@ class CalendarModel : public QAbstractListModel
 public:
     enum CalendarRoles {
         TextRole = Qt::UserRole + 1,
-        StateRole
+        StateRole,
+        DateRole
     };
 
     explicit CalendarModel(QObject *parent = 0);
+    explicit CalendarModel(QDate date, QObject *parent = 0);
+    virtual ~CalendarModel();
     void addCalendarDate(const CalendarDate& calendarDate);
     int rowCount(const QModelIndex & parent = QModelIndex()) const;
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
@@ -40,6 +45,7 @@ public slots:
     void goPrevMonth();
     void goNextMonth();
     QDate getDate();
+    void refresh();
 
 protected:
     QHash<int, QByteArray> roleNames() const;

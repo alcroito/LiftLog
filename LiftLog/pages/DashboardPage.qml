@@ -12,6 +12,11 @@ BasicPage {
         source: "qrc:/assets/fonts/icomoon.ttf"
     }
 
+    function buttonStageChange(state) {
+        if (state === "pressed") layout.enabled = false
+        else layout.enabled = true
+    }
+
     GridLayout {
         id: layout
 
@@ -41,26 +46,29 @@ BasicPage {
             onClicked: {
                 pageStack.showWorkoutPage()
             }
+            onStateChanged: buttonStageChange(state)
         }
 
         RectangleButton {
             id: historyButton
-            iconText: "\ue94e"
+            iconText: "\ue953"
             labelText: "History"
             Layout.fillWidth: true
             Layout.fillHeight: true
             onClicked: pageStack.showCalendarPage()
+            onStateChanged: buttonStageChange(state)
         }
 
         RectangleButton {
             id: graphButton
-            iconText: "\ue99b"
+            iconText: "\ue610"
             labelText: "Graph"
             Layout.fillWidth: true
             Layout.fillHeight: true
             onClicked: {
-                root.state = "modalPopupShown"
+                showModalPopup()
             }
+            onStateChanged: buttonStageChange(state)
         }
 
         RectangleButton {
@@ -69,6 +77,7 @@ BasicPage {
             labelText: "Settings"
             Layout.fillWidth: true
             Layout.fillHeight: true
+            onStateChanged: buttonStageChange(state)
         }
 
         RectangleButton {
@@ -80,6 +89,7 @@ BasicPage {
                 dbManager.deleteDBFileAndReInit()
                 pageStack.showWelcomePage()
             }
+            onStateChanged: buttonStageChange(state)
         }
 
         //            Label {
@@ -98,6 +108,7 @@ BasicPage {
             onClicked: {
                 LocalNotificationService.cancelNotification("id5")
             }
+            onStateChanged: buttonStageChange(state)
         }
 
         RectangleButton {
@@ -106,6 +117,7 @@ BasicPage {
             Layout.fillWidth: true
             Layout.preferredHeight: parent.height / 4
             Layout.columnSpan: 2
+            onStateChanged: buttonStageChange(state)
         }
     }
 }
