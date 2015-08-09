@@ -22,7 +22,6 @@ APP_QML_FILES += \
     LiftLog/main.qml \
     LiftLog/qmldir \
     LiftLog/components/qmldir \
-    LiftLog/pages/qmldir \
     LiftLog/components/RectangleButton.qml \
     LiftLog/components/NavigationBar.qml \
     LiftLog/components/testing_ground.qml \
@@ -30,23 +29,34 @@ APP_QML_FILES += \
     LiftLog/components/Shadow.qml \
     LiftLog/components/SwitchStyleIOS.qml \
     LiftLog/components/SwitchStyled.qml \
-    LiftLog/pages/DashboardPage.qml \
-    LiftLog/pages/WelcomePage.qml \
     LiftLog/components/SetAndRep.qml \
     LiftLog/components/ExerciseStatsInput.qml \
     LiftLog/components/TopNotification.qml \
+    LiftLog/components/DateAndWeight.qml \
+    LiftLog/components/Separator.qml \
+    LiftLog/components/SwipeArea.qml \
+    LiftLog/components/CalendarNavigation.qml \
+    LiftLog/components/CalendarSwipeable.qml \
+    LiftLog/components/CustomStackViewDelegate.qml\
+    LiftLog/components/DatePicker.qml\
+    LiftLog/components/DatePickerDialog.qml\
+    LiftLog/pages/qmldir \
+    LiftLog/pages/DashboardPage.qml \
+    LiftLog/pages/WelcomePage.qml \
     LiftLog/pages/WorkoutPage.qml \
     LiftLog/pages/BasicPage.qml \
     LiftLog/pages/SideWindow.qml \
     LiftLog/pages/ModalPopup.qml \
     LiftLog/pages/CalendarPage.qml \
     LiftLog/pages/BodyWeightPage.qml \
-    LiftLog/components/DateAndWeight.qml \
-    LiftLog/components/Separator.qml \
-    LiftLog/components/SwipeArea.qml \
-    LiftLog/components/CalendarNavigation.qml \
-    LiftLog/components/Calendar.qml \
-    LiftLog/components/CustomStackViewDelegate.qml
+    LiftLog/pages/BottomPopupView.qml \
+    LiftLog/extras/qmldir \
+    LiftLog/extras/Tumbler.qml \
+    LiftLog/extras/TumblerColumn.qml \
+    LiftLog/extras/TumblerStyle.qml \
+    LiftLog/extras/BaseTumblerStyle.qml\
+    LiftLog/extras/FlatStyle.qml
+
 
 
 FONTS += \

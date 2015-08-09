@@ -550,6 +550,32 @@ void WorkoutModel::getWorkoutData() {
     root = parseEntityToTree(workoutEntity);
 }
 
+void WorkoutModel::changeAndSaveStartDate(QDate date) {
+    QSqlQuery query;
+    bool result;
+    query.prepare("UPDATE user_workout "
+                  "SET date_started = :date_started, last_updated = :last_updated "
+                  "WHERE id_workout = :id_workout");
+
+    QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
+    QTime time(12, 0, 0, 0);
+    QDateTime dateTime(date, time, Qt::UTC);
+    query.bindValue(":date_started", dateTime);
+    query.bindValue(":last_updated", currentDateTime);
+    query.bindValue(":id_workout", workoutId);
+
+    result = query.exec();
+    if (!result) {
+        qDebug() << "Error updating start date for workout";
+        qDebug() << query.lastError();
+        return;
+    }
+    else {
+        qDebug() << "Date changed";
+        workoutEntity->setDateStarted(dateTime);
+    }
+}
+
 void WorkoutModel::saveWorkoutData()
 {
     DBTransaction transaction;

@@ -4,10 +4,9 @@ import QtQuick.Window 2.0
 
 import LiftLog 1.0
 import LiftLog.pages 1.0
-
-//import LiftLog.utils 1.0
-//import "pages"
+import LiftLog.extras 1.0
 import "components"
+
 ApplicationWindow {
     id: appWindow
     title: qsTr("Lift Log")
@@ -72,6 +71,12 @@ ApplicationWindow {
             onGoBack: pageStack.goBack()
         }
     }
+
+//    Component {
+//        id: bottomPopupView
+//        BottomPopupView {
+//        }
+//    }
 
     StackView {
         id: pageStack
@@ -155,6 +160,12 @@ ApplicationWindow {
                      }
                  })
         }
+
+//        function showBottomPopupView() {
+//            push({
+//                     item: bottomPopupView
+//                 })
+//        }
 
         function goBack() {
             if (pageStack.depth > 1) {

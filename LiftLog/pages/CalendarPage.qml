@@ -32,7 +32,7 @@ BasicPage {
         }
     }
 
-    Calendar {
+    CalendarSwipeable {
         id: calendar
 
         onMovedToPrevMonth: {

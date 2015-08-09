@@ -112,6 +112,10 @@ BasicPage {
             workoutDate: appState.currentWorkoutModel.workoutEntity.dateStarted
             weightText: appState.getWeightString(appState.currentWorkoutModel.workoutEntity.userWeight, User.Metric, appState.currentUser.weightSystem)
 
+            onDateClicked: {
+                showDatePicker()
+            }
+
             onBodyWeightClicked: {
                 // Disable button so you don't accidentally double click.
                 dateAndWeight.enabled = false
@@ -144,6 +148,21 @@ BasicPage {
         if (modalPopup.operation === modalPopup.popupDeleteOperation) {
             appState.currentWorkoutModel.deleteWorkoutData()
             goBack()
+        }
+    }
+
+
+
+    Binding {
+        target: datePickerDialog
+        property: "initialDate"
+        value: appState.currentWorkoutModel.workoutEntity.dateStarted
+    }
+
+    Connections {
+        target: datePickerDialog
+        onAcceptClicked: {
+            appState.currentWorkoutModel.changeAndSaveStartDate(datePickerDialog.getSelectedDate())
         }
     }
 

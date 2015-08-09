@@ -165,6 +165,7 @@ Item {
                 cellWidth: calendarList.sideSizeOuter
                 cellHeight: calendarList.sideSizeOuter
                 interactive: false
+                property date calendarDate: monthDate
 
                 function getModel() {
                     return model
@@ -209,6 +210,7 @@ Item {
                                 }
                             }
 
+
                             onReleased: {
                                 if (cellBackground.state == "hold") {
                                     cellBackground.state = initialState
@@ -218,7 +220,15 @@ Item {
 
                             onClicked: {
                                 if (cellBackground.state != "empty" && cellBackground.state != "gray")
-                                dateClicked(model.date)
+                                    dateClicked(model.date)
+                                else if (cellBackground.state == "gray") {
+                                    if (model.date < cellOuterBackground.GridView.view.calendarDate) {
+                                        root.movedToPrevMonth(goPrevMonth())
+                                    }
+                                    if (model.date > cellOuterBackground.GridView.view.calendarDate) {
+                                        root.movedToNextMonth(goNextMonth())
+                                    }
+                                }
                             }
                         }
 

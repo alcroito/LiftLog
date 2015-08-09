@@ -81,11 +81,15 @@ QVariant CalendarSliderModel::data(const QModelIndex &index, int role) const
         QQmlEngine::setObjectOwnership(calendarModel.data(), QQmlEngine::CppOwnership);
         return QVariant::fromValue(calendarModel.data());
     }
+    else if (role == DateRole) {
+        return calendarModel->getDate();
+    }
     return QVariant();
 }
 
 QHash<int, QByteArray> CalendarSliderModel::roleNames() const {
     QHash<int, QByteArray> roles;
     roles[ModelRole] = "monthModel";
+    roles[DateRole] = "monthDate";
     return roles;
 }

@@ -15,6 +15,7 @@ class CalendarSliderModel : public QAbstractListModel
 public:
     enum CalendarSliderRoles {
         ModelRole = Qt::UserRole + 1,
+        DateRole
     };
 
     explicit CalendarSliderModel(QObject *parent = 0);

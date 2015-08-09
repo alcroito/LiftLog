@@ -13,6 +13,7 @@ Item {
     property alias navigationBar: navigationBar
     property bool sideWindowShown: false
     property alias modalPopup: modalPopup
+    property alias datePickerDialog: datePickerDialogLoader.item
     property alias rootContainer: root
     property alias rootBackground: background
     property bool showNavigationBar: true
@@ -143,6 +144,19 @@ Item {
         }
     }
 
+    Loader {
+        id: datePickerDialogLoader
+        active: false
+        sourceComponent: DatePickerDialog {
+            id: datePickerDialog
+            enabled: false
+            opacity: 0
+
+            onRejectClicked: hideDatePicker()
+            onAcceptClicked: hideDatePicker()
+        }
+    }
+
     function showSideWindow() {
         root.state = "sideWindowShown"
         sideWindowShown = true
@@ -159,6 +173,15 @@ Item {
     }
 
     function hideModalPopup() {
+        root.state = ""
+    }
+
+    function showDatePicker() {
+        datePickerDialogLoader.active = true
+        root.state = "datePickerShown"
+    }
+
+    function hideDatePicker() {
         root.state = ""
     }
 
@@ -187,6 +210,12 @@ Item {
             PropertyChanges {
                 target: sideWindowDragArea
                 width: 20 * units.scale
+            }
+
+            // Reset bottom margin of date picker dialog.
+            PropertyChanges {
+                target: root.datePickerDialog.popupBackground
+                anchors.bottomMargin: -root.datePickerDialog.popupBackground.height
             }
         },
         State {
@@ -242,6 +271,24 @@ Item {
                 target: rootBackground
                 enabled: false
             }
+        },
+        State {
+            name: "datePickerShown"
+            PropertyChanges {
+                target: datePickerDialog
+                enabled: true
+                opacity: 1
+            }
+
+            PropertyChanges {
+                target: rootBackground
+                enabled: false
+            }
+
+            PropertyChanges {
+                target: root.datePickerDialog.popupBackground
+                anchors.bottomMargin: 0
+            }
         }
     ]
 
@@ -283,6 +330,33 @@ Item {
             PropertyAnimation {
                 property: "opacity"
                 duration: 100
+            }
+        },
+        Transition {
+            from: ""
+            to: "datePickerShown"
+            PropertyAnimation {
+                property: "anchors.bottomMargin"
+                duration: 200
+            }
+        },
+        Transition {
+            from: "datePickerShown"
+            to: ""
+
+            SequentialAnimation {
+                PropertyAnimation {
+                    property: "anchors.bottomMargin"
+                    duration: 100
+                }
+                PropertyAnimation {
+                    property: "opacity"
+                    duration: 100
+                }
+
+                PropertyAction {
+                    target: datePickerDialogLoader; property: "active"; value: true
+                }
             }
         }
     ]

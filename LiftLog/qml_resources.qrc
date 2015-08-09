@@ -1,40 +1,50 @@
 <RCC>
     <qresource prefix="/LiftLog">
+        <file>qmldir</file>
         <file>main.qml</file>
-        <file>components/RectangleButton.qml</file>
-        <file>components/NavigationBar.qml</file>
-        <file>components/testing_ground.qml</file>
-        <file>pages/WelcomePage.qml</file>
-        <file>pages/DashboardPage.qml</file>
-        <file>pages/WorkoutPage.qml</file>
-        <file>components/TextInputStyled.qml</file>
-        <file>components/Shadow.qml</file>
-        <file>components/SwitchStyleIOS.qml</file>
         <file>+android/UI.js</file>
         <file>+ios/UI.js</file>
         <file>+osx/UI.js</file>
         <file>UI.js</file>
+        <file>components/qmldir</file>
         <file>components/SwitchStyled.qml</file>
         <file>components/SetAndRep.qml</file>
         <file>components/ExerciseStatsInput.qml</file>
         <file>components/DateAndWeight.qml</file>
         <file>components/TopNotification.qml</file>
-        <file>qmldir</file>
-        <file>pages/qmldir</file>
-        <file>components/qmldir</file>
+        <file>components/RectangleButton.qml</file>
+        <file>components/NavigationBar.qml</file>
+        <file>components/testing_ground.qml</file>
+        <file>components/TextInputStyled.qml</file>
+        <file>components/Shadow.qml</file>
+        <file>components/SwitchStyleIOS.qml</file>
+        <file>components/FinishWorkoutButton.qml</file>
+        <file>components/Separator.qml</file>
+        <file>components/SwipeArea.qml</file>
+        <file>components/CalendarNavigation.qml</file>
+        <file>components/CalendarSwipeable.qml</file>
+        <file>components/CustomStackViewDelegate.qml</file>
         <file>utils/qmldir</file>
         <file>utils/dummy.js</file>
         <file>utils/Bean.qml</file>
-        <file>components/FinishWorkoutButton.qml</file>
+        <file>pages/qmldir</file>
         <file>pages/BasicPage.qml</file>
+        <file>pages/WelcomePage.qml</file>
+        <file>pages/DashboardPage.qml</file>
+        <file>pages/WorkoutPage.qml</file>
         <file>pages/SideWindow.qml</file>
         <file>pages/ModalPopup.qml</file>
-        <file>components/Separator.qml</file>
-        <file>components/SwipeArea.qml</file>
         <file>pages/CalendarPage.qml</file>
-        <file>components/CalendarNavigation.qml</file>
-        <file>components/Calendar.qml</file>
         <file>pages/BodyWeightPage.qml</file>
-        <file>components/CustomStackViewDelegate.qml</file>
+        <file>extras/qmldir</file>
+        <file>extras/TumblerColumn.qml</file>
+        <file>extras/Tumbler.qml</file>
+        <file>extras/TumblerStyle.qml</file>
+        <file>extras/BaseTumblerStyle.qml</file>
+        <file>pages/BottomPopupView.qml</file>
+        <file>extras/FlatStyle.qml</file>
+        <file>components/DatePicker.qml</file>
+        <file>components/DatePickerDialog.qml</file>
     </qresource>
+    <qresource prefix="/"/>
 </RCC>

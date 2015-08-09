@@ -13,7 +13,7 @@ class WorkoutEntity : public QObject {
     Q_PROPERTY(bool completed MEMBER completed NOTIFY completedChanged)
     Q_PROPERTY(bool shouldBeSaved MEMBER shouldBeSaved NOTIFY shouldBeSavedChanged)
     Q_PROPERTY(bool forceSave MEMBER forceSave NOTIFY forceSaveChanged)
-    Q_PROPERTY(QDateTime dateStarted MEMBER dateStarted NOTIFY dateStartedChanged)
+    Q_PROPERTY(QDateTime dateStarted READ getDateStarted WRITE setDateStarted NOTIFY dateStartedChanged)
 public:
     virtual ~WorkoutEntity();
     qint64 workoutId;
@@ -39,12 +39,20 @@ public:
         }
     }
 
+    QDateTime getDateStarted() { return dateStarted; }
+    void setDateStarted(QDateTime value) {
+        if (value != dateStarted) {
+            dateStarted = value;
+            emit dateStartedChanged(value);
+        }
+    }
+
 signals:
     void userWeightChanged(qreal);
     void completedChanged();
     void shouldBeSavedChanged();
     void forceSaveChanged();
-    void dateStartedChanged();
+    void dateStartedChanged(QDateTime);
 };
 
 #endif // WORKOUTENTITY_H

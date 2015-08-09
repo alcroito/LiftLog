@@ -43,7 +43,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     color: "#ffffff"
                     Component.onCompleted: {
-                        text = Qt.formatDateTime(workoutDate, dateFormat)
+                        text = Qt.binding(function() { return Qt.formatDateTime(workoutDate, dateFormat); })
                     }
                 }
 

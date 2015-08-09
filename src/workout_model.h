@@ -74,6 +74,7 @@ public slots:
     void saveWorkoutData();
     void deleteWorkoutData();
 
+    void changeAndSaveStartDate(QDate date);
 signals:
     void exerciseCountChanged();
     void workoutEntityChanged();

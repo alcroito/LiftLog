@@ -16,6 +16,7 @@
 #include "workout_template_list_model.h"
 #include "calendar_model.h"
 #include "calendar_slider_model.h"
+#include "date_picker_model.h"
 
 int main(int argc, char *argv[])
 {
@@ -38,7 +39,9 @@ int main(int argc, char *argv[])
     qmlRegisterType<WorkoutTemplateListModel>(uri, 1, 0, "WorkoutTemplateListModel");
     qmlRegisterType<CalendarModel>(uri, 1, 0, "CalendarModel");
     qmlRegisterType<CalendarSliderModel>(uri, 1, 0, "CalendarSliderModel");
+    qmlRegisterType<DatePickerModel>(uri, 1, 0, "DatePickerModel");
     qmlRegisterUncreatableType<PUnits>(uri, 0, 1, "PUnits", "Not instantiable");
+    qmlRegisterSingletonType( QUrl("qrc:///LiftLog/extras/FlatStyle.qml"), "LiftLog.extras", 1, 0, "FlatStyle" );
 
     // Initialize the units class.
     QQmlContext* rootContext = engine.rootContext();
