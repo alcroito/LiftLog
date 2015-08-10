@@ -64,6 +64,12 @@ QVariant CalendarSliderModel::getModel(int indexId)
     return item;
 }
 
+void CalendarSliderModel::refresh() {
+    for (int i = 0; i < calendarModels.count(); ++i) {
+        calendarModels[i]->refresh();
+    }
+}
+
 
 int CalendarSliderModel::rowCount(const QModelIndex &parent) const
 {

@@ -29,7 +29,7 @@ public slots:
     QDate goPrevMonth();
     QDate goNextMonth();
     QVariant getModel(int indexId);
-
+    void refresh();
 protected:
     QHash<int, QByteArray> roleNames() const;
 

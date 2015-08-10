@@ -126,7 +126,7 @@ Rectangle {
                     renderType: FlatStyle.__renderType
                     anchors.centerIn: parent
 
-                    readonly property real enabledOpacity: 1.1 - Math.abs(styleData.displacement * 2) / tumblerStyle.visibleItemCount * (230 / 255)
+                    readonly property real enabledOpacity: 0.95 - Math.abs(styleData.displacement * 2) / tumblerStyle.visibleItemCount * (230 / 255)
 
                     // Scale the Y axis of a cell, to be smaller, the farther away the cell is from the center.
 //                    transform: Matrix4x4 {

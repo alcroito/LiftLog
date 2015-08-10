@@ -77,9 +77,6 @@ BasicPage {
             labelText: "Settings"
             Layout.fillWidth: true
             Layout.fillHeight: true
-            onClicked: {
-                pageStack.showBottomPopupView()
-            }
 
             onStateChanged: buttonStageChange(state)
         }
@@ -112,7 +109,6 @@ BasicPage {
             onClicked: {
                 LocalNotificationService.cancelNotification("id5")
             }
-            onStateChanged: buttonStageChange(state)
         }
 
         RectangleButton {

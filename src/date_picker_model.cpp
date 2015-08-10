@@ -6,8 +6,14 @@ DatePickerModel::DatePickerModel(QObject *parent) : QAbstractListModel(parent), 
     generateInitialDateList();
 }
 
-void DatePickerModel::generateInitialDateList() {
+void DatePickerModel::clear() {
+    beginResetModel();
     dateList.clear();
+    endResetModel();
+}
+
+void DatePickerModel::generateInitialDateList() {
+    clear();
     QDate currentDate = QDate::currentDate();
     qint32 halfItemCount = itemCountToPrepare / 2;
     QDate leftEnd = currentDate.addDays(-halfItemCount);
@@ -18,14 +24,16 @@ void DatePickerModel::generateInitialDateList() {
 }
 
 void DatePickerModel::initWithDate(QDate date) {
-    dateList.clear();
+    clear();
     QDate currentDate = date;
     qint32 halfItemCount = itemCountToPrepare / 2;
     QDate leftEnd = currentDate.addDays(-halfItemCount);
     QDate rightEnd = currentDate.addDays(halfItemCount);
+    beginResetModel();
     for (QDate date = leftEnd; date != rightEnd; date = date.addDays(1)) {
         dateList.append(date);
     }
+    endResetModel();
 }
 
 void DatePickerModel::goNextEntry()

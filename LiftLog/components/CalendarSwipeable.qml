@@ -34,8 +34,8 @@ Item {
     }
 
     function refresh() {
-        // Refreshes the current month list of workouts.
-        var calendarGridInstance = calendarList.currentItem.getGridView().getModel().refresh()
+        // Refreshes all month models, because new items might have been added / removed.
+        calendarSliderModel.refresh()
     }
 
     ListModel {

@@ -39,7 +39,9 @@ public:
         }
     }
 
-    QDateTime getDateStarted() { return dateStarted; }
+    QDateTime getDateStarted() {
+        return dateStarted;
+    }
     void setDateStarted(QDateTime value) {
         if (value != dateStarted) {
             dateStarted = value;

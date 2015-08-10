@@ -144,7 +144,6 @@ BasicPage {
     }
 
     modalPopup.onAcceptClicked: {
-        console.log("B")
         if (modalPopup.operation === modalPopup.popupDeleteOperation) {
             appState.currentWorkoutModel.deleteWorkoutData()
             goBack()
@@ -152,9 +151,8 @@ BasicPage {
     }
 
 
-
     Binding {
-        target: datePickerDialog
+        target: datePickerDialogLoader
         property: "initialDate"
         value: appState.currentWorkoutModel.workoutEntity.dateStarted
     }
@@ -165,5 +163,4 @@ BasicPage {
             appState.currentWorkoutModel.changeAndSaveStartDate(datePickerDialog.getSelectedDate())
         }
     }
-
 }

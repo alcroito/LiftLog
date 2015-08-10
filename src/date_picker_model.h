@@ -31,6 +31,7 @@ public slots:
     qint32 getCurrentDateIndex();
     void initWithDate(QDate date);
     qint32 getDateIndex(QDate date);
+    void clear();
 protected:
     QHash<int, QByteArray> roleNames() const;
 
