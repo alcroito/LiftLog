@@ -97,7 +97,9 @@ Item {
                 appState.currentWorkoutModel.setData(setModelIndex, newState, WorkoutModel.RepsSetStateRole)
 
                 // Signal parent about this set being clicked.
-                root.clicked(repsDone, repsToDo)
+                if (newState != "crossed" ) {
+                    root.clicked(repsDone, repsToDo)
+                }
             }
         }
 

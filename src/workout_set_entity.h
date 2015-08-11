@@ -37,6 +37,7 @@ public:
 public slots:
     bool isSuccessful() { return repsDoneCount == repsToDoCount; }
     bool isAttempted() { return repsDoneCount != NO_REPS_DONE; }
+    bool isValid() { return !isInvalid(); }
 signals:
     void repsToDoCountChanged();
     void repsDoneCountChanged();

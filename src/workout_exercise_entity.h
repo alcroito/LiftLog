@@ -20,8 +20,11 @@ public:
 
     QString setsAndRepsString;
     QList<WorkoutSetEntity*> setsAndReps;
+    qint32 validSetCount;
 
 public slots:
+    qint32 getValidSetCount() { return validSetCount; }
+    void setValidSetCount(qint32 value) { validSetCount = value; }
     bool isPrimary() { return tags.contains("primary"); }
     bool isAccessory() { return tags.contains("accessory"); }
 };

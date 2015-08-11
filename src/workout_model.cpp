@@ -249,8 +249,7 @@ int WorkoutModel::exerciseCount()
 
 int WorkoutModel::setsCountForExercise(int exerciseIndex)
 {
-    QModelIndex exerciseModelIndex = index(exerciseIndex, 0);
-    return rowCount(exerciseModelIndex);
+    return workoutEntity->exercises[exerciseIndex]->getValidSetCount();
 }
 
 QModelIndex WorkoutModel::getSetModelIndex(int exerciseIndex, int setIndex) {
@@ -521,6 +520,7 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
         // Display at least 5 set circles. Show crossed sets
         // in case if the sets should not be completed.
         qint32 setCount = query.value(5).toInt();
+        exercise->validSetCount = setCount;
         qint32 minSetCount = 5;
         qint32 setsToCreate = std::max(minSetCount, setCount);
 
