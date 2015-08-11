@@ -9,16 +9,18 @@ Rectangle {
     z: 5
 
     signal backClicked
-    signal settingsClicked
+    signal burgerClicked
     signal spreadsheetClicked
     signal doneClicked
+    signal warmupClicked
 
     property alias text: label.text
     property alias pixelSize: label.font.pixelSize
     property bool showBackButton: false
-    property bool showSettingsButton: false
+    property bool showBurgerButton: false
     property bool showSpreadsheetsButton: false
     property bool showDoneButton: false
+    property bool showWarmupButton: false
 
     property alias backButton: backButton
 
@@ -60,7 +62,7 @@ Rectangle {
     }
 
     Label {
-        id: settingsButton
+        id: burgerButton
         height: root.height
         width: 40 * units.scale
         color: "#ffffff"
@@ -72,12 +74,12 @@ Rectangle {
 
         font.family: icomoon.name
         font.pixelSize: 12 * units.fontScale
-        enabled: showSettingsButton
-        visible: showSettingsButton
+        enabled: showBurgerButton
+        visible: showBurgerButton
 
         MouseArea {
             anchors.fill: parent
-            onClicked: settingsClicked()
+            onClicked: burgerClicked()
         }
     }
 
@@ -122,6 +124,29 @@ Rectangle {
         MouseArea {
             anchors.fill: parent
             onClicked: doneClicked()
+        }
+    }
+
+    Label {
+        id: warmupButton
+        height: root.height
+        width: 40 * units.scale
+        color: "#ffffff"
+        text: "\uE9A9"
+        anchors.rightMargin: warmupButton.width
+
+        verticalAlignment: Text.AlignVCenter
+        horizontalAlignment: Text.AlignHCenter
+        anchors.right: parent.right
+
+        font.family: icomoon.name
+        font.pixelSize: 12 * units.fontScale
+        enabled: showWarmupButton
+        visible: showWarmupButton
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: warmupClicked()
         }
     }
 }

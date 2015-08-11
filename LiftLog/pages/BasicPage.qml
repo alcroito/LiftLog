@@ -25,9 +25,10 @@ Item {
     property alias navigationBar: navigationBar
     property bool showNavigationBar: true
     property bool showNavigationBarBackButton: false
-    property bool showNavigationBarSettingsButton: false
+    property bool showNavigationBarBurgerButton: false
     property bool showNavigationBarSpreadsheetButton: false
     property bool showNavigationBarDoneButton: false
+    property bool showNavigationBarWarmupButton: false
 
     default property alias content: innerItem.data
 
@@ -49,10 +50,11 @@ Item {
             width: parent.width
             opacity: showNavigationBar ? 1 : 0
             showBackButton: showNavigationBarBackButton
-            showSettingsButton: showNavigationBarSettingsButton
+            showBurgerButton: showNavigationBarBurgerButton
             showSpreadsheetsButton: showNavigationBarSpreadsheetButton
             showDoneButton: showNavigationBarDoneButton
-            onSettingsClicked: {
+            showWarmupButton: showNavigationBarWarmupButton
+            onBurgerClicked: {
                 showSideWindow()
             }
         }
@@ -93,7 +95,7 @@ Item {
             drag.minimumX: -appState.windowWidth * 0.85
             drag.maximumX: 0
 
-            enabled: showNavigationBarSettingsButton
+            enabled: showNavigationBarBurgerButton
 
             onPressed: {
                 startX = mapToItem(null, mouse.x, 0).x
@@ -116,7 +118,7 @@ Item {
 
     Loader {
         id: sideWindowLoader
-        active: showNavigationBarSettingsButton
+        active: showNavigationBarBurgerButton
         z: -1
         sourceComponent: SideWindow {
             id: sideWindow

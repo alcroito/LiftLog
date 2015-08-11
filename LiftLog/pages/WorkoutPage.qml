@@ -8,7 +8,8 @@ import "../components"
 BasicPage {
     id: root
     showNavigationBarBackButton: true
-    showNavigationBarSettingsButton: true
+    showNavigationBarBurgerButton: true
+    showNavigationBarWarmupButton: true
     navigationBar.onBackClicked: {
         goBack()
     }
