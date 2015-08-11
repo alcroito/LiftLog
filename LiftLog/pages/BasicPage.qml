@@ -289,6 +289,10 @@ Item {
                 property: "x"
                 duration: 200
             }
+
+            // Animate all enabled property changes to occur at the end of the transition.
+            // When a boolean value like this is animated, it is implied it will change its
+            // value at the end of the transition.
             PropertyAnimation {
                 property: "enabled"
             }
