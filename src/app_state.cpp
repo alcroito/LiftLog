@@ -12,7 +12,8 @@
 
 AppState* AppState::instance = 0;
 
-AppState::AppState(QObject *parent) : QObject(parent), currentUser(new User()), currentWorkoutModel(new WorkoutModel), windowWidth(320), windowHeight(480)
+AppState::AppState(QObject *parent) : QObject(parent), currentUser(new User()), currentWorkoutModel(new WorkoutModel), uncompletedWorkoutExists(false),
+    windowWidth(320), windowHeight(480)
 {
     instance = this;
 }
@@ -21,8 +22,18 @@ void AppState::loadActiveUserOnDBInit() {
     if (isActiveUserSet()) {
         currentUser->setId(getActiveUserId());
         loadCurrentUser();
+        recheckUncompletedWorkoutExistsValue();
     } else {
         qDebug() << "Active user not set.";
+    }
+}
+
+void AppState::recheckUncompletedWorkoutExistsValue() {
+    if (currentWorkoutModel->getLastNotCompletedWorkoutId(currentUser->getId()) != 0) {
+        setUncompletedWorkoutExists(true);
+    }
+    else {
+        setUncompletedWorkoutExists(false);
     }
 }
 
@@ -52,6 +63,20 @@ qreal AppState::getWeightTransformed(qreal weight, int from, int to)
 
     return weight;
 }
+
+bool AppState::getUncompletedWorkoutExists() const
+{
+    return uncompletedWorkoutExists;
+}
+
+void AppState::setUncompletedWorkoutExists(bool value)
+{
+    if (value != uncompletedWorkoutExists) {
+        uncompletedWorkoutExists = value;
+        emit uncompletedWorkoutExistsChanged(value);
+    }
+}
+
 
 QString AppState::getWeightString(qreal weight, bool withBodyWeight, bool withSpaceBetween)
 {

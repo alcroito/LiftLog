@@ -14,6 +14,7 @@ class AppState : public QObject
     Q_OBJECT
     Q_PROPERTY(User* currentUser READ getCurrentUser WRITE setCurrentUser NOTIFY currentUserChanged)
     Q_PROPERTY(WorkoutModel* currentWorkoutModel READ getCurrentWorkoutModel WRITE setCurrentWorkoutModel NOTIFY currentWorkoutModelChanged)
+    Q_PROPERTY(bool uncompletedWorkoutExists READ getUncompletedWorkoutExists WRITE setUncompletedWorkoutExists NOTIFY uncompletedWorkoutExistsChanged)
     Q_PROPERTY(qint32 windowWidth READ getWindowWidth WRITE setWindowWidth NOTIFY windowWidthChanged)
     Q_PROPERTY(qint32 windowHeight READ getWindowHeight WRITE setWindowHeight NOTIFY windowHeightChanged)
 public:
@@ -38,11 +39,15 @@ public:
 
     static AppState* getInstance() { return instance; }
 
+    bool getUncompletedWorkoutExists() const;
+    void setUncompletedWorkoutExists(bool value);
+
 signals:
     void currentUserChanged();
     void windowWidthChanged();
     void windowHeightChanged();
     void currentWorkoutModelChanged();
+    void uncompletedWorkoutExistsChanged(bool);
 
 public slots:
     qint64 getActiveUserId();
@@ -53,9 +58,11 @@ public slots:
     QString getWeightString(qreal weight, bool withBodyWeight = false, bool withSpaceBetween = false);
     qreal getWeightTransformed(qreal weight);
     qreal getWeightTransformed(qreal weight, int from, int to);
+    void recheckUncompletedWorkoutExistsValue();
 private:
     QSharedPointer<User> currentUser;
     QSharedPointer<WorkoutModel> currentWorkoutModel;
+    bool uncompletedWorkoutExists;
     qint32 windowWidth;
     qint32 windowHeight;
     static AppState* instance;

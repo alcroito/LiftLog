@@ -68,6 +68,7 @@ public slots:
     void getLastNotCompletedWorkoutOrCreateNew();
     bool workoutIsPartiallyCompleted(qint64 id);
 
+
     void getWorkoutOnDateOrCreateNewAtDate(QDate date);
     void getWorkoutOnDate(QDate date);
 

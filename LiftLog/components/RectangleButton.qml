@@ -4,13 +4,15 @@ import QtQuick.Controls 1.3
 
 Item {
     id: container
+    property alias icon: icon
+    property alias label: label
     property alias iconText: icon.text
     property alias labelText: label.text
     property alias buttonWidth: container.width
     signal clicked()
 
-    width: 100
-    height: 100
+    width: 100 * units.scale
+    height: 100 * units.scale
 
     states: [
         State {
@@ -34,7 +36,7 @@ Item {
     Rectangle {
         id: rectangle
         anchors.fill: parent
-        border.width: 1
+        border.width: 1 * units.scale
         border.color: "#e4dfdf"
     }
 
@@ -89,7 +91,7 @@ Item {
         id: icon
         font.family: icomoon.name
         text: qsTr("\uEA0A")
-        font.pointSize: 18
+        font.pixelSize: 12 * units.fontScale
         anchors.verticalCenter: parent.verticalCenter
         anchors.horizontalCenter: parent.horizontalCenter
     }
@@ -98,10 +100,10 @@ Item {
         id: label
         color: "#e74c3c"
         text: "New Workout"
-        font.pixelSize: units.sp(10)
+        font.pixelSize: 10 * units.fontScale
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 7
+        anchors.bottomMargin: 7 * units.scale
     }
 }
 

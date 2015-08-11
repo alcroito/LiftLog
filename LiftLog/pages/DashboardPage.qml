@@ -17,6 +17,11 @@ BasicPage {
         else layout.enabled = true
     }
 
+    Stack.onStatusChanged: {
+        if (Stack.status == Stack.Active)
+            appState.recheckUncompletedWorkoutExistsValue()
+    }
+
     GridLayout {
         id: layout
 
@@ -39,8 +44,9 @@ BasicPage {
 
         RectangleButton {
             id: newWorkoutButton
-            iconText: "\uEA0A"
-            labelText: "New workout"
+            iconText: !appState.uncompletedWorkoutExists ? "\uEA0A" : "\uE611"
+            labelText: !appState.uncompletedWorkoutExists ? qsTr("New workout") : qsTr("Continue workout")
+            icon.font.pixelSize: !appState.uncompletedWorkoutExists ? 12 * units.fontScale : 16 * units.fontScale
             Layout.fillWidth: true
             Layout.fillHeight: true
             onClicked: {
