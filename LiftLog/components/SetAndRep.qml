@@ -19,6 +19,7 @@ Item {
     property int repsDone: 5
     property int repsToDo: 5
     property var setModelIndex
+    property bool isUsedForWorkout: false
     signal clicked(int repsDone, int repsToDo)
 
     state: "empty"
@@ -74,7 +75,6 @@ Item {
         MouseArea {
             anchors.fill: parent
             onClicked: {
-
                 // Use additional variables, so no accidental modification is done to the component bindings.
                 var newState = root.state
                 var newRepsDone = repsDone
@@ -92,12 +92,14 @@ Item {
 
                 // Set the model values, which will in turn modify this component's values, because of the bindings
                 // done to the model values.
-                appState.currentWorkoutModel.setData(setModelIndex, newRepsDone, WorkoutModel.RepsDoneCountRole)
-                appState.currentWorkoutModel.setData(setModelIndex, newRepsToDo, WorkoutModel.RepsToDoCountRole)
-                appState.currentWorkoutModel.setData(setModelIndex, newState, WorkoutModel.RepsSetStateRole)
+                if (isUsedForWorkout) {
+                    appState.currentWorkoutModel.setData(setModelIndex, newRepsDone, WorkoutModel.RepsDoneCountRole)
+                    appState.currentWorkoutModel.setData(setModelIndex, newRepsToDo, WorkoutModel.RepsToDoCountRole)
+                    appState.currentWorkoutModel.setData(setModelIndex, newState, WorkoutModel.RepsSetStateRole)
+                }
 
                 // Signal parent about this set being clicked.
-                if (newState != "crossed" ) {
+                if (newState != "crossed") {
                     root.clicked(repsDone, repsToDo)
                 }
             }

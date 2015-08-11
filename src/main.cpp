@@ -13,10 +13,12 @@
 #include "user.h"
 #include "local_notification_service.h"
 #include "workout_model.h"
+#include "workout_entity.h"
 #include "workout_template_list_model.h"
 #include "calendar_model.h"
 #include "calendar_slider_model.h"
 #include "date_picker_model.h"
+#include "set_and_rep_model.h"
 
 int main(int argc, char *argv[])
 {
@@ -36,12 +38,15 @@ int main(int argc, char *argv[])
     qmlRegisterType<AppState>(uri, 1, 0, "AppState");
     qmlRegisterSingletonType<LocalNotificationService>(uri, 1, 0, "LocalNotificationService", localNotificationServiceSingletonTypeProvider);
     qmlRegisterType<WorkoutModel>(uri, 1, 0, "WorkoutModel");
+    qmlRegisterType<WorkoutEntity>(uri, 1, 0, "WorkouEntity");
     qmlRegisterType<WorkoutTemplateListModel>(uri, 1, 0, "WorkoutTemplateListModel");
     qmlRegisterType<CalendarModel>(uri, 1, 0, "CalendarModel");
     qmlRegisterType<CalendarSliderModel>(uri, 1, 0, "CalendarSliderModel");
     qmlRegisterType<DatePickerModel>(uri, 1, 0, "DatePickerModel");
+    qmlRegisterType<SetAndRepModel>(uri, 1, 0, "SetAndRepModel");
+    qmlRegisterType<ExerciseAndSetIndexPair>(uri, 1, 0, "ExerciseSetAndPair");
     qmlRegisterUncreatableType<PUnits>(uri, 0, 1, "PUnits", "Not instantiable");
-    qmlRegisterSingletonType( QUrl("qrc:///LiftLog/extras/FlatStyle.qml"), "LiftLog.extras", 1, 0, "FlatStyle" );
+    qmlRegisterSingletonType(QUrl("qrc:///LiftLog/extras/FlatStyle.qml"), "LiftLog.extras", 1, 0, "FlatStyle");
 
     // Initialize the units class.
     QQmlContext* rootContext = engine.rootContext();

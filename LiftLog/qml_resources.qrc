@@ -45,6 +45,7 @@
         <file>extras/FlatStyle.qml</file>
         <file>components/DatePicker.qml</file>
         <file>components/DatePickerDialog.qml</file>
+        <file>pages/ExerciseWeightPage.qml</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>

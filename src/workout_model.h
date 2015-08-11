@@ -9,6 +9,21 @@ class WorkoutEntity;
 class WorkoutSetEntity;
 class WorkoutTreeNode;
 
+class ExerciseAndSetIndexPair : public QObject {
+    Q_OBJECT
+    Q_PROPERTY(qint32 exerciseIndex MEMBER exerciseIndex NOTIFY exerciseIndexChanged)
+    Q_PROPERTY(qint32 setIndex MEMBER setIndex NOTIFY setIndexChanged)
+public:
+    ExerciseAndSetIndexPair(QObject* parent = 0) : QObject(parent), exerciseIndex(-1), setIndex(-1) {}
+    ExerciseAndSetIndexPair(qint32 exerciseIndexValue, qint32 setIndexValue, QObject* parent = 0) : QObject(parent),
+        exerciseIndex(exerciseIndexValue), setIndex(setIndexValue) {}
+    qint32 exerciseIndex;
+    qint32 setIndex;
+signals:
+    void exerciseIndexChanged(qint32);
+    void setIndexChanged(qint32);
+};
+
 class WorkoutModel : public QAbstractItemModel
 {
     Q_OBJECT
@@ -18,16 +33,20 @@ class WorkoutModel : public QAbstractItemModel
 public:
 
     enum WorkoutRoles {
-            WorkoutEntityRole = Qt::UserRole + 1,
-            ExerciseNameRole,
-            ExerciseSetsAndRepsRole,
-            ExerciseWeightRole,
-            ExerciseWeightIncrementRole,
-            ExerciseEntityRole,
-            RepsDoneCountRole,
-            RepsToDoCountRole,
-            RepsSetStateRole
-        };
+        WorkoutEntityRole = Qt::UserRole + 1,
+        ExerciseNameRole,
+        ExerciseSetsAndRepsRole,
+        ExerciseWeightRole,
+        ExerciseWeightIncrementRole,
+        ExerciseEntityRole,
+        ExerciseSetAndRepIdRole,
+        ExerciseSuccessfulRole,
+        ExerciseCompletedAllSetsRole,
+        ExerciseCompletedSetCountRole,
+        RepsDoneCountRole,
+        RepsToDoCountRole,
+        RepsSetStateRole
+    };
 
     explicit WorkoutModel(QObject* parent = 0);
     ~WorkoutModel();
@@ -58,6 +77,7 @@ public slots:
     int exerciseCount();
     int setsCountForExercise(int exerciseIndex);
     QVariant getSet(int exerciseIndex, int setIndex);
+    QModelIndex getExerciseModelIndex(int exerciseIndex);
     QModelIndex getSetModelIndex(int exerciseIndex, int setIndex);
     void resetBlinkingSets();
     int getCompletedSetsCountForAllExercises();
@@ -77,6 +97,8 @@ public slots:
     void deleteWorkoutData();
 
     void changeAndSaveStartDate(QDate date);
+    void reInitializeExerciseSets();
+    ExerciseAndSetIndexPair* getBlinkingSetId();
 signals:
     void exerciseCountChanged();
     void workoutEntityChanged();

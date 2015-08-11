@@ -21,6 +21,7 @@ public:
     const static QString BLINKING_STATE;
     const static QString CROSSED_STATE;
     const static QString ACTIVE_STATE;
+    const static QString STANDARD_STATE;
 
     qint64 getSetId() const { return setId; }
     void setSetId(const qint64 &value) { setId = value; emit setIdChanged(); }
@@ -35,8 +36,8 @@ public:
     bool isBlinking() { return state == BLINKING_STATE; }
 
 public slots:
-    bool isSuccessful() { return repsDoneCount == repsToDoCount; }
-    bool isAttempted() { return repsDoneCount != NO_REPS_DONE; }
+    bool isSuccessful() { return isValid() && repsDoneCount >= repsToDoCount; }
+    bool isAttempted() { return isValid() && repsDoneCount != NO_REPS_DONE; }
     bool isValid() { return !isInvalid(); }
 signals:
     void repsToDoCountChanged();

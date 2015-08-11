@@ -72,6 +72,22 @@ ApplicationWindow {
         }
     }
 
+    Component {
+        id: exerciseWeightPage
+        ExerciseWeightPage {
+            onAcceptedValues: {
+                var workoutPage = Stack.view.get(Stack.index - 1)
+                if (!workoutPage) {
+                    console.log("Can't get workoutPage to change the exercise weight.")
+                } else {
+                    workoutPage.updateExerciseWeight(newExerciseWeight, newSetAndRepId, newSetsAndRepsString, exerciseIndex)
+                }
+            }
+
+            onGoBack: pageStack.goBack()
+        }
+    }
+
     StackView {
         id: pageStack
         anchors.fill: parent
@@ -151,6 +167,22 @@ ApplicationWindow {
                          transitionOrientation: "vertical",
                          weightSystem: weightSystem,
                          weightNumber: userWeight
+                     }
+                 })
+        }
+
+        function showExerciseWeightPage(exerciseWeight, setAndRepId, weightSystem, weightIncrement, exerciseCategory, exerciseEntity, exerciseIndex) {
+            push({
+                     item: exerciseWeightPage,
+                     properties: {
+                         transitionOrientation: "vertical",
+                         weightNumber: exerciseWeight,
+                         weightSystem: weightSystem,
+                         weightIncrement: weightIncrement,
+                         setAndRepId: setAndRepId,
+                         exerciseCategory: exerciseCategory,
+                         exerciseEntity: exerciseEntity,
+                         exerciseIndex: exerciseIndex
                      }
                  })
         }

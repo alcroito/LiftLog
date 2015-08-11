@@ -55,7 +55,7 @@ public slots:
     void saveCurrentUser();
     void loadActiveUserOnDBInit();
     void clearActiveUserOnDBClose();
-    QString getWeightString(qreal weight, bool withBodyWeight = false, bool withSpaceBetween = false);
+    QString getWeightString(qreal weight, bool withBodyWeight = false, bool withSpaceBetween = false, bool lowerCase = false);
     qreal getWeightTransformed(qreal weight);
     qreal getWeightTransformed(qreal weight, int from, int to);
     void recheckUncompletedWorkoutExistsValue();

@@ -8,6 +8,9 @@ StackViewDelegate {
     {
         var enterItemTransitionOrientatin = properties.enterItem.transitionOrientation
         var exitItemTransitionOrientation = properties.exitItem.transitionOrientation
+        if (properties.enterItem.isGoingToBeShown) {
+            properties.enterItem.isGoingToBeShown()
+        }
         return root[enterItemTransitionOrientatin === "vertical" || exitItemTransitionOrientation === "vertical" ? "verticalSlide" : "horizontalSlide"][properties.name]
     }
 

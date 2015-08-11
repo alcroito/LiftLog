@@ -78,7 +78,7 @@ void AppState::setUncompletedWorkoutExists(bool value)
 }
 
 
-QString AppState::getWeightString(qreal weight, bool withBodyWeight, bool withSpaceBetween)
+QString AppState::getWeightString(qreal weight, bool withBodyWeight, bool withSpaceBetween, bool lowerCase)
 {
     User::WeightSystem system = currentUser->getWeightSystem();
     QString weightSuffix;
@@ -94,11 +94,11 @@ QString AppState::getWeightString(qreal weight, bool withBodyWeight, bool withSp
 
     if (withBodyWeight) {
         prefix = "BW";
-        if (weight != 0) prefix += "+";
+        if (weight > 0) prefix += "+";;
         QTextStream(&result) << prefix;
     }
 
-    if (weight != 0) {
+    if ((withBodyWeight && weight != 0) || !withBodyWeight) {
         QTextStream(&result) << weight;
 
         if (withSpaceBetween) {
@@ -107,6 +107,8 @@ QString AppState::getWeightString(qreal weight, bool withBodyWeight, bool withSp
 
         QTextStream(&result) << weightSuffix;
     }
+
+    if (lowerCase) result = result.toLower();
 
     return result;
 }

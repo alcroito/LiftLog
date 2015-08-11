@@ -50,6 +50,7 @@ APP_QML_FILES += \
     LiftLog/pages/CalendarPage.qml \
     LiftLog/pages/BodyWeightPage.qml \
     LiftLog/pages/BottomPopupView.qml \
+    LiftLog/pages/ExerciseWeightPage.qml \
     LiftLog/extras/qmldir \
     LiftLog/extras/Tumbler.qml \
     LiftLog/extras/TumblerColumn.qml \

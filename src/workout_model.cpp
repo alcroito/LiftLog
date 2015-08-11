@@ -13,6 +13,7 @@
 #include "workout_set_entity.h"
 #include "workout_entity.h"
 #include "workout_tree_node.h"
+#include "set_and_rep_model.h"
 
 WorkoutModel::WorkoutModel(QObject* parent) : QAbstractItemModel(parent), root(0), workoutEntity(0), workoutId(0), workoutDay(0)
 {
@@ -150,6 +151,9 @@ QVariant WorkoutModel::data(const QModelIndex &index, int role) const
             case ExerciseSetsAndRepsRole:
                 return itemData.value<WorkoutExerciseEntity*>()->setsAndRepsString;
 
+            case ExerciseSetAndRepIdRole:
+                return itemData.value<WorkoutExerciseEntity*>()->idSetAndRep;
+
             case ExerciseEntityRole:
                 WorkoutExerciseEntity* entity = qvariant_cast<WorkoutExerciseEntity*>(itemData);
                 QQmlEngine::setObjectOwnership(entity, QQmlEngine::CppOwnership);
@@ -185,35 +189,55 @@ bool WorkoutModel::setData(const QModelIndex &index, const QVariant &value, int 
 
     if (itemDataType == qMetaTypeId<WorkoutExerciseEntity*>()) {
         switch (role) {
-            case WorkoutModel::ExerciseNameRole:
+            case ExerciseNameRole:
                 itemData.value<WorkoutExerciseEntity*>()->name = value.toString();
                 result = true;
                 break;
 
-            case WorkoutModel::ExerciseWeightRole:
-                itemData.value<WorkoutExerciseEntity*>()->defaultWeight = value.toInt();
+            case ExerciseWeightRole:
+                itemData.value<WorkoutExerciseEntity*>()->workWeight = value.toReal();
                 result = true;
                 break;
 
-            case WorkoutModel::ExerciseSetsAndRepsRole:
+            case ExerciseSetsAndRepsRole:
                 itemData.value<WorkoutExerciseEntity*>()->setsAndRepsString = value.toString();
+                result = true;
+                break;
+
+            case ExerciseSetAndRepIdRole:
+                itemData.value<WorkoutExerciseEntity*>()->idSetAndRep = value.toInt();
+                result = true;
+                break;
+
+            case ExerciseSuccessfulRole:
+                itemData.value<WorkoutExerciseEntity*>()->successful = value.toBool();
+                result = true;
+                break;
+
+            case ExerciseCompletedAllSetsRole:
+                itemData.value<WorkoutExerciseEntity*>()->completedAllSets = value.toBool();
+                result = true;
+                break;
+
+            case ExerciseCompletedSetCountRole:
+                itemData.value<WorkoutExerciseEntity*>()->completedSetCount = value.toInt();
                 result = true;
                 break;
         }
     }
     else if (itemDataType == qMetaTypeId<WorkoutSetEntity*>()) {
         switch (role) {
-            case WorkoutModel::RepsDoneCountRole:
+            case RepsDoneCountRole:
                 itemData.value<WorkoutSetEntity*>()->setRepsDoneCount(value.toInt());
                 result = true;
                 break;
 
-            case WorkoutModel::RepsToDoCountRole:
+            case RepsToDoCountRole:
                 itemData.value<WorkoutSetEntity*>()->setRepsToDoCount(value.toInt());
                 result = true;
                 break;
 
-            case WorkoutModel::RepsSetStateRole:
+            case RepsSetStateRole:
                 itemData.value<WorkoutSetEntity*>()->setState(value.toString());
                 result = true;
                 break;
@@ -233,6 +257,7 @@ QHash<int, QByteArray> WorkoutModel::roleNames() const {
     roles[ExerciseSetsAndRepsRole] = "setsAndReps";
     roles[ExerciseWeightRole] = "weight";
     roles[ExerciseWeightIncrementRole] = "weightIncrement";
+    roles[ExerciseSetAndRepIdRole] = "exerciseSetAndRepId";
     roles[ExerciseEntityRole] = "exerciseEntity";
     roles[RepsDoneCountRole] = "repsDoneCount";
     roles[RepsToDoCountRole] = "repsToDoCount";
@@ -250,6 +275,11 @@ int WorkoutModel::exerciseCount()
 int WorkoutModel::setsCountForExercise(int exerciseIndex)
 {
     return workoutEntity->exercises[exerciseIndex]->getValidSetCount();
+}
+
+QModelIndex WorkoutModel::getExerciseModelIndex(int exerciseIndex) {
+    QModelIndex exerciseModelIndex = index(exerciseIndex, 0);
+    return exerciseModelIndex;
 }
 
 QModelIndex WorkoutModel::getSetModelIndex(int exerciseIndex, int setIndex) {
@@ -272,17 +302,37 @@ void WorkoutModel::resetBlinkingSets()
         WorkoutExerciseEntity* exercise = workoutEntity->exercises.value(i);
         for (int j = 0; j < exercise->setsAndReps.count(); j++) {
             WorkoutSetEntity* set = exercise->setsAndReps.value(j);
-            QModelIndex index = getSetModelIndex(i, j);
             if (set->isBlinking()) {
+                QModelIndex index = getSetModelIndex(i, j);
                 setData(index, WorkoutSetEntity::EMPTY_STATE, RepsSetStateRole);
             }
         }
     }
 }
 
+ExerciseAndSetIndexPair* WorkoutModel::getBlinkingSetId() {
+    ExerciseAndSetIndexPair* pair = new ExerciseAndSetIndexPair();
+
+    for (int i = 0; i < workoutEntity->exercises.count(); ++i) {
+        WorkoutExerciseEntity* exercise = workoutEntity->exercises.value(i);
+        for (int j = 0; j < exercise->setsAndReps.count(); j++) {
+            WorkoutSetEntity* set = exercise->setsAndReps.value(j);
+            if (set->isBlinking()) {
+                pair->exerciseIndex = i;
+                pair->setIndex = j;
+            }
+        }
+    }
+
+    // Object will be garbage collected (deleted) by QML engine, because it will have QML ownership,
+    // because we return the pointer via a slot invoked by QML.
+    return pair;
+}
+
 int WorkoutModel::getCompletedSetsCountForAllExercises()
 {
     int completed = 0;
+    if (!workoutEntity) return completed;
 
     for (int i = 0; i < workoutEntity->exercises.count(); ++i) {
         WorkoutExerciseEntity* exercise = workoutEntity->exercises.value(i);
@@ -439,17 +489,106 @@ void WorkoutModel::getWorkoutOnDateOrCreateNewAtDate(QDate date) {
     }
 }
 
+void WorkoutModel::reInitializeExerciseSets() {
+    bool firstSet = true;
+    beginResetModel();
+    resetBlinkingSets();
+    for (int i = 0; i < workoutEntity->exercises.count(); ++i) {
+        // Get exercise.
+        WorkoutExerciseEntity* exercise = workoutEntity->exercises[i];
+
+        // Get set and rep used by this exercise.
+        SetAndRep setAndRep = SetAndRepModel::getSetAndRepById(exercise->idSetAndRep);
+
+        // Get exercise tree node, using which we will add / remove children set nodes.
+        QModelIndex exerciseModelIndex = getExerciseModelIndex(i);
+        WorkoutTreeNode* exerciseWorkoutTreeNode = static_cast<WorkoutTreeNode*>(exerciseModelIndex.internalPointer());
+
+        // Set the set count.
+        qint32 setCount = setAndRep.getSetCount();
+        exercise->validSetCount = setCount;
+
+        // Set the sets and reps string for the exercise.
+        qint32 repCount = setAndRep.getRepCount();
+        setData(exerciseModelIndex, tr("%1x%2").arg(setCount).arg(repCount), ExerciseSetsAndRepsRole);
+
+        // Compute how many sets should exist.
+        qint32 minSetCount = 5;
+        qint32 setsCountThatShouldExist = std::max(minSetCount, setCount);
+
+        // Compute how many sets should be removed / added.
+        qint32 existingCreatedSetsCount = exercise->setsAndReps.count();
+        qint32 setsToRemove = std::max(existingCreatedSetsCount - setsCountThatShouldExist, 0);
+        qint32 setsToAdd = std::max(setsCountThatShouldExist - existingCreatedSetsCount, 0);
+
+        for (int j = 0; j < setsToRemove; ++j) {
+            delete exercise->setsAndReps.last();
+            exercise->setsAndReps.removeLast();
+            exerciseWorkoutTreeNode->deleteChild(exercise->setsAndReps.count());
+        }
+
+        for (int j = 0; j < setsToAdd; ++j) {
+            WorkoutSetEntity* set = new WorkoutSetEntity(repCount);
+            exercise->setsAndReps.append(set);
+            WorkoutTreeNode* setNode = new WorkoutTreeNode(QVariant::fromValue(set), exerciseWorkoutTreeNode);
+            exerciseWorkoutTreeNode->appendChild(setNode);
+        }
+
+        for (int j = 0; j < setsCountThatShouldExist; ++j) {
+            WorkoutSetEntity* set = exercise->setsAndReps[j];
+            set->setSetId(j);
+            set->setRepsToDoCount(repCount);
+
+            // Display sets as crossed, which should not be completed.
+            if (j >= setCount) {
+                set->setState(WorkoutSetEntity::CROSSED_STATE);
+                set->setRepsToDoCount(WorkoutSetEntity::NO_REPS_DONE);
+            } else {
+                // Reset previously crossed states to emtpy state.
+                if (set->getState() == WorkoutSetEntity::CROSSED_STATE) {
+                    set->setState(WorkoutSetEntity::EMPTY_STATE);
+                    set->setRepsDoneCount(WorkoutSetEntity::NO_REPS_DONE);
+                }
+
+                // Lower the number of reps done to the maximum rep count that is selected for the exercise.
+                if (set->getRepsDoneCount() > repCount) {
+                    set->setRepsDoneCount(repCount);
+                }
+            }
+
+            // First valid un-attempted set should blink to attract attention.
+            if (firstSet && set->isValid() && !set->isAttempted()) {
+                set->setState(WorkoutSetEntity::BLINKING_STATE);
+                firstSet = false;
+            }
+        }
+    }
+    endResetModel();
+}
+
 WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
 {
     QSqlQuery query;
-    query.prepare("SELECT wt.name AS workout_name, e.name AS exercise_name, COALESCE(uwew.weight + e.default_weight_increment, e.default_weight) AS work_weight, "
-                  "e.default_weight, e.default_weight_increment, sr.set_count, sr.rep_count, e.id_exercise, wte.delta, uw.id_workout_template, \
-                  uw.day, uw.date_started, uw.date_ended, uw.last_updated, uw.user_weight, uw.completed, e.tags \
+    bool result = query.prepare("SELECT wt.name AS workout_name, e.name AS exercise_name, "
+                  "COALESCE(uwew.weight, e.default_weight) AS work_weight, "
+                  "e.default_weight, "
+                  "e.default_weight_increment, "
+                  "COALESCE(sr2.set_count, sr.set_count) AS set_count, "
+                  "COALESCE(sr2.rep_count, sr.rep_count) AS rep_count, "
+                  "e.id_exercise, wte.delta, uw.id_workout_template, \
+                  uw.day, uw.date_started, uw.date_ended, uw.last_updated, uw.user_weight, uw.completed, e.tags, \
+                  COALESCE(uwew2.id_set_and_rep, sr.id_set_and_rep) AS id_set_and_rep, \
+                  COALESCE(uwew2.successful, 0) AS successful, \
+                  COALESCE(uwew2.completed_all_sets, 0) AS completed_all_sets, \
+                  COALESCE(uwew2.completed_set_count, 0) AS completed_set_count, \
+                  COALESCE(uwew.successful, 0) AS previous_workout_successful \
                   FROM workout_template wt \
                   INNER JOIN workout_template_exercises wte ON wte.id_workout_template = wt.id_workout_template \
                   INNER JOIN exercise e ON e.id_exercise = wte.id_exercise \
                   INNER JOIN set_and_rep sr ON sr.id_set_and_rep = e.id_default_set_and_rep \
                   INNER JOIN user_workout uw ON uw.id_workout_template = wt.id_workout_template \
+                  LEFT JOIN user_workout_exercise_weight uwew2 ON uwew2.id_exercise = e.id_exercise AND uwew2.delta = wte.delta AND uwew2.id_workout = uw.id_workout \
+                  LEFT JOIN set_and_rep sr2 ON sr2.id_set_and_rep = uwew2.id_set_and_rep \
                   LEFT JOIN user_workout_exercise_weight uwew ON uwew.id_exercise = e.id_exercise AND uwew.delta = wte.delta AND uwew.id_workout = \
                     /* Extracts the id_workout of previous workout with the same day, to use as a source for completed weights */ \
                     (SELECT uw2.id_workout \
@@ -460,9 +599,14 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
                     LIMIT 1) \
                   WHERE uw.id_workout = :id_workout AND wte.day = :workout_day \
                   ORDER BY wte.delta");
+    if (!result) {
+        qDebug() << "Error preparing query for loading workout data.";
+        qDebug() << query.lastError();
+        return 0;
+    }
     query.bindValue(":id_workout", workoutId);
     query.bindValue(":workout_day", workoutDay);
-    bool result = query.exec();
+    result = query.exec();
     if (!result) {
         qDebug() << "Error getting workout data.";
         qDebug() << query.lastError();
@@ -513,9 +657,17 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
         exercise->workWeight = query.value(2).toReal();
         exercise->defaultWeight = query.value(3).toReal();
         exercise->defaultWeightIncrement = query.value(4).toReal();
+        bool previousWorkoutExerciseSuccesful = query.value(21).toBool();
+        if (previousWorkoutExerciseSuccesful) {
+            exercise->workWeight += exercise->defaultWeightIncrement;
+        }
         exercise->idExercise = query.value(7).toInt();
         exercise->delta = query.value(8).toInt();
         exercise->tags = query.value(16).toString().split(",");
+        exercise->idSetAndRep = query.value(17).toInt();
+        exercise->successful = query.value(18).toBool();
+        exercise->completedAllSets = query.value(19).toBool();
+        exercise->completedSetCount = query.value(20).toInt();
 
         // Display at least 5 set circles. Show crossed sets
         // in case if the sets should not be completed.
@@ -689,18 +841,37 @@ void WorkoutModel::saveWorkoutData(bool setCompleted)
         user->save();
     }
 
-    // Save exercise stats.
     bool isPartiallyCompleted = workoutIsPartiallyCompleted(workoutId);
+
+    // Remove old stats data.
+    query.prepare("DELETE FROM user_workout_exercise_stats "
+                  "WHERE id_workout = :id_workout");
+    query.bindValue(":id_workout", workoutId);
+
+    result = query.exec();
+    if (!result) {
+        qDebug() << "Error removing old workout exercise stats data.";
+        qDebug() << query.lastError();
+        return;
+    }
+
+    // Save exercise stats.
     for (int i = 0; i < workoutEntity->exercises.count(); ++i) {
         WorkoutExerciseEntity* exercise = workoutEntity->exercises.value(i);
 
         if (!isPartiallyCompleted) {
-            query.prepare("INSERT INTO user_workout_exercise_weight (id_workout, id_exercise, delta, weight)"
-                          "VALUES (:id_workout, :id_exercise, :delta, :weight)");
+            query.prepare("INSERT INTO user_workout_exercise_weight "
+                          "(id_workout, id_exercise, delta, weight, id_set_and_rep, successful, completed_all_sets, completed_set_count) "
+                          "VALUES (:id_workout, :id_exercise, :delta, :weight, :id_set_and_rep, :successful, :completed_all_sets, :completed_set_count)");
             query.bindValue(":id_workout", workoutId);
             query.bindValue(":id_exercise", exercise->idExercise);
             query.bindValue(":delta", exercise->delta);
             query.bindValue(":weight", exercise->workWeight);
+            query.bindValue(":id_set_and_rep", exercise->idSetAndRep);
+            query.bindValue(":successful", exercise->successful);
+            query.bindValue(":completed_all_sets", exercise->completedAllSets);
+            query.bindValue(":completed_set_count", exercise->completedSetCount);
+
 
             bool result = query.exec();
             if (!result) {
@@ -710,12 +881,17 @@ void WorkoutModel::saveWorkoutData(bool setCompleted)
             }
         } else {
             query.prepare("UPDATE user_workout_exercise_weight "
-                          "SET weight = :weight "
+                          "SET weight = :weight, id_set_and_rep = :id_set_and_rep, successful = :successful, "
+                          "completed_all_sets = :completed_all_sets, completed_set_count = :completed_set_count "
                           "WHERE id_workout = :id_workout AND id_exercise = :id_exercise AND delta = :delta");
             query.bindValue(":id_workout", workoutId);
             query.bindValue(":id_exercise", exercise->idExercise);
             query.bindValue(":delta", exercise->delta);
             query.bindValue(":weight", exercise->workWeight);
+            query.bindValue(":id_set_and_rep", exercise->idSetAndRep);
+            query.bindValue(":successful", exercise->successful);
+            query.bindValue(":completed_all_sets", exercise->completedAllSets);
+            query.bindValue(":completed_set_count", exercise->completedSetCount);
 
             bool result = query.exec();
             if (!result) {
@@ -734,27 +910,15 @@ void WorkoutModel::saveWorkoutData(bool setCompleted)
             // If next set is an invalid one (crossed for example, don't save it, nor the next ones).
             if (set->isInvalid()) break;
 
-            if (!isPartiallyCompleted) {
-                query.prepare("INSERT INTO user_workout_exercise_stats (id_workout, id_exercise, delta, set_number, reps_done)"
-                              "VALUES (:id_workout, :id_exercise, :delta, :set_number, :reps_done)");
-                query.bindValue(":id_workout", workoutId);
-                query.bindValue(":id_exercise", exercise->idExercise);
-                query.bindValue(":delta", exercise->delta);
-                query.bindValue(":set_number", set->getSetId());
-                query.bindValue(":reps_done", set->getRepsDoneCount());
-            }
-            else {
-                query.prepare("UPDATE user_workout_exercise_stats "
-                              "SET reps_done = :reps_done "
-                              "WHERE id_workout = :id_workout AND id_exercise = :id_exercise AND delta = :delta AND set_number = :set_number");
-                query.bindValue(":id_workout", workoutId);
-                query.bindValue(":id_exercise", exercise->idExercise);
-                query.bindValue(":delta", exercise->delta);
-                query.bindValue(":set_number", set->getSetId());
-                query.bindValue(":reps_done", set->getRepsDoneCount());
-            }
+            query.prepare("INSERT INTO user_workout_exercise_stats (id_workout, id_exercise, delta, set_number, reps_done)"
+                          "VALUES (:id_workout, :id_exercise, :delta, :set_number, :reps_done)");
+            query.bindValue(":id_workout", workoutId);
+            query.bindValue(":id_exercise", exercise->idExercise);
+            query.bindValue(":delta", exercise->delta);
+            query.bindValue(":set_number", set->getSetId());
+            query.bindValue(":reps_done", set->getRepsDoneCount());
 
-            bool result = query.exec();
+            result = query.exec();
             if (!result) {
                 qDebug() << "Error saving workout exercise stats data.";
                 qDebug() << query.lastError();

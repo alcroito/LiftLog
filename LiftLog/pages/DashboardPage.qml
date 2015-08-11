@@ -17,9 +17,8 @@ BasicPage {
         else layout.enabled = true
     }
 
-    Stack.onStatusChanged: {
-        if (Stack.status == Stack.Active)
-            appState.recheckUncompletedWorkoutExistsValue()
+    onIsGoingToBeShown: {
+        appState.recheckUncompletedWorkoutExistsValue()
     }
 
     GridLayout {

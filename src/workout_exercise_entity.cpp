@@ -6,3 +6,16 @@ WorkoutExerciseEntity::~WorkoutExerciseEntity() {
     qDeleteAll(setsAndReps);
     setsAndReps.clear();
 }
+
+WorkoutExerciseEntity::ExerciseCategory WorkoutExerciseEntity::exerciseCategory()
+{
+    if (isPrimary()) return Barbell;
+    else if (isAccessory()) return BodyWeight;
+    else return Unknown;
+}
+
+qreal WorkoutExerciseEntity::getBarbellWeight()
+{
+    // @TODO Make this configurable.
+    return 20.0;
+}

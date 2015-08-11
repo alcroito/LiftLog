@@ -31,8 +31,31 @@ BasicPage {
         appState.currentWorkoutModel.workoutEntity.userWeight = userWeight
         appState.currentUser.weightSystem = weightSystem
 
-        // Enable the button back.
+        // Enable the DateAndWeight button back.
         exercises.headerItem.enabled = true
+    }
+
+    function updateExerciseWeight(exerciseWeight, setAndRepId, setsAndRepsString, exerciseIndex) {
+        // Set the exercise weight.
+        appState.currentWorkoutModel.setData(appState.currentWorkoutModel.getExerciseModelIndex(exerciseIndex), exerciseWeight, WorkoutModel.ExerciseWeightRole)
+
+        // Set the set and rep id.
+        appState.currentWorkoutModel.setData(appState.currentWorkoutModel.getExerciseModelIndex(exerciseIndex), setAndRepId, WorkoutModel.ExerciseSetAndRepIdRole)
+
+        // Set the set and rep string.
+        appState.currentWorkoutModel.setData(appState.currentWorkoutModel.getExerciseModelIndex(exerciseIndex), setsAndRepsString, WorkoutModel.ExerciseSetsAndRepsRole)
+
+        // Enable the weight button back.
+        exercises.getDelegateInstanceAt(exerciseIndex).enableExerciseWeightClickArea()
+
+        // Re-initialize exercise sets.
+        appState.currentWorkoutModel.reInitializeExerciseSets()
+
+        // Scroll to blinking set.
+        scrollToBlinkingSetIfAny()
+
+        // Hide any notifications.
+        topNotification.hide(true)
     }
 
     function checkIfWorkoutShouldBeSaved() {
@@ -43,6 +66,14 @@ BasicPage {
             appState.currentWorkoutModel.workoutEntity.shouldBeSaved = true
         } else {
             appState.currentWorkoutModel.workoutEntity.shouldBeSaved = false
+        }
+    }
+
+    function scrollToBlinkingSetIfAny() {
+        var pair = appState.currentWorkoutModel.getBlinkingSetId()
+        if (pair.exerciseIndex !== -1 && pair.setIndex !== -1) {
+            exercises.positionViewAtIndex(pair.exerciseIndex, ListView.Center)
+            exercises.getDelegateInstanceAt(pair.exerciseIndex).circles.positionViewAtIndex(pair.setIndex, ListView.Center)
         }
     }
 
@@ -58,6 +89,10 @@ BasicPage {
         id: exercisesDelegateModel
         model: appState.currentWorkoutModel
         delegate: ExerciseStatsInput {
+            // Used to find the delegate by index in the list view.
+            objectName: "exerciseStatsInputDelegate"
+            property int objectIndex: index
+
             exerciseName: model.name
             exerciseModelIndex: exercisesDelegateModel.modelIndex(index)
             exerciseIndex: index
@@ -65,6 +100,7 @@ BasicPage {
             weight: appState.getWeightString(model.weight, model.exerciseEntity.isAccessory())
             currentWeightText: appState.getWeightString(model.weight, model.exerciseEntity.isAccessory())
             nextWeightText: appState.getWeightString(model.weight + model.weightIncrement, model.exerciseEntity.isAccessory())
+
             onClicked: {
                 // Always reset to the standard state, so that in case if all sets were completed,
                 // the timer until the completed label appears is always reset.
@@ -90,6 +126,17 @@ BasicPage {
                     topNotification.start()
                 }
             }
+            onWeightClicked: {
+                // Disable button so you can't accidentally double click.
+                disableExerciseWeightClickArea()
+
+                // Show exercise weight page.
+                pageStack.showExerciseWeightPage(
+                            model.weight, model.exerciseEntity.getIdSetAndRep(),
+                            appState.currentUser.weightSystem, model.weightIncrement, model.exerciseEntity.exerciseCategory(),
+                            model.exerciseEntity, index)
+            }
+
             Component.onCompleted: {
                 checkIfCompletedAndSuccesful(exerciseIndex)
                 if (setsCompleted) {
@@ -123,7 +170,7 @@ BasicPage {
             }
 
             onBodyWeightClicked: {
-                // Disable button so you don't accidentally double click.
+                // Disable button so you can't accidentally double click.
                 dateAndWeight.enabled = false
 
                 // Show body weight page.
@@ -144,8 +191,21 @@ BasicPage {
                 // Explicitly save, even if empty.
                 appState.currentWorkoutModel.workoutEntity.shouldBeSaved = true
                 appState.currentWorkoutModel.saveWorkoutData()
+                appState.currentWorkoutModel.workoutEntity.completed = true
                 goBack()
             }
+        }
+
+        function getDelegateInstanceAt(index) {
+            for(var i = 0; i < contentItem.children.length; ++i) {
+                var item = contentItem.children[i];
+                // We have to check for the specific objectName we gave our
+                // delegates above, since we also get some items that are not
+                // our delegates here.
+                if (item.objectName === "exerciseStatsInputDelegate" && item.objectIndex === index)
+                    return item;
+            }
+            return undefined;
         }
     }
 

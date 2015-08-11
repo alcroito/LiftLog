@@ -8,10 +8,11 @@ Item {
     id: root
     width: appState.windowWidth
     height: 95 * units.scale
-    signal clicked(int columnId, int reps, int repsToDo, bool setsCompleted)
+
     property alias exerciseName: exerciseNameLabel.text
     property alias setsAndReps: setsAndRepsLabel.text
     property alias weight: weightLabel.text
+    property alias circles: circles
     property var exerciseModelIndex
     property int exerciseIndex: -1
     property bool setsCompleted: false
@@ -21,6 +22,9 @@ Item {
     property string failureText: qsTr("Try reapeating %1 next time, or deload!")
     property bool immediateCompletedTransition: false
     property bool exerciseIsSuccessful: true
+
+    signal clicked(int columnId, int reps, int repsToDo, bool setsCompleted)
+    signal weightClicked
 
     state: "standard"
 
@@ -58,18 +62,34 @@ Item {
                     anchors.leftMargin: 0
                 }
 
-                Label {
-                    id: setsAndRepsLabel
-                    text: "5x5"
-                    anchors.right: weightLabel.left
-                    anchors.rightMargin: 2 * units.scale
-                }
+                MouseArea {
+                    id: setsAndWeightCointaner
+                    width: (setsAndRepsLabel.width + weightLabel.width) + 10 * units.scale
+                    height: (setsAndRepsLabel.height + weightLabel.height) + 4 * units.scale
+                    anchors.top: parent.top
+                    anchors.topMargin: -10 * units.scale
 
-                Label {
-                    id: weightLabel
-                    text: "20KG"
                     anchors.right: parent.right
                     anchors.rightMargin: 0
+
+                    onClicked: {
+                        root.weightClicked()
+                    }
+                    Label {
+                        id: setsAndRepsLabel
+                        text: "5x5"
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.right: weightLabel.left
+                        anchors.rightMargin: 2 * units.scale
+                    }
+
+                    Label {
+                        id: weightLabel
+                        text: "20KG"
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.right: parent.right
+                        anchors.rightMargin: 0
+                    }
                 }
             }
         }
@@ -114,6 +134,7 @@ Item {
                 repsDone: model.repsDoneCount
                 repsToDo: model.repsToDoCount
                 setModelIndex: setsDelegateModel.modelIndex(index)
+                isUsedForWorkout: true
                 onClicked: {
                     checkIfCompletedAndSuccesful(root.exerciseIndex)
 
@@ -252,21 +273,25 @@ Item {
     }
 
     function getCompletedSetsCount(exerciseIndex) {
-        var completedExercisesCount = 0
+        var completedExerciseSetCount = 0
         var theModel = appState.currentWorkoutModel
         var setsCount = theModel.setsCountForExercise(exerciseIndex)
         for (var setIndex = 0; setIndex < setsCount; setIndex++) {
             var setAndRep = theModel.getSet(exerciseIndex, setIndex)
             if (setAndRep.isAttempted())
-                completedExercisesCount++
+                completedExerciseSetCount++
         }
-        return completedExercisesCount
+        return completedExerciseSetCount
     }
 
     function checkIfAllSetsCompleted(exerciseIndex) {
         var theModel = appState.currentWorkoutModel
         var setsCount = theModel.setsCountForExercise(exerciseIndex)
-        setsCompleted = root.getCompletedSetsCount(exerciseIndex) === setsCount
+        var completedCount = root.getCompletedSetsCount(exerciseIndex)
+        setsCompleted = completedCount === setsCount
+
+        appState.currentWorkoutModel.setData(appState.currentWorkoutModel.getExerciseModelIndex(exerciseIndex), setsCompleted, WorkoutModel.ExerciseCompletedAllSetsRole)
+        appState.currentWorkoutModel.setData(appState.currentWorkoutModel.getExerciseModelIndex(exerciseIndex), completedCount, WorkoutModel.ExerciseCompletedSetCountRole)
     }
 
     function checkIfExerciseIsSuccessful(exerciseIndex) {
@@ -281,6 +306,7 @@ Item {
                 break
             }
         }
+        appState.currentWorkoutModel.setData(appState.currentWorkoutModel.getExerciseModelIndex(exerciseIndex), exerciseIsSuccessful, WorkoutModel.ExerciseSuccessfulRole)
     }
 
     function checkIfCompletedAndSuccesful(index) {
@@ -302,5 +328,13 @@ Item {
         }
 
         root.state = "completed"
+    }
+
+    function enableExerciseWeightClickArea() {
+        setsAndWeightCointaner.enabled = true
+    }
+
+    function disableExerciseWeightClickArea() {
+        setsAndWeightCointaner.enabled = false
     }
 }

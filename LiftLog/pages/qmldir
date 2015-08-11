@@ -8,3 +8,4 @@ ModalPopup 1.0 ModalPopup.qml
 CalendarPage 1.0 CalendarPage.qml
 BodyWeightPage 1.0 BodyWeightPage.qml
 BottomPopupView 1.0 BottomPopupView.qml
+ExerciseWeightPage 1.0 ExerciseWeightPage.qml

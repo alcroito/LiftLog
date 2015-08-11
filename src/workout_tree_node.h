@@ -19,6 +19,7 @@ public:
         return 0;
     }
     WorkoutTreeNode* parentItem() { return parent; }
+    void deleteChild(int row) { delete children.value(row); children.removeAt(row);}
 private:
     WorkoutTreeNode* parent;
     QList<WorkoutTreeNode*> children;

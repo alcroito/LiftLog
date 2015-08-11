@@ -36,6 +36,9 @@ Item {
 
     signal goBack
 
+    // Emitted before during initialization of StackView transition, which will make the page active.
+    signal isGoingToBeShown
+
     Rectangle {
         id: background
         width: parent.width

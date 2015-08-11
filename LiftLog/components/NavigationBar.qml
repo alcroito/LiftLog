@@ -16,6 +16,7 @@ Rectangle {
 
     property alias text: label.text
     property alias pixelSize: label.font.pixelSize
+    property alias label: label
     property bool showBackButton: false
     property bool showBurgerButton: false
     property bool showSpreadsheetsButton: false
