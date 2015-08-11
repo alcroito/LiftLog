@@ -568,8 +568,31 @@ void WorkoutModel::reInitializeExerciseSets() {
 
 WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
 {
+    QSqlQuery workoutQuery;
+    bool result = workoutQuery.prepare(
+                  "SELECT wt.name AS workout_name, "
+                  "uw.id_workout_template, \
+                  uw.day, uw.date_started, uw.date_ended, uw.last_updated, uw.user_weight, uw.completed \
+                  FROM workout_template wt \
+                  INNER JOIN user_workout uw ON uw.id_workout_template = wt.id_workout_template \
+                  WHERE uw.id_workout = :id_workout");
+
+    if (!result) {
+        qDebug() << "Error preparing query for loading workout data.";
+        qDebug() << workoutQuery.lastError();
+        return 0;
+    }
+
+    workoutQuery.bindValue(":id_workout", workoutId);
+    result = workoutQuery.exec();
+    if (!result) {
+        qDebug() << "Error getting workout data.";
+        qDebug() << workoutQuery.lastError();
+        return 0;
+    }
+
     QSqlQuery query;
-    bool result = query.prepare("SELECT wt.name AS workout_name, e.name AS exercise_name, "
+    result = query.prepare("SELECT wt.name AS workout_name, e.name AS exercise_name, "
                   "COALESCE(previous_workout.weight, e.default_weight) AS work_weight, "
                   "e.default_weight, "
                   "e.default_weight_increment, "
@@ -601,15 +624,16 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
                   WHERE uw.id_workout = :id_workout AND wte.day = :workout_day \
                   ORDER BY wte.delta");
     if (!result) {
-        qDebug() << "Error preparing query for loading workout data.";
+        qDebug() << "Error preparing query for loading workout exercise data.";
         qDebug() << query.lastError();
         return 0;
     }
+
     query.bindValue(":id_workout", workoutId);
     query.bindValue(":workout_day", workoutDay);
     result = query.exec();
     if (!result) {
-        qDebug() << "Error getting workout data.";
+        qDebug() << "Error getting workout exercise data.";
         qDebug() << query.lastError();
         return 0;
     }
@@ -630,36 +654,34 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
     workout->workoutId = workoutId;
     workout->shouldBeSaved = false;
     workout->forceSave = false;
-    bool first = true;
     bool firstSet = true;
 
-    while (query.next()) {
-        if (first) {
-            workout->workoutTemplateId = query.value(9).toInt();
-            workout->day = query.value(10).toInt();
-            workout->dateStarted = query.value(11).toDateTime();
-            workout->dateEnded = query.value(12).toDateTime();
+    while (workoutQuery.next()) {
+        workout->name = workoutQuery.value(0).toString();
+        workout->workoutTemplateId = workoutQuery.value(1).toInt();
+        workout->day = workoutQuery.value(2).toInt();
+        workout->dateStarted = workoutQuery.value(3).toDateTime();
+        workout->dateEnded = workoutQuery.value(4).toDateTime();
 
-            // Force save if workout has an ending date, meaning it was saved some time ago.
-            // We do this, so that in case the workout was saved with no stats entered, it doesn't
-            // get removed when going back a page.
-            if (workout->dateEnded.isValid()) {
-                workout->forceSave = true;
-            }
-            workout->lastUpdated = query.value(13).toDateTime();
-            workout->userWeight = query.value(14).toReal();
-            workout->completed = query.value(15).toBool();
-            first = false;
+        // Force save if workout has an ending date, meaning it was saved some time ago.
+        // We do this, so that in case the workout was saved with no stats entered, it doesn't
+        // get removed when going back a page.
+        if (workout->dateEnded.isValid()) {
+            workout->forceSave = true;
         }
+        workout->lastUpdated = workoutQuery.value(5).toDateTime();
+        workout->userWeight = workoutQuery.value(6).toReal();
+        workout->completed = workoutQuery.value(7).toBool();
+    }
 
+    while (query.next()) {
         WorkoutExerciseEntity* exercise = new WorkoutExerciseEntity();
-        workout->name = query.value(0).toString();
         exercise->name = query.value(1).toString();
         exercise->workWeight = query.value(2).toReal();
         exercise->defaultWeight = query.value(3).toReal();
         exercise->defaultWeightIncrement = query.value(4).toReal();
         bool previousWorkoutExerciseSuccesful = query.value(21).toBool();
-        if (previousWorkoutExerciseSuccesful) {
+        if (previousWorkoutExerciseSuccesful && AppState::getInstance()->getCurrentUser()->getAutoAddWeight()) {
             exercise->workWeight += exercise->defaultWeightIncrement;
         }
         exercise->idExercise = query.value(7).toInt();
@@ -902,9 +924,7 @@ void WorkoutModel::saveWorkoutData(bool setCompleted)
             }
         }
 
-        // @TODO When set changing will be implemeneted, and possibly weight changing for exercises,
-        // we will probably need to delete exercise weight and stats when before updating them, because
-        // the DB might contain a different number of rows.
+        // @TODO When exercise addition / removal will be implemented, this bit of code here will have to be adjusted quite a bit.
         for (int j = 0; j < exercise->setsAndReps.count(); j++) {
             WorkoutSetEntity* set = exercise->setsAndReps.value(j);
 

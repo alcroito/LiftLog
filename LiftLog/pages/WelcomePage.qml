@@ -97,7 +97,7 @@ BasicPage {
                 model: ListModel {
                     id: weightSystemModel
 
-                    // Fix this to properly use Enums. It works in app code, but dies in
+                    // @TODO Fix this to properly use Enums. It works in app code, but dies in
                     // Qt Quick Designer.
                     ListElement { text: "Metric"; value: 0 }
                     ListElement { text: "Imperial"; value: 1 }
