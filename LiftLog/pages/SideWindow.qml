@@ -10,9 +10,16 @@ Item {
     height: appState.windowHeight
 
     property color iconColor: "#e94c3a"
+    property alias slideSettingsOutAnimation: slideSettingsOutAnimation
+    property var sideWindowDragAreaReference: null
+    property var rootBackgroundReference: null
+    property var rootContainerReference: null
+    property var navigationBarReference: null
+    property var innerItemReference: null
 
     signal close
     signal closeAndShowPopupForOperation(string op)
+    signal sideWindowHidingComplete
 
     Rectangle {
         id: background
@@ -120,4 +127,110 @@ Item {
             }
         }
     }
+
+    SequentialAnimation {
+        id: slideSettingsOutAnimation
+
+        PropertyAnimation {
+            target: rootBackgroundReference
+            property: "x"
+            to: 0
+            duration: 200
+        }
+
+        PropertyAction {
+            target: rootBackgroundReference
+            property: "anchors.left"
+            value: rootContainerReference.left
+        }
+    }
+
+    states: [
+        State {
+            name: ""
+            // Reset mouse drag area width, it doesn't
+            // get restored to initial value, after an anchor change for some reason.
+            PropertyChanges {
+                target: sideWindowDragAreaReference
+                width: 20 * units.scale
+            }
+        },
+        State {
+            name: "sideWindowShown"
+
+            // Disable anchor so that we can move the background to the left.
+            AnchorChanges {
+                target: rootBackgroundReference
+                anchors.left: undefined
+            }
+
+            // Move the background to the left.
+            PropertyChanges {
+                target: rootBackgroundReference
+                x: -appState.windowWidth * 0.85
+            }
+
+            // Make sure to disable mouse events on the navigation bar
+            // so that the side window close region works properly, so
+            // the click event goes to the sideWindowDragArea region to close
+            // the side window, rather than to the navigation bar
+            // which will try to open the window again.
+            PropertyChanges {
+                target: navigationBarReference
+                enabled: false
+            }
+
+            // Disable the content area as well.
+            PropertyChanges {
+                target: innerItemReference
+                enabled: false
+            }
+
+            // Enable side window clicking.
+            PropertyChanges {
+                target: root
+                enabled: true
+            }
+
+            // Make the drag area occupy the whole visible 15% space
+            // so that clicking on the visible area, closes the
+            // side window.
+            AnchorChanges {
+                target: sideWindowDragAreaReference
+                anchors.left: rootBackgroundReference.left
+            }
+        }
+    ]
+
+    transitions: [
+        Transition {
+            from: ""
+            to: "sideWindowShown"
+            PropertyAnimation {
+                property: "x"
+                duration: 200
+            }
+        },
+        Transition {
+            from: "sideWindowShown"
+            to: ""
+            PropertyAnimation {
+                property: "x"
+                duration: 200
+            }
+
+            // Animate all enabled property changes to occur at the end of the transition.
+            // When a boolean value like this is animated, it is implied it will change its
+            // value at the end of the transition.
+            PropertyAnimation {
+                property: "enabled"
+            }
+
+            onRunningChanged: {
+                if (!running) {
+                    sideWindowHidingComplete()
+                }
+            }
+        }
+    ]
 }

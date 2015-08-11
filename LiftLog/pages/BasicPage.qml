@@ -34,7 +34,6 @@ Item {
     property string transitionOrientation: "horizontal"
 
     signal goBack
-    signal sideWindowHidingComplete
 
     Rectangle {
         id: background
@@ -121,6 +120,11 @@ Item {
         z: -1
         sourceComponent: SideWindow {
             id: sideWindow
+            sideWindowDragAreaReference: sideWindowDragArea
+            rootBackgroundReference: rootBackground
+            rootContainerReference: rootContainer
+            navigationBarReference: navigationBar
+            innerItemReference: innerItem
 
             // Disable it by default, so it doesn't steal mouse events for example
             // when the modal popup is shown.
@@ -129,7 +133,7 @@ Item {
             onCloseAndShowPopupForOperation: {
                 function showPopupHandler() {
                     // Disconnect the slot, so it's a one-time fire event.
-                    root.sideWindowHidingComplete.disconnect(showPopupHandler)
+                    sideWindow.sideWindowHidingComplete.disconnect(showPopupHandler)
 
                     // Show popup.
                     showModalPopup()
@@ -137,7 +141,7 @@ Item {
                 }
 
                 // Connect to the sideWindowHidingComplete signal, to show the popup when it emits.
-                root.sideWindowHidingComplete.connect(showPopupHandler)
+                sideWindow.sideWindowHidingComplete.connect(showPopupHandler)
 
                 // Hide the window.
                 hideSideWindow()
@@ -171,13 +175,13 @@ Item {
     }
 
     function showSideWindow() {
-        root.state = "sideWindowShown"
+        sideWindow.state = "sideWindowShown"
         sideWindowShown = true
     }
 
     function hideSideWindow() {
-        root.state = ""
-        slideSettingsOutAnimation.start()
+        sideWindow.state = ""
+        sideWindow.slideSettingsOutAnimation.start()
         sideWindowShown = false
     }
 
@@ -198,110 +202,4 @@ Item {
     function hideDatePicker() {
         datePickerDialogLoader.item.state = ""
     }
-
-    SequentialAnimation {
-        id: slideSettingsOutAnimation
-
-        PropertyAnimation {
-            target: background
-            property: "x"
-            to: 0
-            duration: 200
-        }
-
-        PropertyAction {
-            target: background
-            property: "anchors.left"
-            value: rootContainer.left
-        }
-    }
-
-    states: [
-        State {
-            name: ""
-            // Reset mouse drag area width, it doesn't
-            // get restored to initial value, after an anchor change for some reason.
-            PropertyChanges {
-                target: sideWindowDragArea
-                width: 20 * units.scale
-            }
-        },
-        State {
-            name: "sideWindowShown"
-
-            // Disable anchor so that we can move the background to the left.
-            AnchorChanges {
-                target: background
-                anchors.left: undefined
-            }
-
-            // Move the background to the left.
-            PropertyChanges {
-                target: background
-                x: -appState.windowWidth * 0.85
-            }
-
-            // Make sure to disable mouse events on the navigation bar
-            // so that the side window close region works properly, so
-            // the click event goes to the sideWindowDragArea region to close
-            // the side window, rather than to the navigation bar
-            // which will try to open the window again.
-            PropertyChanges {
-                target: navigationBar
-                enabled: false
-            }
-
-            // Disable the content area as well.
-            PropertyChanges {
-                target: innerItem
-                enabled: false
-            }
-
-            // Enable side window clicking.
-            PropertyChanges {
-                target: sideWindow
-                enabled: true
-            }
-
-            // Make the drag area occupy the whole visible 15% space
-            // so that clicking on the visible area, closes the
-            // side window.
-            AnchorChanges {
-                target: sideWindowDragArea
-                anchors.left: rootBackground.left
-            }
-        }
-    ]
-
-    transitions: [
-        Transition {
-            from: ""
-            to: "sideWindowShown"
-            PropertyAnimation {
-                property: "x"
-                duration: 200
-            }
-        },
-        Transition {
-            from: "sideWindowShown"
-            to: ""
-            PropertyAnimation {
-                property: "x"
-                duration: 200
-            }
-
-            // Animate all enabled property changes to occur at the end of the transition.
-            // When a boolean value like this is animated, it is implied it will change its
-            // value at the end of the transition.
-            PropertyAnimation {
-                property: "enabled"
-            }
-
-            onRunningChanged: {
-                if (!running) {
-                    sideWindowHidingComplete()
-                }
-            }
-        }
-    ]
 }
