@@ -570,7 +570,7 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
 {
     QSqlQuery query;
     bool result = query.prepare("SELECT wt.name AS workout_name, e.name AS exercise_name, "
-                  "COALESCE(uwew.weight, e.default_weight) AS work_weight, "
+                  "COALESCE(previous_workout.weight, e.default_weight) AS work_weight, "
                   "e.default_weight, "
                   "e.default_weight_increment, "
                   "COALESCE(sr2.set_count, sr.set_count) AS set_count, "
@@ -581,7 +581,7 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
                   COALESCE(uwew2.successful, 0) AS successful, \
                   COALESCE(uwew2.completed_all_sets, 0) AS completed_all_sets, \
                   COALESCE(uwew2.completed_set_count, 0) AS completed_set_count, \
-                  COALESCE(uwew.successful, 0) AS previous_workout_successful \
+                  COALESCE(previous_workout.successful, 0) AS previous_workout_successful \
                   FROM workout_template wt \
                   INNER JOIN workout_template_exercises wte ON wte.id_workout_template = wt.id_workout_template \
                   INNER JOIN exercise e ON e.id_exercise = wte.id_exercise \
@@ -589,14 +589,15 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
                   INNER JOIN user_workout uw ON uw.id_workout_template = wt.id_workout_template \
                   LEFT JOIN user_workout_exercise_weight uwew2 ON uwew2.id_exercise = e.id_exercise AND uwew2.delta = wte.delta AND uwew2.id_workout = uw.id_workout \
                   LEFT JOIN set_and_rep sr2 ON sr2.id_set_and_rep = uwew2.id_set_and_rep \
-                  LEFT JOIN user_workout_exercise_weight uwew ON uwew.id_exercise = e.id_exercise AND uwew.delta = wte.delta AND uwew.id_workout = \
-                    /* Extracts the id_workout of previous workout with the same day, to use as a source for completed weights */ \
-                    (SELECT uw2.id_workout \
+                  LEFT JOIN \
+                    /* Extracts a list of exercises, combined from previous workouts relative to this one, to use as a source for weights, and successful flag. */ \
+                    (SELECT uwew3.id_exercise, uwew3.delta, MAX(uw2.date_started), uwew3.weight, uwew3.successful \
                     FROM user_workout uw1 \
-                    INNER JOIN user_workout uw2 ON uw2.date_started < uw1.date_started AND uw2.day = uw1.day  \
-                    WHERE uw1.id_workout = uw.id_workout \
-                    ORDER BY uw2.id_workout DESC \
-                    LIMIT 1) \
+                    INNER JOIN user_workout uw2 ON uw2.date_started < uw1.date_started AND uw2.id_workout_template = uw1.id_workout_template AND uw2.id_user = uw1.id_user \
+                    INNER JOIN user_workout_exercise_weight uwew3 ON uwew3.id_workout = uw2.id_workout \
+                    WHERE uw1.id_workout = :id_workout \
+                    GROUP BY uwew3.id_exercise, uwew3.delta \
+                    ORDER BY uw2.date_started DESC) previous_workout ON previous_workout.id_exercise = e.id_exercise AND previous_workout.delta = wte.delta \
                   WHERE uw.id_workout = :id_workout AND wte.day = :workout_day \
                   ORDER BY wte.delta");
     if (!result) {
