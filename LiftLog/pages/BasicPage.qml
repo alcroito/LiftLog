@@ -10,6 +10,8 @@ Item {
     height: appState.windowHeight
 
     property bool sideWindowShown: false
+    property alias sideWindow: sideWindowLoader.item
+    property alias sideWindowLoader: sideWindowLoader
 
     property alias modalPopup: modalPopupLoader.item
     property alias modalPopupLoader: modalPopupLoader
@@ -74,7 +76,7 @@ Item {
 
             // Propagate clicks to any elements beneath when drag area is small.
             // When drag area is full screen (side window shown state), the background element is disabled,
-            // so clicks won't propogate to, which is what we want.
+            // so clicks won't propogate to it, which is what we want.
             propagateComposedEvents: true
 
             property int startX
@@ -113,31 +115,33 @@ Item {
 
     }
 
-    SideWindow {
-        id: sideWindow
-        anchors.fill: parent
+    Loader {
+        id: sideWindowLoader
+        active: showNavigationBarSettingsButton
         z: -1
+        sourceComponent: SideWindow {
+            id: sideWindow
 
-        // Disable it by default, so it doesn't steal mouse events for example
-        // when the modal popup is shown.
-        enabled: false
+            // Disable it by default, so it doesn't steal mouse events for example
+            // when the modal popup is shown.
+            enabled: false
 
-        onCloseAndShowPopupForOperation: {
+            onCloseAndShowPopupForOperation: {
+                function showPopupHandler() {
+                    // Disconnect the slot, so it's a one-time fire event.
+                    root.sideWindowHidingComplete.disconnect(showPopupHandler)
 
-            function showPopupHandler() {
-                // Disconnect the slot, so it's a one-time fire event.
-                root.sideWindowHidingComplete.disconnect(showPopupHandler)
+                    // Show popup.
+                    showModalPopup()
+                    modalPopup.prepare(op)
+                }
 
-                // Show popup.
-                showModalPopup()
-                modalPopup.prepare(op)
+                // Connect to the sideWindowHidingComplete signal, to show the popup when it emits.
+                root.sideWindowHidingComplete.connect(showPopupHandler)
+
+                // Hide the window.
+                hideSideWindow()
             }
-
-            // Connect to the sideWindowHidingComplete signal, to show the popup when it emits.
-            root.sideWindowHidingComplete.connect(showPopupHandler)
-
-            // Hide the window.
-            hideSideWindow()
         }
     }
 
@@ -238,14 +242,18 @@ Item {
             }
 
             // Make sure to disable mouse events on the navigation bar
-            // so that the side window close region works properly.
+            // so that the side window close region works properly, so
+            // the click event goes to the sideWindowDragArea region to close
+            // the side window, rather than to the navigation bar
+            // which will try to open the window again.
             PropertyChanges {
                 target: navigationBar
                 enabled: false
             }
 
+            // Disable the content area as well.
             PropertyChanges {
-                target: navigationBar.backButton
+                target: innerItem
                 enabled: false
             }
 
@@ -281,8 +289,12 @@ Item {
                 property: "x"
                 duration: 200
             }
+            PropertyAnimation {
+                property: "enabled"
+            }
+
             onRunningChanged: {
-                if (state == "" && !running) {
+                if (!running) {
                     sideWindowHidingComplete()
                 }
             }

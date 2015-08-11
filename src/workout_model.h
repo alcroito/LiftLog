@@ -66,12 +66,13 @@ public slots:
     bool createStartingWorkoutEntry(qint64 idUser, qint64 day, QDateTime date, qreal userWeight);
 
     void getLastNotCompletedWorkoutOrCreateNew();
+    bool workoutIsPartiallyCompleted(qint64 id);
 
     void getWorkoutOnDateOrCreateNewAtDate(QDate date);
     void getWorkoutOnDate(QDate date);
 
     void getWorkoutData();
-    void saveWorkoutData();
+    void saveWorkoutData(bool setCompleted = true);
     void deleteWorkoutData();
 
     void changeAndSaveStartDate(QDate date);

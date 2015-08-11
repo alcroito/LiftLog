@@ -363,6 +363,39 @@ void WorkoutModel::getLastNotCompletedWorkoutOrCreateNew()
     workoutDay = AppState::getInstance()->getCurrentUser()->getNextWorkoutTemplateDay();
 }
 
+/**
+ * @brief WorkoutModel::workoutIsPartiallyCompleted
+ * A workout is partially completed if it has any exercise stats saved to the DB.
+ * @param id
+ * @return
+ */
+bool WorkoutModel::workoutIsPartiallyCompleted(qint64 id)
+{
+    bool isPartiallyCompleted = false;
+    QSqlQuery query;
+    query.prepare("SELECT uw.id_workout "
+                  "FROM user_workout_exercise_stats uwes "
+                  "INNER JOIN user_workout uw ON uwes.id_workout = uw.id_workout "
+                  "WHERE uw.id_workout = :id_workout "
+                  "LIMIT 1");
+
+    query.bindValue(":id_workout", id);
+    bool result = query.exec();
+    if (!result) {
+        qDebug() << "Error checking if workout is partially completed.";
+        qDebug() << query.lastError();
+    }
+    else {
+        while (query.next()) {
+            if (!query.isNull(0)) {
+                isPartiallyCompleted = true;
+            }
+        }
+    }
+
+    return isPartiallyCompleted;
+}
+
 void WorkoutModel::getWorkoutOnDate(QDate date)
 {
      qint64 idUser = AppState::getInstance()->getCurrentUser()->getId();
@@ -463,7 +496,9 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
             workout->dateStarted = query.value(11).toDateTime();
             workout->dateEnded = query.value(12).toDateTime();
 
-            // Force save if workout was explicitly saved by pressing save button.
+            // Force save if workout has an ending date, meaning it was saved some time ago.
+            // We do this, so that in case the workout was saved with no stats entered, it doesn't
+            // get removed when going back a page.
             if (workout->dateEnded.isValid()) {
                 workout->forceSave = true;
             }
@@ -576,14 +611,14 @@ void WorkoutModel::changeAndSaveStartDate(QDate date) {
     }
 }
 
-void WorkoutModel::saveWorkoutData()
+void WorkoutModel::saveWorkoutData(bool setCompleted)
 {
     DBTransaction transaction;
     QSqlQuery query;
     bool result;
 
-    // Update the workout to being completed, and set the appropriate dates.
-    if (!workoutEntity->completed) {
+    // Update the workout to being completed, and set the appropriate dates, and user weight.
+    if (!workoutEntity->completed && setCompleted) {
         query.prepare("UPDATE user_workout "
                       "SET date_ended = :date_ended, last_updated = :last_updated, user_weight = :user_weight, completed = 1 "
                       "WHERE id_workout = :id_workout");
@@ -601,7 +636,7 @@ void WorkoutModel::saveWorkoutData()
             return;
         }
     }
-    // Just update the last updated date.
+    // Just update the last updated date, and user weight.
     else {
         query.prepare("UPDATE user_workout "
                       "SET last_updated = :last_updated, user_weight = :user_weight "
@@ -620,9 +655,8 @@ void WorkoutModel::saveWorkoutData()
         }
     }
 
-
-    // Only do the following when creating a new workout, not when updating an existing one.
-    if (!workoutEntity->completed) {
+    // Only do the following when saving a new non-completed workout, not when updating an existing one.
+    if (!workoutEntity->completed && setCompleted) {
         // Gets max day for workout template, to re-start the day numbering
         // in case the last workout was the last day.
         query.prepare("SELECT MAX(wte.day) "
@@ -641,7 +675,7 @@ void WorkoutModel::saveWorkoutData()
         // Save the user next workout day, the last workout id used, and any other changes that were done to the user.
         User* user = AppState::getInstance()->getCurrentUser();
 
-        qint64 newWorkoutDay = AppState::getInstance()->getCurrentUser()->getNextWorkoutTemplateDay();
+        qint64 newWorkoutDay = user->getNextWorkoutTemplateDay();
         if (query.next() && !query.isNull(0)) {
             qint64 maxWorkoutDay = query.value(0).toInt() + 1;
             newWorkoutDay = (newWorkoutDay + 1) % maxWorkoutDay;
@@ -656,10 +690,11 @@ void WorkoutModel::saveWorkoutData()
     }
 
     // Save exercise stats.
+    bool isPartiallyCompleted = workoutIsPartiallyCompleted(workoutId);
     for (int i = 0; i < workoutEntity->exercises.count(); ++i) {
         WorkoutExerciseEntity* exercise = workoutEntity->exercises.value(i);
 
-        if (!workoutEntity->completed) {
+        if (!isPartiallyCompleted) {
             query.prepare("INSERT INTO user_workout_exercise_weight (id_workout, id_exercise, delta, weight)"
                           "VALUES (:id_workout, :id_exercise, :delta, :weight)");
             query.bindValue(":id_workout", workoutId);
@@ -690,13 +725,16 @@ void WorkoutModel::saveWorkoutData()
             }
         }
 
+        // @TODO When set changing will be implemeneted, and possibly weight changing for exercises,
+        // we will probably need to delete exercise weight and stats when before updating them, because
+        // the DB might contain a different number of rows.
         for (int j = 0; j < exercise->setsAndReps.count(); j++) {
             WorkoutSetEntity* set = exercise->setsAndReps.value(j);
 
             // If next set is an invalid one (crossed for example, don't save it, nor the next ones).
             if (set->isInvalid()) break;
 
-            if (!workoutEntity->completed) {
+            if (!isPartiallyCompleted) {
                 query.prepare("INSERT INTO user_workout_exercise_stats (id_workout, id_exercise, delta, set_number, reps_done)"
                               "VALUES (:id_workout, :id_exercise, :delta, :set_number, :reps_done)");
                 query.bindValue(":id_workout", workoutId);

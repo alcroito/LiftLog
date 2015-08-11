@@ -19,7 +19,7 @@ Item {
     property string currentWeightText: "20KG"
     property string successText: qsTr("Congrats! %1 next time")
     property string failureText: qsTr("Try reapeating %1 next time, or deload!")
-    property bool immediateCompletedTransition
+    property bool immediateCompletedTransition: false
     property bool exerciseIsSuccessful: true
 
     state: "standard"
@@ -248,10 +248,8 @@ Item {
     Binding {
         target: standardToCompletedTransition
         property: "enabled"
-        value: "false"
-        when: immediateCompletedTransition
+        value: !immediateCompletedTransition
     }
-
 
     function getCompletedSetsCount(exerciseIndex) {
         var completedExercisesCount = 0

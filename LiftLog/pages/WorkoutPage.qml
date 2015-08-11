@@ -14,17 +14,16 @@ BasicPage {
     }
 
     onGoBack: {
+        // If the model needs to be saved, don't delete the workout data when going back a page.
         if (!appState.currentWorkoutModel.workoutEntity.forceSave && !appState.currentWorkoutModel.workoutEntity.shouldBeSaved) {
             appState.currentWorkoutModel.deleteWorkoutData()
+        // In case if the workout is not completed yet, but we need to save it because some stats data was specified, make sure we save the data
+        // but don't mark the entity as completed yet.
+        } else if (!appState.currentWorkoutModel.workoutEntity.completed) {
+            appState.currentWorkoutModel.saveWorkoutData(false)
         }
 
         pageStack.goBack()
-    }
-
-    TopNotification {
-        id: topNotification
-        anchors.top: parent.top
-        anchors.topMargin: 0
     }
 
     function updateUserWeightAndSystem(userWeight, weightSystem) {
@@ -47,6 +46,12 @@ BasicPage {
     }
 
     Component.onCompleted: checkIfWorkoutShouldBeSaved()
+
+    TopNotification {
+        id: topNotification
+        anchors.top: parent.top
+        anchors.topMargin: 0
+    }
 
     VisualDataModel {
         id: exercisesDelegateModel
