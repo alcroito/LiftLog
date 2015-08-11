@@ -10,6 +10,9 @@ Item {
     width: appState.windowWidth
     height: appState.windowHeight
 
+    enabled: false
+    opacity: 0
+
     property color backgroundColor: "#dcdcdc"
     property color textColor: "#e1352d"
     property color borderColor: "#c6c6c6"
@@ -17,11 +20,16 @@ Item {
     property alias bodyText: bodyLabel.text
     property alias acceptButtonText: acceptButton.text
     property alias rejectButtonText: rejectButton.text
+    property var disableComponent
 
-    function prepareDeleteWorkout(op) {
-        subjectText = qsTr("Delete Workout")
-        bodyText = qsTr("Are you sure you want to delete this workout?")
-        operation = op
+    function prepare(op) {
+        switch (op) {
+            case popupDeleteOperation:
+                subjectText = qsTr("Delete Workout")
+                bodyText = qsTr("Are you sure you want to delete this workout?")
+                operation = op
+                break
+        }
     }
 
     property string operation
@@ -138,4 +146,47 @@ Item {
             }
         }
     }
+
+    states: [
+        State {
+            name: "modalPopupShown"
+            PropertyChanges {
+                target: modalPopup
+                enabled: true
+                opacity: 1
+            }
+
+            PropertyChanges {
+                target: disableComponent
+                enabled: false
+            }
+        }
+    ]
+
+    transitions: [
+        Transition {
+            from: ""
+            to: "modalPopupShown"
+            PropertyAnimation {
+                property: "opacity"
+                easing.type: Easing.InQuad
+                duration: 100
+            }
+        },
+        Transition {
+            from: "modalPopupShown"
+            to: ""
+
+            SequentialAnimation {
+                PropertyAnimation {
+                    property: "opacity"
+                    duration: 100
+                }
+
+                PropertyAction {
+                    target: modalPopupLoader; property: "active"; value: false
+                }
+            }
+        }
+    ]
 }

@@ -10,10 +10,9 @@ Item {
     height: appState.windowHeight
 
     property color iconColor: "#e94c3a"
-    property var popup
 
     signal close
-    signal closeAndShowPopup
+    signal closeAndShowPopupForOperation(string op)
 
     Rectangle {
         id: background
@@ -112,10 +111,8 @@ Item {
                         anchors.fill: itemContainer
                         onClicked: {
                             switch (model.op) {
-                                case "delete": {
-                                    root.closeAndShowPopup()
-                                    popup.prepareDeleteWorkout(model.op)
-                                }
+                                case "delete":
+                                    closeAndShowPopupForOperation(model.op)
                             }
                         }
                     }

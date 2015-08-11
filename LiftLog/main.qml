@@ -72,12 +72,6 @@ ApplicationWindow {
         }
     }
 
-//    Component {
-//        id: bottomPopupView
-//        BottomPopupView {
-//        }
-//    }
-
     StackView {
         id: pageStack
         anchors.fill: parent
@@ -160,12 +154,6 @@ ApplicationWindow {
                      }
                  })
         }
-
-//        function showBottomPopupView() {
-//            push({
-//                     item: bottomPopupView
-//                 })
-//        }
 
         function goBack() {
             if (pageStack.depth > 1) {

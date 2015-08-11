@@ -9,24 +9,30 @@ Item {
     width: appState.windowWidth
     height: appState.windowHeight
 
-    property Component pageComponent
-    property alias navigationBar: navigationBar
     property bool sideWindowShown: false
-    property alias modalPopup: modalPopup
+
+    property alias modalPopup: modalPopupLoader.item
+    property alias modalPopupLoader: modalPopupLoader
+
     property alias datePickerDialog: datePickerDialogLoader.item
     property alias datePickerDialogLoader: datePickerDialogLoader
+
     property alias rootContainer: root
     property alias rootBackground: background
+
+    property alias navigationBar: navigationBar
     property bool showNavigationBar: true
     property bool showNavigationBarBackButton: false
     property bool showNavigationBarSettingsButton: false
     property bool showNavigationBarSpreadsheetButton: false
     property bool showNavigationBarDoneButton: false
+
     default property alias content: innerItem.data
-    property bool needToShowModalPopup: false
+
     property string transitionOrientation: "horizontal"
 
     signal goBack
+    signal sideWindowHidingComplete
 
     Rectangle {
         id: background
@@ -110,38 +116,39 @@ Item {
     SideWindow {
         id: sideWindow
         anchors.fill: parent
-        popup: modalPopup
         z: -1
 
         // Disable it by default, so it doesn't steal mouse events for example
         // when the modal popup is shown.
         enabled: false
 
-        onCloseAndShowPopup: {
-            needToShowModalPopup = true
+        onCloseAndShowPopupForOperation: {
+
+            function showPopupHandler() {
+                // Disconnect the slot, so it's a one-time fire event.
+                root.sideWindowHidingComplete.disconnect(showPopupHandler)
+
+                // Show popup.
+                showModalPopup()
+                modalPopup.prepare(op)
+            }
+
+            // Connect to the sideWindowHidingComplete signal, to show the popup when it emits.
+            root.sideWindowHidingComplete.connect(showPopupHandler)
+
+            // Hide the window.
             hideSideWindow()
         }
     }
 
-    ModalPopup {
-        id: modalPopup
-        enabled: false
-        opacity: 0
-
-        function showModalPopup() {
-            root.showModalPopup()
-        }
-
-        function hideModalPopup() {
-            root.hideModalPopup()
-        }
-
-        onAcceptClicked: {
-            hideModalPopup()
-        }
-
-        onRejectClicked: {
-            hideModalPopup()
+    Loader {
+        id: modalPopupLoader
+        active: false
+        sourceComponent: ModalPopup {
+            id: modalPopup
+            disableComponent: rootBackground
+            onAcceptClicked: hideModalPopup()
+            onRejectClicked: hideModalPopup()
         }
     }
 
@@ -171,11 +178,12 @@ Item {
     }
 
     function showModalPopup() {
-        root.state = "modalPopupShown"
+        modalPopupLoader.active = true
+        modalPopup.state = "modalPopupShown"
     }
 
     function hideModalPopup() {
-        root.state = ""
+        modalPopup.state = ""
     }
 
     function showDatePicker() {
@@ -254,19 +262,6 @@ Item {
                 target: sideWindowDragArea
                 anchors.left: rootBackground.left
             }
-        },
-        State {
-            name: "modalPopupShown"
-            PropertyChanges {
-                target: modalPopup
-                enabled: true
-                opacity: 1
-            }
-
-            PropertyChanges {
-                target: rootBackground
-                enabled: false
-            }
         }
     ]
 
@@ -287,27 +282,9 @@ Item {
                 duration: 200
             }
             onRunningChanged: {
-                if (state == "" && (!running) && needToShowModalPopup) {
-                    needToShowModalPopup = false
-                    showModalPopup()
+                if (state == "" && !running) {
+                    sideWindowHidingComplete()
                 }
-            }
-        },
-        Transition {
-            from: ""
-            to: "modalPopupShown"
-            PropertyAnimation {
-                property: "opacity"
-                easing.type: Easing.InQuad
-                duration: 100
-            }
-        },
-        Transition {
-            from: "modalPopupShown"
-            to: ""
-            PropertyAnimation {
-                property: "opacity"
-                duration: 100
             }
         }
     ]

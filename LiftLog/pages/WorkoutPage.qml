@@ -143,13 +143,15 @@ BasicPage {
         }
     }
 
-    modalPopup.onAcceptClicked: {
-        if (modalPopup.operation === modalPopup.popupDeleteOperation) {
-            appState.currentWorkoutModel.deleteWorkoutData()
-            goBack()
+    Connections {
+        target: modalPopup
+        onAcceptClicked: {
+            if (modalPopup.operation === modalPopup.popupDeleteOperation) {
+                appState.currentWorkoutModel.deleteWorkoutData()
+                goBack()
+            }
         }
     }
-
 
     Binding {
         target: datePickerDialogLoader
