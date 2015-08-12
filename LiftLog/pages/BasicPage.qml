@@ -29,6 +29,7 @@ Item {
     property bool showNavigationBarSpreadsheetButton: false
     property bool showNavigationBarDoneButton: false
     property bool showNavigationBarWarmupButton: false
+    property bool showNavigationLeftGearButton: false
 
     default property alias content: innerItem.data
 
@@ -57,6 +58,7 @@ Item {
             showSpreadsheetsButton: showNavigationBarSpreadsheetButton
             showDoneButton: showNavigationBarDoneButton
             showWarmupButton: showNavigationBarWarmupButton
+            showLeftGearButton: showNavigationLeftGearButton
             onBurgerClicked: {
                 showSideWindow()
             }

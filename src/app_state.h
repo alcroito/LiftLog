@@ -3,8 +3,8 @@
 
 #include <QObject>
 #include <QSharedPointer>
+#include "user.h"
 
-class User;
 class QScreen;
 class QtQuickControlsApplication;
 class WorkoutModel;
@@ -55,10 +55,18 @@ public slots:
     void saveCurrentUser();
     void loadActiveUserOnDBInit();
     void clearActiveUserOnDBClose();
-    QString getWeightString(qreal weight, bool withBodyWeight = false, bool withSpaceBetween = false, bool lowerCase = false);
-    qreal getWeightTransformed(qreal weight);
+
+    QString getWeightString(qreal weight, bool withBodyWeight = false, bool withSpaceBetween = false, bool lowerCase = false, bool neat = true);
     qreal getWeightTransformed(qreal weight, int from, int to);
+    QString getWeightSystemSuffix(User::WeightSystem system = User::Metric, bool lowercase = false);
+
     void recheckUncompletedWorkoutExistsValue();
+
+    qreal truncToTwoDecimals(qreal value);
+    qreal neatRoundForImperial(qreal imperialWeight);
+    qreal neatRoundForMetric(qreal metricWeight);
+    qreal neatRoundForSystem(qreal weight, int system = User::Metric);
+
 private:
     QSharedPointer<User> currentUser;
     QSharedPointer<WorkoutModel> currentWorkoutModel;

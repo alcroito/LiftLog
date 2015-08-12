@@ -10,6 +10,7 @@ BasicPage {
     width: appState.windowWidth
     height: appState.windowHeight
     showNavigationBarDoneButton: true
+    showNavigationLeftGearButton: true
 
     rootBackground.color: backgroundColor
 
@@ -30,6 +31,7 @@ BasicPage {
     property int weightSystem
 
     // Weight increment with which to add / subtract when clicking on icons.
+    // Will be adjusted for Imperial, but no further conversions are necessarry, the value is Metric.
     property real weightIncrement
 
     // 0 - Barbell
@@ -46,8 +48,7 @@ BasicPage {
 
     navigationBar.text: generateNavigationBarText()
     navigationBar.pixelSize: 14 * units.fontScale
-    // @TODO Fix bold to work.
-//    navigationBar.label.font.bold: true
+    navigationBar.bold: true
 
     navigationBar.onDoneClicked: {
         forceActiveFocus()
@@ -64,6 +65,15 @@ BasicPage {
         height: 166 * units.scale
         anchors.top: parent.top
         anchors.topMargin: 0
+
+        Loader {
+            id: exerciseWeightDiagramLoader
+            sourceComponent: ExerciseWeightDiagram {
+                id: exerciseWeightDiagram
+                exerciseWeight: weightNumber
+            }
+            active: exerciseEntity.isAccessory() !== true
+        }
     }
 
     Rectangle {
@@ -121,8 +131,10 @@ BasicPage {
             height: weightBackground.height
 
             onClicked: {
-                if (weightNumber - weightIncrement >= weightInputValidator.bottom)
+                forceActiveFocus()
+                if (weightNumber - weightIncrement >= weightInputValidator.bottom) {
                     weightNumber = weightNumber - weightIncrement
+                }
             }
 
             Text {
@@ -182,6 +194,7 @@ BasicPage {
             height: weightBackground.height
 
             onClicked: {
+                forceActiveFocus()
                 if (weightNumber + weightIncrement <= weightInputValidator.top)
                     weightNumber = weightNumber + weightIncrement
             }
@@ -250,22 +263,23 @@ BasicPage {
     // Lifting just body weight or just bar bell.
     // Assisted body weight exercise.
     function generateNavigationBarText() {
+        var neat = true;
         switch (exerciseCategory) {
             case 0:
                 // This if-break statement is for stopping a qml error when quitting the application, and the entity becomes null for some reason.
                 // Probably the model gets unloaded, and the entity object gets deallocated, or something similar.
                 if (!exerciseEntity) break;
                 var barbellWeight = exerciseEntity.getBarbellWeight();
-                if (weightNumber <= barbellWeight) {
+                if (weightNumber <= barbellWeight + 1.25) {
                     return qsTr("Lift the empty bar");
                 } else {
-                    return qsTr("Add %1/side").arg(appState.getWeightString((weightNumber - barbellWeight) / 2, false, false, true));
+                    return qsTr("Add %1/side").arg(appState.getWeightString((weightNumber - barbellWeight) / 2, false, false, true, neat));
                 }
             case 1:
-                if (weightNumber == 0) {
+                if (weightNumber <= 0.1 && weightNumber >= -0.1) {
                     return qsTr("Lift yourself");
                 } else if (weightNumber > 0) {
-                    return qsTr("Add %1").arg(appState.getWeightString(weightNumber, false, false, true));
+                    return qsTr("Add %1").arg(appState.getWeightString(weightNumber, false, false, true, neat));
                 } else {
                     return qsTr("Assisted exercise");
                 }

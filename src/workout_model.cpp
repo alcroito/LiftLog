@@ -145,8 +145,15 @@ QVariant WorkoutModel::data(const QModelIndex &index, int role) const
             case ExerciseWeightRole:
                 return itemData.value<WorkoutExerciseEntity*>()->workWeight;
 
-            case ExerciseWeightIncrementRole:
+            case ExerciseWeightIncrementRole: {
+                User::WeightSystem system = AppState::getInstance()->getCurrentUser()->getWeightSystem();
+                // For imperial system, the weight increment should be double, because we will compute
+                // using imperial units, rather than metric, and then convert to imperial.
+                if (system == User::Imperial)
+                    return itemData.value<WorkoutExerciseEntity*>()->defaultWeightIncrement * 2;
                 return itemData.value<WorkoutExerciseEntity*>()->defaultWeightIncrement;
+            }
+
 
             case ExerciseSetsAndRepsRole:
                 return itemData.value<WorkoutExerciseEntity*>()->setsAndRepsString;
@@ -593,7 +600,9 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
 
     QSqlQuery query;
     result = query.prepare("SELECT wt.name AS workout_name, e.name AS exercise_name, "
-                  "COALESCE(previous_workout.weight, e.default_weight) AS work_weight, "
+                   " /* Prioritize getting current workout weight, in case we are updating an existing workout, other wise take previous workout weight, or "
+                   "    fallback to NULL, we will assign default weight in app code. */ "
+                  "COALESCE(uwew2.weight, previous_workout.weight) AS work_weight, "
                   "e.default_weight, "
                   "e.default_weight_increment, "
                   "COALESCE(sr2.set_count, sr.set_count) AS set_count, "
@@ -604,7 +613,8 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
                   COALESCE(uwew2.successful, 0) AS successful, \
                   COALESCE(uwew2.completed_all_sets, 0) AS completed_all_sets, \
                   COALESCE(uwew2.completed_set_count, 0) AS completed_set_count, \
-                  COALESCE(previous_workout.successful, 0) AS previous_workout_successful \
+                  COALESCE(previous_workout.successful, 0) AS previous_workout_successful, \
+                  e.default_weight_imperial \
                   FROM workout_template wt \
                   INNER JOIN workout_template_exercises wte ON wte.id_workout_template = wt.id_workout_template \
                   INNER JOIN exercise e ON e.id_exercise = wte.id_exercise \
@@ -677,13 +687,25 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
     while (query.next()) {
         WorkoutExerciseEntity* exercise = new WorkoutExerciseEntity();
         exercise->name = query.value(1).toString();
-        exercise->workWeight = query.value(2).toReal();
         exercise->defaultWeight = query.value(3).toReal();
+        exercise->defaultWeightImperial = query.value(22).toReal();
         exercise->defaultWeightIncrement = query.value(4).toReal();
+        if (!query.isNull(2)) {
+            exercise->workWeight = query.value(2).toReal();
+        }
+        else {
+            // Assign default weight, either metric or imperial.
+            User::WeightSystem system = AppState::getInstance()->getCurrentUser()->getWeightSystem();
+            if (system == User::Metric) exercise->workWeight = exercise->defaultWeight;
+            else exercise->workWeight = AppState::getInstance()->getWeightTransformed(exercise->defaultWeightImperial, User::Imperial, User::Metric);
+        }
+
+        // Increment weight for exercise, only if previous workout exercise was successful, and auto-add weight option was enabled.
         bool previousWorkoutExerciseSuccesful = query.value(21).toBool();
         if (previousWorkoutExerciseSuccesful && AppState::getInstance()->getCurrentUser()->getAutoAddWeight()) {
             exercise->workWeight += exercise->defaultWeightIncrement;
         }
+
         exercise->idExercise = query.value(7).toInt();
         exercise->delta = query.value(8).toInt();
         exercise->tags = query.value(16).toString().split(",");

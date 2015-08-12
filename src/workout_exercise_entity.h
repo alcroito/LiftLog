@@ -21,6 +21,7 @@ public:
     QString name;
     qreal workWeight;
     qreal defaultWeight;
+    qreal defaultWeightImperial;
     qreal defaultWeightIncrement;
     qint64 delta;
     QStringList tags;

@@ -28,11 +28,18 @@ BasicPage {
     }
 
     function updateUserWeightAndSystem(userWeight, weightSystem) {
+        // Update user weight and weight system.
         appState.currentWorkoutModel.workoutEntity.userWeight = userWeight
         appState.currentUser.weightSystem = weightSystem
 
         // Enable the DateAndWeight button back.
         exercises.headerItem.enabled = true
+
+        // Re-initialize exercise sets.
+        appState.currentWorkoutModel.reInitializeExerciseSets()
+
+        // Scroll to blinking set.
+        scrollToBlinkingSetIfAny()
     }
 
     function updateExerciseWeight(exerciseWeight, setAndRepId, setsAndRepsString, exerciseIndex) {
@@ -99,7 +106,7 @@ BasicPage {
             setsAndReps: model.setsAndReps
             weight: appState.getWeightString(model.weight, model.exerciseEntity.isAccessory())
             currentWeightText: appState.getWeightString(model.weight, model.exerciseEntity.isAccessory())
-            nextWeightText: appState.getWeightString(model.weight + model.weightIncrement, model.exerciseEntity.isAccessory())
+            nextWeightText: appState.getWeightString(model.weight + appState.getWeightTransformed(model.weightIncrement, appState.currentUser.weightSystem, User.Metric), model.exerciseEntity.isAccessory())
 
             onClicked: {
                 // Always reset to the standard state, so that in case if all sets were completed,
@@ -130,10 +137,15 @@ BasicPage {
                 // Disable button so you can't accidentally double click.
                 disableExerciseWeightClickArea()
 
+                var currentWeightSystem = appState.currentUser.weightSystem
+
                 // Show exercise weight page.
                 pageStack.showExerciseWeightPage(
-                            model.weight, model.exerciseEntity.getIdSetAndRep(),
-                            appState.currentUser.weightSystem, model.weightIncrement, model.exerciseEntity.exerciseCategory(),
+                            model.weight,
+                            model.exerciseEntity.getIdSetAndRep(),
+                            currentWeightSystem,
+                            appState.getWeightTransformed(model.weightIncrement, currentWeightSystem, User.Metric),
+                            model.exerciseEntity.exerciseCategory(),
                             model.exerciseEntity, index)
             }
 

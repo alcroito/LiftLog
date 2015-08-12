@@ -3,6 +3,7 @@
 #include <QSqlError>
 #include <QScreen>
 #include <QStringBuilder>
+#include <cmath>
 
 #include "application.h"
 #include "app_state.h"
@@ -11,6 +12,8 @@
 #include "workout_model.h"
 
 AppState* AppState::instance = 0;
+
+const qreal oneKgToPounds = 2.2046223;
 
 AppState::AppState(QObject *parent) : QObject(parent), currentUser(new User()), currentWorkoutModel(new WorkoutModel), uncompletedWorkoutExists(false),
     windowWidth(320), windowHeight(480)
@@ -42,25 +45,20 @@ void AppState::clearActiveUserOnDBClose() {
     currentUser->clear();
 }
 
-qreal AppState::getWeightTransformed(qreal weight)
-{
-    User::WeightSystem system = currentUser->getWeightSystem();
-    if (system == User::Imperial) {
-        weight *= 2;
-    }
-
-    return weight;
-}
-
 qreal AppState::getWeightTransformed(qreal weight, int from, int to)
 {
-    if (from == User::Imperial && to == User::Metric) {
-        weight /= 2;
+    if (from == User::Metric && to == User::Metric) {
+        // When converting from and to metric, we also round, because if there was a conversion cycle some time (Metric -> Imperial -> Metric)
+        // the metric value can contain lots of decimal numbers, which we don't want.
+        weight = neatRoundForMetric(weight);
+    }
+    else if (from == User::Imperial && to == User::Metric) {
+        weight /= oneKgToPounds;
     }
     else if (from == User::Metric && to == User::Imperial) {
-        weight *= 2;
+        // When converting from metric to imperial, we neatly round the value, so it doesn't have lots of decimal numbers.
+        weight = neatRoundForImperial(weight * oneKgToPounds);
     }
-
     return weight;
 }
 
@@ -77,8 +75,72 @@ void AppState::setUncompletedWorkoutExists(bool value)
     }
 }
 
+qreal AppState::neatRoundForImperial(qreal imperialWeight) {
+    qreal remainder = std::fmod(imperialWeight, 10);
+    qreal quotient = imperialWeight - remainder;
+    bool negative = false;
+    qreal delta = 0;
+    if (remainder < 0) { remainder = std::abs(remainder); negative = true; }
 
-QString AppState::getWeightString(qreal weight, bool withBodyWeight, bool withSpaceBetween, bool lowerCase)
+    if (remainder >= 0 && remainder < 1.25) delta = 0;
+    else if (remainder >= 1.25 && remainder < 3.75) delta += 2.5;
+    else if (remainder >= 3.75 && remainder < 6.25) delta += 5;
+    else if (remainder >= 6.25 && remainder < 8.75) delta += 7.5;
+    else if (remainder >= 8.75 && remainder < 10.0) delta += 10;
+
+    if (negative) quotient -= delta;
+    else quotient += delta;
+
+    return quotient;
+}
+
+qreal AppState::neatRoundForMetric(qreal metricWeight) {
+    qreal remainder = std::fmod(metricWeight, 10);
+    qreal quotient = metricWeight - remainder;
+    bool negative = false;
+    qreal delta = 0;
+    if (remainder < 0) { remainder = std::abs(remainder); negative = true; }
+
+    if (remainder >= 0 && remainder < 0.625) delta = 0;
+    else if (remainder >= 0.625 && remainder < 1.875) delta += 1.25;
+    else if (remainder >= 1.875 && remainder < 3.125) delta += 2.5;
+    else if (remainder >= 3.125 && remainder < 4.375) delta += 3.75;
+    else if (remainder >= 4.375 && remainder < 5.625) delta += 5;
+    else if (remainder >= 5.625 && remainder < 6.875) delta += 6.25;
+    else if (remainder >= 6.875 && remainder < 8.125) delta += 7.5;
+    else if (remainder >= 8.125 && remainder < 9.375) delta += 8.75;
+    else if (remainder >= 9.375 && remainder < 10.0) delta += 10;
+
+    if (negative) quotient -= delta;
+    else quotient += delta;
+
+    return quotient;
+}
+
+qreal AppState::neatRoundForSystem(qreal weight, int system) {
+    if (system == User::Metric) return neatRoundForMetric(weight);
+    else return neatRoundForImperial(weight);
+}
+
+qreal AppState::truncToTwoDecimals(qreal value) {
+    return trunc(100 * value) / 100;
+}
+
+QString AppState::getWeightSystemSuffix(User::WeightSystem system, bool lowercase) {
+    QString weightSuffix;
+
+    if (system == User::Metric) {
+        weightSuffix = "KG";
+    } else {
+        weightSuffix = "LB";
+    }
+
+    if (lowercase) weightSuffix = weightSuffix.toLower();
+
+    return weightSuffix;
+}
+
+QString AppState::getWeightString(qreal weight, bool withBodyWeight, bool withSpaceBetween, bool lowerCase, bool neat)
 {
     User::WeightSystem system = currentUser->getWeightSystem();
     QString weightSuffix;
@@ -87,9 +149,13 @@ QString AppState::getWeightString(qreal weight, bool withBodyWeight, bool withSp
 
     if (system == User::Metric) {
         weightSuffix = "KG";
+        if (neat)
+            weight = neatRoundForMetric(weight);
     } else {
         weightSuffix = "LB";
-        weight *= 2;
+        if (neat)
+            weight = neatRoundForImperial(weight * oneKgToPounds);
+        else weight *= oneKgToPounds;
     }
 
     if (withBodyWeight) {

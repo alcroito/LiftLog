@@ -50,6 +50,11 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             font.pixelSize: 10 * units.fontScale
             z: 1
+
+            // Don't change the value of the text immediately.
+            Behavior on text {
+                PropertyAnimation {}
+            }
         }
 
         MouseArea {

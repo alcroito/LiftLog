@@ -19,6 +19,7 @@
 #include "calendar_slider_model.h"
 #include "date_picker_model.h"
 #include "set_and_rep_model.h"
+#include "exercise_weight_diagram_model.h"
 
 int main(int argc, char *argv[])
 {
@@ -45,6 +46,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<DatePickerModel>(uri, 1, 0, "DatePickerModel");
     qmlRegisterType<SetAndRepModel>(uri, 1, 0, "SetAndRepModel");
     qmlRegisterType<ExerciseAndSetIndexPair>(uri, 1, 0, "ExerciseSetAndPair");
+    qmlRegisterType<ExerciseWeightDiagramModel>(uri, 1, 0, "ExerciseWeightDiagramModel");
     qmlRegisterUncreatableType<PUnits>(uri, 0, 1, "PUnits", "Not instantiable");
     qmlRegisterSingletonType(QUrl("qrc:///LiftLog/extras/FlatStyle.qml"), "LiftLog.extras", 1, 0, "FlatStyle");
 

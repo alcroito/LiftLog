@@ -40,6 +40,7 @@ APP_QML_FILES += \
     LiftLog/components/CustomStackViewDelegate.qml\
     LiftLog/components/DatePicker.qml\
     LiftLog/components/DatePickerDialog.qml\
+    LiftLog/components/ExerciseWeightDiagram.qml\
     LiftLog/pages/qmldir \
     LiftLog/pages/DashboardPage.qml \
     LiftLog/pages/WelcomePage.qml \

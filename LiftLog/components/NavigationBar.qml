@@ -13,15 +13,17 @@ Rectangle {
     signal spreadsheetClicked
     signal doneClicked
     signal warmupClicked
+    signal leftGearClicked
 
     property alias text: label.text
     property alias pixelSize: label.font.pixelSize
-    property alias label: label
+    property alias bold: label.font.bold
     property bool showBackButton: false
     property bool showBurgerButton: false
     property bool showSpreadsheetsButton: false
     property bool showDoneButton: false
     property bool showWarmupButton: false
+    property bool showLeftGearButton: false
 
     property alias backButton: backButton
 
@@ -148,6 +150,27 @@ Rectangle {
         MouseArea {
             anchors.fill: parent
             onClicked: warmupClicked()
+        }
+    }
+
+    Label {
+        id: leftGearButton
+        height: root.height
+        width: 40 * units.scale
+        color: "#ffffff"
+        text: "\uE994"
+
+        verticalAlignment: Text.AlignVCenter
+        horizontalAlignment: Text.AlignHCenter
+
+        font.family: icomoon.name
+        font.pixelSize: 12 * units.fontScale
+        enabled: showLeftGearButton
+        visible: showLeftGearButton
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: leftGearClicked()
         }
     }
 }
