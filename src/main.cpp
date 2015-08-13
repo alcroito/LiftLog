@@ -24,10 +24,15 @@
 int main(int argc, char *argv[])
 {
     srand(time(NULL));
+//    qputenv("QML_USE_GLYPHCACHE_WORKAROUND", QByteArray("1"));
+//    qputenv("QT_ANDROID_DISABLE_GLYPH_CACHE_WORKAROUND", QByteArray("1"));
+
     QtQuickControlsApplication app(argc, argv);
 
     // Set up font.
     qDebug() << QFontDatabase().addApplicationFont(":/assets/fonts/open_sans.ttf");
+    qDebug() << QFontDatabase().addApplicationFont(":/assets/fonts/open_sans_bold.ttf");
+    qDebug() << QFontDatabase().addApplicationFont(":/assets/fonts/open_sans_light.ttf");
     app.setFont(QFont("Open Sans"));
 
     // Engine.
