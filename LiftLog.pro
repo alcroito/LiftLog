@@ -85,12 +85,15 @@ OTHER_FILES += \
 macx {
     QMAKE_INFO_PLIST = mac/Info.plist
     QTPLUGIN.imageformats=-
+    ICON = mac/icon.icns
 }
 
 ios {
     QMAKE_INFO_PLIST = ios/Info.plist
-    ios_icon.files = $$files($$PWD/ios/icons/Icon*.png)
-    QMAKE_BUNDLE_DATA += ios_icon
+    ios_resources.files += $$files($$PWD/ios/icons/Icon*.png)
+    ios_resources.files += $$files($$PWD/ios/launch/LaunchImage*.png)
+    QMAKE_BUNDLE_DATA += ios_resources
+
     QTPLUGIN.imageformats=-
 }
 
