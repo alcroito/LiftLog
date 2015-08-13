@@ -50,14 +50,15 @@ void ExerciseWeightDiagramModel::initPlateList(qreal newWeight) {
         // We can't subtract any more, so we're done processing the list of plates to show.
         if (i == availablePlates.count()) break;
     }
-
     endResetModel();
 }
 
 void ExerciseWeightDiagramModel::switchWeight(qreal newWeight) {
-    beginRemoveRows(QModelIndex(), 0, rowCount());
-    plateList.clear();
-    endRemoveRows();
+    if (rowCount() > 0) {
+        beginRemoveRows(QModelIndex(), 0, rowCount() - 1);
+        plateList.clear();
+        endRemoveRows();
+    }
 
     initPlateList(newWeight);
 }

@@ -98,9 +98,11 @@ void CalendarModel::addCalendarDate(const CalendarDate& calendarDate)
 }
 
 void CalendarModel::switchMonth(QDate newDate) {
-    beginRemoveRows(QModelIndex(), 0, rowCount());
-    calendarDates.clear();
-    endRemoveRows();
+    if (calendarDates.count() > 0) {
+        beginRemoveRows(QModelIndex(), 0, rowCount());
+        calendarDates.clear();
+        endRemoveRows();
+    }
 
     currentMonth = newDate;
     populateDatesListWithGivenMonth();
