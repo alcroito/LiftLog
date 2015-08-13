@@ -38,7 +38,7 @@ BasicPage {
                 id: label1
                 text: qsTr("Name")
                 font.pixelSize: 10 * units.fontScale
-                Layout.minimumWidth: 100
+                Layout.minimumWidth: 110 * units.scale
             }
 
             TextField {
@@ -58,7 +58,7 @@ BasicPage {
                 id: workoutLabel
                 text: qsTr("Initial workout")
                 font.pixelSize: 10 * units.fontScale
-                Layout.minimumWidth: 100
+                Layout.minimumWidth: 110 * units.scale
             }
 
             ComboBox {
@@ -84,7 +84,7 @@ BasicPage {
                 id: label2
                 text: qsTr("Unit System")
                 font.pixelSize: 10 * units.fontScale
-                Layout.minimumWidth: 100
+                Layout.minimumWidth: 110 * units.scale
             }
 
 
@@ -119,7 +119,7 @@ BasicPage {
                 id: label3
                 text: qsTr("Auto-add weight")
                 font.pixelSize: 10 * units.fontScale
-                Layout.minimumWidth: 100
+                Layout.minimumWidth: 110 * units.scale
             }
 
             SwitchStyled {
