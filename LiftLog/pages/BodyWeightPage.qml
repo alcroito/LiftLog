@@ -38,6 +38,7 @@ BasicPage {
         anchors.top: parent.top
         anchors.topMargin: 40
         border.color: borderColor
+        border.width: 1 * units.scale
 
         width: 120 * units.scale
         height: childrenRect.height

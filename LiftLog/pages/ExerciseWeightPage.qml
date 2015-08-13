@@ -48,7 +48,7 @@ BasicPage {
 
     navigationBar.text: generateNavigationBarText()
     navigationBar.pixelSize: 14 * units.fontScale
-    navigationBar.bold: true
+    navigationBar.bold: false
 
     navigationBar.onDoneClicked: {
         forceActiveFocus()
@@ -153,6 +153,7 @@ BasicPage {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
             border.color: borderColor
+            border.width: 1 * units.scale
 
             width: 120 * units.scale
             height: childrenRect.height
@@ -214,7 +215,7 @@ BasicPage {
     Item {
         id: setsContainer
         width: parent.width
-        height: 44 * units.scale
+        height: 45 * units.scale
         anchors.top: weightContainer.bottom
         anchors.topMargin: 32 * units.scale
 

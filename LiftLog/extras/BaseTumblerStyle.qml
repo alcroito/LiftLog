@@ -90,6 +90,7 @@ Style {
             anchors.margins: -1
             color: "transparent"
             border.color: "black"
+            border.width: 1 * units.scale
             visible: false
         }
 

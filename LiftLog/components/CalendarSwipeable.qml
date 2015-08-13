@@ -181,8 +181,7 @@ Item {
                         width: calendarList.sideSize
                         height: calendarList.sideSize
                         border.color: borderColor
-                        anchors.left: parent.left
-                        anchors.top: parent.top
+                        border.width: 1 * units.scale
                         color: defaultCellColor
                         state: model.state
 
