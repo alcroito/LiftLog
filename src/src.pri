@@ -14,7 +14,8 @@ SOURCES += \
     $$PWD/calendar_slider_model.cpp \
     $$PWD/date_picker_model.cpp \
     $$PWD/set_and_rep_model.cpp \
-    $$PWD/exercise_weight_diagram_model.cpp
+    $$PWD/exercise_weight_diagram_model.cpp \
+    $$PWD/stats_graph_data.cpp
 
 HEADERS += \
 #    $$PWD/pieutilsplugin.h \
@@ -34,7 +35,8 @@ HEADERS += \
     $$PWD/calendar_slider_model.h \
     $$PWD/date_picker_model.h \
     $$PWD/set_and_rep_model.h \
-    $$PWD/exercise_weight_diagram_model.h
+    $$PWD/exercise_weight_diagram_model.h \
+    $$PWD/stats_graph_data.h
 
 ios {
     HEADERS += \

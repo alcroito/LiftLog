@@ -71,7 +71,7 @@ BasicPage {
             Layout.fillWidth: true
             Layout.fillHeight: true
             onClicked: {
-                showModalPopup()
+                pageStack.showGraphPage()
             }
             onStateChanged: buttonStageChange(state)
         }

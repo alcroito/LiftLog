@@ -20,6 +20,7 @@
 #include "date_picker_model.h"
 #include "set_and_rep_model.h"
 #include "exercise_weight_diagram_model.h"
+#include "stats_graph_data.h"
 
 int main(int argc, char *argv[])
 {
@@ -52,6 +53,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<SetAndRepModel>(uri, 1, 0, "SetAndRepModel");
     qmlRegisterType<ExerciseAndSetIndexPair>(uri, 1, 0, "ExerciseSetAndPair");
     qmlRegisterType<ExerciseWeightDiagramModel>(uri, 1, 0, "ExerciseWeightDiagramModel");
+    qmlRegisterType<StatsGraphData>(uri, 1, 0, "StatsGraphData");
     qmlRegisterUncreatableType<PUnits>(uri, 0, 1, "PUnits", "Not instantiable");
     qmlRegisterSingletonType(QUrl("qrc:///LiftLog/extras/FlatStyle.qml"), "LiftLog.extras", 1, 0, "FlatStyle");
 

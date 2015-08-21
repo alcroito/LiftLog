@@ -41,6 +41,7 @@ APP_QML_FILES += \
     LiftLog/components/DatePicker.qml\
     LiftLog/components/DatePickerDialog.qml\
     LiftLog/components/ExerciseWeightDiagram.qml\
+    LiftLog/components/GraphSwipeable.qml\
     LiftLog/pages/qmldir \
     LiftLog/pages/DashboardPage.qml \
     LiftLog/pages/WelcomePage.qml \
@@ -52,6 +53,7 @@ APP_QML_FILES += \
     LiftLog/pages/BodyWeightPage.qml \
     LiftLog/pages/BottomPopupView.qml \
     LiftLog/pages/ExerciseWeightPage.qml \
+    LiftLog/pages/GraphPage.qml \
     LiftLog/extras/qmldir \
     LiftLog/extras/Tumbler.qml \
     LiftLog/extras/TumblerColumn.qml \

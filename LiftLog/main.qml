@@ -88,6 +88,13 @@ ApplicationWindow {
         }
     }
 
+    Component {
+        id: graphPage
+        GraphPage {
+            onGoBack: pageStack.goBack()
+        }
+    }
+
     StackView {
         id: pageStack
         anchors.fill: parent
@@ -183,6 +190,14 @@ ApplicationWindow {
                          exerciseCategory: exerciseCategory,
                          exerciseEntity: exerciseEntity,
                          exerciseIndex: exerciseIndex
+                     }
+                 })
+        }
+
+        function showGraphPage() {
+            push({
+                     item: graphPage,
+                     properties: {
                      }
                  })
         }
