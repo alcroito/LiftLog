@@ -49,6 +49,7 @@
         <file>components/ExerciseWeightDiagram.qml</file>
         <file>pages/GraphPage.qml</file>
         <file>components/GraphSwipeable.qml</file>
+        <file>components/Triangle.qml</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>

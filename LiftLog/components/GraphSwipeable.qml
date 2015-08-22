@@ -116,7 +116,140 @@ Item {
         property int xWidth: Math.round(width / (segments - 1))
         property int yHeight: Math.round(height / (segments - 1))
 
+        property bool drawPoints: false
+        property bool lineChosen: false
+        property int chosenLineIndex: -1
+
         property color borderColor: "#dddddd"
+        property real outerLineOpacity: dragHandle.lineOpacity
+
+        Rectangle {
+            id: dragHandle
+            width: 20 * units.scale
+            height: graphGrid.height
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: "transparent" }
+                GradientStop { position: 1.0; color: "#8c498e" }
+            }
+
+            opacity: 0
+            property real lineOpacity: 1.0
+
+            states: [
+                State {
+                    name: "shown"
+                    PropertyChanges {
+                        target: dragHandle; opacity: 1; lineOpacity: 0.5;
+                    }
+                }
+            ]
+
+            transitions: Transition {
+                NumberAnimation {
+                    properties: "opacity,lineOpacity"
+                    duration: 200
+                }
+            }
+
+            Rectangle {
+                id: dragBubble
+                radius: 5 * units.scale
+                width: 90 * units.scale
+                height: 50 * units.scale
+                color: "#8c498e"
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.top
+                anchors.topMargin: -5 * units.scale
+                opacity: 0
+
+                states: [
+                    State {
+                        name: "shown"
+                        PropertyChanges {
+                            target: dragBubble; opacity: 0.8
+                        }
+                    }
+                ]
+
+                transitions: Transition {
+                    NumberAnimation {
+                        property: "opacity"
+                        duration: 200
+                    }
+                }
+
+                Label {
+                    id: bubbleText
+                    anchors.centerIn: dragBubble
+                    color: "white"
+                    text: "hi"
+                }
+
+                Triangle {
+                    id: bubbleTriangle
+                    anchors.top: dragBubble.bottom
+                    anchors.horizontalCenter: dragBubble.horizontalCenter
+                    width: 10 * units.scale
+                    height: 5 * units.scale
+                    triangleWidth: 10 * units.scale
+                    triangleHeight: 5 * units.scale
+                    strokeStyle: "#8c498e"
+                    fillStyle: "#8c498e"
+                    fill: true
+                }
+            }
+        }
+
+        MouseArea {
+            id: dragMouseArea
+            anchors.fill: parent
+            drag.target: dragHandle
+            drag.axis: Drag.XAxis
+            drag.minimumX: 0
+            drag.maximumX: graphGrid.width - dragHandle.width
+            drag.smoothed: false
+            property int exerciseIndex: 0
+
+            function updateViews(positionData) {
+                bubbleText.text = positionData.bubbleText
+                dragHandle.gradient.stops[1].color = positionData.color
+                dragBubble.color = positionData.color
+                bubbleTriangle.strokeStyle = positionData.color
+                bubbleTriangle.fillStyle = positionData.color
+                exerciseIndex = positionData.exerciseIndex
+                if (positionData.closeEnoughToPoint) {
+                    dragBubble.state = "shown"
+                } else {
+                    dragBubble.state = ""
+                }
+            }
+
+            onPressed: {
+                // Show the handle, and place it at the middle of the cursor.
+                dragHandle.state = "shown"
+                dragHandle.x = mouse.x - dragHandle.width / 2
+
+                var transformedPoint = graphGrid.mapFromPoint(Qt.point(mouse.x, mouse.y))
+                var positionData = statsData.getNearestPointAndExerciseData(transformedPoint)
+
+                // Set a chosn line.
+                graphGrid.chosenLineIndex =  positionData.exerciseIndex
+                graphGrid.lineChosen = true
+
+                updateViews(positionData)
+
+            }
+            onPositionChanged: {
+                var transformedPoint = graphGrid.mapFromPoint(Qt.point(mouse.x, mouse.y))
+                var positionData = statsData.getNearestPointAndExerciseData(transformedPoint, exerciseIndex)
+                updateViews(positionData)
+            }
+            onReleased: {
+                // Remove chosen line.
+                graphGrid.lineChosen = false
+                dragHandle.state = ""
+            }
+        }
 
         // Maps x from [xLower, xUpper] interval to [newXLower, newXUpper].
         function mapValue(xLower, xUpper, newXLower, newXUpper, x) {
@@ -146,11 +279,28 @@ Item {
             return Qt.point(x, y);
         }
 
+        // Maps from a grid point, back to an interval point defined by the data.
+        function mapFromPoint(point) {
+            var x = mapValue(widthPadding, drawableWidth + widthPadding, xLower, xUpper, point.x);
+            // The first two arguments are inversed on purpose.
+            var y = mapValue(drawableHeight, 0, yLower, yUpper, point.y);
+            return Qt.point(x, y);
+        }
+
+        onOuterLineOpacityChanged: {
+            requestPaint()
+        }
+
         onPaint: {
             var ctx = graphGrid.getContext('2d')
+
+            // Reset canvas.
+            ctx.clearRect(0, 0, width, height)
+            ctx.globalAlpha = 1.0
+
             ctx.lineWidth = 1 * units.scale
             ctx.strokeStyle = borderColor
-            console.log("Width X Height", drawableWidth, drawableHeight)
+//            console.log("Width X Height", drawableWidth, drawableHeight)
 
             // Grid lines.
             var deltaForSubPixelPrecision = ctx.lineWidth / 2;
@@ -175,14 +325,25 @@ Item {
 
             // Plot lines.
             for (var l = 0; l < statsData.exerciseCount(); l++) {
-//                var line = testModel.get(l)
-//                var linePoints = line.points
                 var linePointsCount = statsData.pointCount(l)
 
                 ctx.lineWidth = 2 * units.scale
                 ctx.strokeStyle = statsData.exerciseColor(l)
                 ctx.miterLimit = 100
                 ctx.lineJoin = "miter"
+
+                // Draw with different transparency, whenever a line is selected.
+                if (lineChosen) {
+                    if (l === chosenLineIndex) {
+                        ctx.globalAlpha = 1.0
+                    }
+                    else {
+                        ctx.globalAlpha = outerLineOpacity
+                    }
+                } else {
+                    ctx.globalAlpha = 1.0
+                }
+//                console.log(ctx.globalAlpha)
 
                 // Plot values.
                 if (linePointsCount >= 1) {
@@ -195,10 +356,22 @@ Item {
                     // Initial point will create a fake segment, to make the line look just a bit nicer.
                     ctx.moveTo(widthPadding / 2, height - mappedPoint.y)
                     ctx.lineTo(mappedPoint.x, height - mappedPoint.y)
+
+                    // Display a rect for each point.
+                    if (drawPoints) {
+                        ctx.rect(mappedPoint.x, height - mappedPoint.y, 2, 2);
+                        ctx.fill();
+                    }
+
                     for (i = 1; i < linePointsCount; ++i) {
                         var point = statsData.getCoordinatePoint(l, i)
                         mappedPoint = mapPoint(point, ctx.lineWidth);
                         ctx.lineTo(mappedPoint.x, height - mappedPoint.y);
+                        if (drawPoints) {
+                            ctx.rect(mappedPoint.x, height - mappedPoint.y, 2, 2);
+                            ctx.fill();
+                        }
+
 //                        console.log(mappedPoint.x, mappedPoint.y);
                     }
                     // Last point will create a fake segment, to make the line look just a bit nicer.

@@ -42,6 +42,7 @@ APP_QML_FILES += \
     LiftLog/components/DatePickerDialog.qml\
     LiftLog/components/ExerciseWeightDiagram.qml\
     LiftLog/components/GraphSwipeable.qml\
+    LiftLog/components/Triangle.qml\
     LiftLog/pages/qmldir \
     LiftLog/pages/DashboardPage.qml \
     LiftLog/pages/WelcomePage.qml \

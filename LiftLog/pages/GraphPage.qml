@@ -61,20 +61,9 @@ BasicPage {
                     verticalAlignment: Text.AlignVCenter
 
                     font.pixelSize: 8 * units.fontScale
-                    Component.onCompleted: {
-                        print("hi", width, height, contentWidth, contentHeight)
-                    }
                 }
             }
         }
-
-//        MouseArea {
-//            id: progressSelectorMouseArea
-//            anchors.fill: parent
-//            onClicked: {
-
-//            }
-//        }
     }
 
     GraphSwipeable {

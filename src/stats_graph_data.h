@@ -6,6 +6,7 @@
 #include <QVariant>
 #include <QPoint>
 #include <QColor>
+#include <QDebug>
 
 class ExerciseStatPoint {
 public:
@@ -15,6 +16,8 @@ public:
     qreal weight;
     QDateTime date;
 };
+
+QDebug& operator<<(QDebug dbg, ExerciseStatPoint& p);
 
 class ExerciseStatsData {
 public:
@@ -35,6 +38,9 @@ public:
     ExerciseStatPoint& getPointForExerciseIndex(qint32 exerciseIndex, qint32 pointIndex);
 
     QColor getColorForIndex(qint32 index);
+    qreal mapToRange(qint64 inputStart, qint64 inputEnd, qint64 outputStart, qint64 outputEnd, qint64 value);
+    QVector2D normalizeToUnitVector(QVector2D p);
+    void printAllPoints();
 public slots:
     void getStatsFromDB();
     qint32 exerciseCount();
@@ -50,9 +56,11 @@ public slots:
     QVariantMap getLowerAndUpperBounds();
     QPoint getCoordinatePoint(qint32 exerciseIndex, qint32 pointIndex);
     qint32 getBestSegmentCount();
+    QVariantMap getNearestPointAndExerciseData(QPoint p, qint32 exerciseIndex = -1);
 private:
     QList<ExerciseStatsData> exercises;
     qint32 maxExercisePointCount;
+    QVariantMap bounds;
 };
 
 #endif // STATSGRAPHDATA_H

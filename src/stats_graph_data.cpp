@@ -4,7 +4,9 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>
+#include <QVector2D>
 #include <limits>
+#include <cmath>
 
 StatsGraphData::StatsGraphData(QObject *parent) : QObject(parent)
 {
@@ -90,6 +92,8 @@ void StatsGraphData::getStatsFromDB()
     if (count > 0) {
         exercises.append(statsData);
     }
+
+//    printAllPoints();
 }
 
 qint32 StatsGraphData::getBestSegmentCount() {
@@ -136,6 +140,100 @@ QVariantMap StatsGraphData::getLowerAndUpperBounds() {
     result.insert("xUpper", xUpper);
     result.insert("yLower", yLower);
     result.insert("yUpper", yUpper);
+
+    bounds = result;
+    return result;
+}
+
+double round(double d)
+{
+    return floor(d + 0.5);
+}
+
+qreal StatsGraphData::mapToRange(qint64 inputStart, qint64 inputEnd, qint64 outputStart, qint64 outputEnd, qint64 value) {
+    double slope = 1.0 * (outputEnd - outputStart) / (inputEnd - inputStart);
+    double output = outputStart + slope * (value - inputStart);
+    return output;
+}
+
+QVector2D StatsGraphData::normalizeToUnitVector(QVector2D p) {
+    p.setX(mapToRange(bounds["xLower"].toLongLong(), bounds["xUpper"].toLongLong(), 0, 1, p.x()));
+    p.setY(mapToRange(bounds["yLower"].toLongLong(), bounds["yUpper"].toLongLong(), 0, 1, p.y()));
+    return p;
+}
+
+void StatsGraphData::printAllPoints()
+{
+    for (int i = 0; i < exerciseCount(); ++i) {
+        qDebug() << "exercise " << exerciseName(i);
+        for (int j = 0; j < pointCount(i); j++) {
+            qDebug() << getPointForExerciseIndex(i, j);
+        }
+    }
+}
+
+QVariantMap StatsGraphData::getNearestPointAndExerciseData(QPoint p, qint32 exerciseIndex) {
+    qreal smallestLineDistance = std::numeric_limits<qreal>::max();
+    qreal smallestPointDistance = std::numeric_limits<qreal>::max();
+
+    QVector2D pNormalized = normalizeToUnitVector(QVector2D(p));
+
+    int minI = -1, minJ = -1, minPointI = -1, minPointJ = -1, i = 0, endingCondition = exerciseCount();
+
+    // Search only for a point within a single exercise if specified.
+    if (exerciseIndex != -1) {
+        i = exerciseIndex;
+        endingCondition = i + 1;
+    }
+
+    for (; i < endingCondition; i++) {
+        QVector2D prevPoint;
+        for (int j = 0; j < pointCount(i); j++) {
+            ExerciseStatPoint point = getPointForExerciseIndex(i, j);
+
+            QVector2D vectorPoint = QVector2D(point.timestamp(), point.weight);
+            vectorPoint = normalizeToUnitVector(vectorPoint);
+
+            QVector2D direction = (vectorPoint - prevPoint).normalized();
+
+            // We use 2 distances, the line distance is to better figure out which exercise was chosen.
+            // The point distance is to figure out which point is the closest, to show it's information.
+            qreal pointDistance = pNormalized.distanceToPoint(vectorPoint);
+            qreal lineDistance = pNormalized.distanceToLine(vectorPoint, direction);
+
+            prevPoint = vectorPoint;
+
+            if (pointDistance <= smallestPointDistance) {
+                smallestPointDistance = pointDistance;
+                minPointI = i;
+                minPointJ = j;
+            }
+
+            if (lineDistance <= smallestLineDistance) {
+                smallestLineDistance = lineDistance;
+                minI = i;
+                minJ = j;
+            }
+        }
+    }
+
+//    qDebug() << "the point " << p << " point distance " << smallestPointDistance << " line distance " << smallestLineDistance;
+
+    // Get the nearest point bubble text.
+    ExerciseStatsData e = exercises[minI];
+    ExerciseStatPoint statPoint = getPointForExerciseIndex(minPointI, minPointJ);
+    AppState* app = AppState::getInstance();
+    QString bubbleText = QString("%1\n%2 %3\n%4").arg(e.name).arg(app->getWeightString(statPoint.weight)).arg(e.setsAndReps).arg(statPoint.date.toString("MMM dd, yyyy"));
+
+    // Arbitrary minimum distance to point, to know when to show the bubble text.
+    bool closeEnoughToPoint = smallestPointDistance < 0.05;
+
+    QVariantMap result;
+    result.insert("exerciseIndex", minI);
+    result.insert("pointIndex", minJ);
+    result.insert("color", exerciseColor(minI));
+    result.insert("bubbleText", bubbleText);
+    result.insert("closeEnoughToPoint", closeEnoughToPoint);
     return result;
 }
 
@@ -206,3 +304,6 @@ qint64 StatsGraphData::timestampForExercisePoint(qint32 exerciseIndex, qint32 po
     return exercises[exerciseIndex].points[pointIndex].date.toMSecsSinceEpoch();
 }
 
+QDebug &operator<<(QDebug dbg, ExerciseStatPoint &p) {
+    return dbg << "stat point" << p.weight << p.timestamp();
+}
