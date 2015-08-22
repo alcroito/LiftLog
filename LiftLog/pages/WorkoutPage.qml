@@ -243,4 +243,117 @@ BasicPage {
             appState.currentWorkoutModel.changeAndSaveStartDate(datePickerDialog.getSelectedDate())
         }
     }
+
+    // GM functionality, to fast-add / change workout data.
+
+    property int staticNextExerciseIndex: 0
+
+    function setSetValuesForExercise(exerciseIndex, mode) {
+        var w = appState.currentWorkoutModel;
+        var setsCount = w.setsCountForExercise(exerciseIndex);
+        for (var setIndex = 0; setIndex < setsCount; setIndex++) {
+            var modelIndex = w.getSetModelIndex(exerciseIndex, setIndex);
+            var toDo = w.data(modelIndex, WorkoutModel.RepsToDoCountRole);
+            if (mode === "failure") toDo--;
+            w.setData(modelIndex, toDo, WorkoutModel.RepsDoneCountRole);
+            w.setData(modelIndex, "active", WorkoutModel.RepsSetStateRole)
+        }
+    }
+
+    function setAllSetValues(mode) {
+        var w = appState.currentWorkoutModel;
+        var exerciseCount = w.exerciseCount;
+        for (var exerciseIndex = 0; exerciseIndex < exerciseCount; exerciseIndex++) {
+            setSetValuesForExercise(exerciseIndex, mode);
+        }
+        appState.currentWorkoutModel.reInitializeExerciseSets();
+    }
+
+    function setExerciseValues(mode) {
+        var w = appState.currentWorkoutModel;
+        var exerciseCount = w.exerciseCount;
+        var exerciseIndex = staticNextExerciseIndex
+
+        setSetValuesForExercise(exerciseIndex, mode);
+
+        staticNextExerciseIndex = (staticNextExerciseIndex + 1) % exerciseCount;
+        appState.currentWorkoutModel.reInitializeExerciseSets();
+    }
+
+    function changeExerciseWeight(mode) {
+        var w = appState.currentWorkoutModel;
+        var exerciseCount = w.exerciseCount;
+        var exerciseIndex = staticNextExerciseIndex
+        var modelIndex = w.getExerciseModelIndex(exerciseIndex);
+
+        var exerciseWeight = w.data(modelIndex, WorkoutModel.ExerciseWeightRole);
+
+        var currentWeightSystem = w.weightSystem;
+        var weightIncrement = w.data(modelIndex, WorkoutModel.ExerciseWeightIncrementRole);
+        var weightIncrementTransformed = appState.getWeightTransformed(weightIncrement, currentWeightSystem, User.Metric)
+        if (mode === "increase") {
+            exerciseWeight += weightIncrement;
+        } else if (mode === "decrease") {
+            exerciseWeight -= weightIncrement;
+        }
+
+        w.setData(modelIndex, exerciseWeight, WorkoutModel.ExerciseWeightRole);
+
+        staticNextExerciseIndex = (staticNextExerciseIndex + 1) % exerciseCount;
+        appState.currentWorkoutModel.reInitializeExerciseSets();
+    }
+
+    Action {
+        id: successAction
+        shortcut: "s"
+        enabled: true
+        onTriggered: {
+            setAllSetValues("success")
+        }
+    }
+
+    Action {
+        id: successOneAction
+        shortcut: "e"
+        enabled: true
+        onTriggered: {
+            setExerciseValues("success")
+        }
+    }
+
+    Action {
+        id: failureAction
+        shortcut: "f"
+        enabled: true
+        onTriggered: {
+            setAllSetValues("failure")
+        }
+    }
+
+    Action {
+        id: failureOneAction
+        shortcut: "x"
+        enabled: true
+        onTriggered: {
+            setExerciseValues("failure")
+        }
+    }
+
+    Action {
+        id: increaseWeightAction
+        shortcut: "i"
+        enabled: true
+        onTriggered: {
+            changeExerciseWeight("increase")
+        }
+    }
+
+    Action {
+        id: decreaseWeightAction
+        shortcut: "d"
+        enabled: true
+        onTriggered: {
+            changeExerciseWeight("decrease")
+        }
+    }
 }
