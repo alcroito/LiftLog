@@ -29,11 +29,17 @@ Item {
                 bodyText = qsTr("Are you sure you want to delete this workout?")
                 operation = op
                 break
+            case popupDeleteDBOperation:
+                subjectText = qsTr("Delete DB")
+                bodyText = qsTr("Are you sure you want to delete the DB?")
+                operation = op
+                break
         }
     }
 
     property string operation
     property string popupDeleteOperation: "delete"
+    property string popupDeleteDBOperation: "deletedb"
 
     signal acceptClicked
     signal rejectClicked

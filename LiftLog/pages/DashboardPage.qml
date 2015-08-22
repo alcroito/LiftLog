@@ -92,11 +92,22 @@ BasicPage {
             Layout.fillWidth: true
             Layout.fillHeight: true
             onClicked: {
-                dbManager.deleteDBFileAndReInit()
-                pageStack.showWelcomePage()
+                showModalPopup()
+                modalPopup.prepare("deletedb")
             }
             onStateChanged: buttonStageChange(state)
         }
+
+        Connections {
+            target: modalPopup
+            onAcceptClicked: {
+                if (modalPopup.operation === modalPopup.popupDeleteDBOperation) {
+                    dbManager.deleteDBFileAndReInit()
+                    pageStack.showWelcomePage()
+                }
+            }
+        }
+
 
         //            Label {
         //                text: qsTr("Welcome back, %1").arg(appState.currentUser.name)

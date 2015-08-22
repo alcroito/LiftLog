@@ -7,6 +7,7 @@
 #include <QPoint>
 #include <QColor>
 #include <QDebug>
+#include <QSqlQuery>
 
 class ExerciseStatPoint {
 public:
@@ -57,10 +58,20 @@ public slots:
     QPoint getCoordinatePoint(qint32 exerciseIndex, qint32 pointIndex);
     qint32 getBestSegmentCount();
     QVariantMap getNearestPointAndExerciseData(QPoint p, qint32 exerciseIndex = -1);
+    static qint32 getMinPointCountForAnyExerciseFromDB();
+    static QSqlQuery runStatsQuery(bool* ok = 0);
 private:
     QList<ExerciseStatsData> exercises;
     qint32 maxExercisePointCount;
     QVariantMap bounds;
+};
+
+class StatsGraphDataSingleton : public QObject {
+    Q_OBJECT
+public:
+    explicit StatsGraphDataSingleton(QObject *parent = 0);
+public slots:
+    qint32 getMinPointCountForAnyExerciseFromDB();
 };
 
 #endif // STATSGRAPHDATA_H

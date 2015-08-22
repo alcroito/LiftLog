@@ -8,15 +8,12 @@
 #include <limits>
 #include <cmath>
 
-StatsGraphData::StatsGraphData(QObject *parent) : QObject(parent)
+StatsGraphData::StatsGraphData(QObject *parent) : QObject(parent), maxExercisePointCount(std::numeric_limits<decltype(maxExercisePointCount)>::min())
 {
     getStatsFromDB();
 }
 
-void StatsGraphData::getStatsFromDB()
-{
-    exercises.clear();
-
+QSqlQuery StatsGraphData::runStatsQuery(bool* ok) {
     QSqlQuery query;
     QString queryString = "SELECT e.name, e.id_exercise, uwew.weight, sr.set_count, sr.rep_count, uw.id_workout, uw.date_started, e.tags \
             FROM user_workout uw \
@@ -34,9 +31,59 @@ void StatsGraphData::getStatsFromDB()
     query.bindValue(":id_workout_template", user->getLastIdWorkoutTemplate());
 
     bool result = query.exec();
+    if (ok) *ok = result;
     if (!result) {
         qDebug() << "Error getting graph stats data.";
         qDebug() << query.lastError();
+    }
+
+    return query;
+}
+
+qint32 StatsGraphData::getMinPointCountForAnyExerciseFromDB() {
+    auto count = 0;
+    bool ok;
+    auto exercisePointCount = 0;
+    auto minExercisePointCount = 0;
+    qint64 prevExerciseId = 0;
+
+    QSqlQuery query = runStatsQuery(&ok);
+
+    if (ok) {
+        minExercisePointCount = std::numeric_limits<decltype(minExercisePointCount)>::max();
+        while (query.next()) {
+            qint64 idExercise = query.value("id_exercise").toInt();
+
+            if (idExercise != prevExerciseId && prevExerciseId != 0) {
+                if (exercisePointCount < minExercisePointCount) {
+                    minExercisePointCount = exercisePointCount;
+                }
+
+                exercisePointCount = 0;
+            }
+            exercisePointCount++;
+            prevExerciseId = idExercise;
+        }
+
+    }
+
+    if (exercisePointCount > 0) {
+        if (exercisePointCount < minExercisePointCount) {
+            minExercisePointCount = exercisePointCount;
+        }
+        count = minExercisePointCount;
+    }
+
+    return count;
+}
+
+void StatsGraphData::getStatsFromDB()
+{
+    exercises.clear();
+
+    bool ok;
+    QSqlQuery query = runStatsQuery(&ok);
+    if (!ok) {
         return;
     }
 
@@ -91,6 +138,9 @@ void StatsGraphData::getStatsFromDB()
 
     if (count > 0) {
         exercises.append(statsData);
+        if (exercisePointCount > maxExercisePointCount) {
+            maxExercisePointCount = exercisePointCount;
+        }
     }
 
 //    printAllPoints();
@@ -188,6 +238,17 @@ QVariantMap StatsGraphData::getNearestPointAndExerciseData(QPoint p, qint32 exer
 
     for (; i < endingCondition; i++) {
         QVector2D prevPoint;
+
+        // Add a fake initial point, for better line detection when near the left side of the graph.
+        if (pointCount(i) > 0) {
+            ExerciseStatPoint point = getPointForExerciseIndex(i, 0);
+            prevPoint = QVector2D(point.timestamp(), point.weight);
+            prevPoint = normalizeToUnitVector(prevPoint);
+            prevPoint.setX(0);
+        }
+
+        // Go through each point, and find the distance to each point, and the distance to the line
+        // formed by the current and previous point.
         for (int j = 0; j < pointCount(i); j++) {
             ExerciseStatPoint point = getPointForExerciseIndex(i, j);
 
@@ -226,7 +287,7 @@ QVariantMap StatsGraphData::getNearestPointAndExerciseData(QPoint p, qint32 exer
     QString bubbleText = QString("%1\n%2 %3\n%4").arg(e.name).arg(app->getWeightString(statPoint.weight)).arg(e.setsAndReps).arg(statPoint.date.toString("MMM dd, yyyy"));
 
     // Arbitrary minimum distance to point, to know when to show the bubble text.
-    bool closeEnoughToPoint = smallestPointDistance < 0.05;
+    bool closeEnoughToPoint = smallestPointDistance < 0.1;
 
     QVariantMap result;
     result.insert("exerciseIndex", minI);
@@ -306,4 +367,15 @@ qint64 StatsGraphData::timestampForExercisePoint(qint32 exerciseIndex, qint32 po
 
 QDebug &operator<<(QDebug dbg, ExerciseStatPoint &p) {
     return dbg << "stat point" << p.weight << p.timestamp();
+}
+
+
+StatsGraphDataSingleton::StatsGraphDataSingleton(QObject *parent) : QObject(parent)
+{
+
+}
+
+qint32 StatsGraphDataSingleton::getMinPointCountForAnyExerciseFromDB()
+{
+    return StatsGraphData::getMinPointCountForAnyExerciseFromDB();
 }

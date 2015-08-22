@@ -54,6 +54,12 @@ int main(int argc, char *argv[])
     qmlRegisterType<ExerciseAndSetIndexPair>(uri, 1, 0, "ExerciseSetAndPair");
     qmlRegisterType<ExerciseWeightDiagramModel>(uri, 1, 0, "ExerciseWeightDiagramModel");
     qmlRegisterType<StatsGraphData>(uri, 1, 0, "StatsGraphData");
+    qmlRegisterSingletonType<StatsGraphDataSingleton>(uri, 1, 0, "StatsGraphDataSingleton", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject* {
+        Q_UNUSED(engine);
+        Q_UNUSED(scriptEngine);
+        auto instance = new StatsGraphDataSingleton();
+        return instance;
+    });
     qmlRegisterUncreatableType<PUnits>(uri, 0, 1, "PUnits", "Not instantiable");
     qmlRegisterSingletonType(QUrl("qrc:///LiftLog/extras/FlatStyle.qml"), "LiftLog.extras", 1, 0, "FlatStyle");
 

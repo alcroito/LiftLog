@@ -11,9 +11,11 @@ BasicPage {
         goBack()
     }
 
-    rootBackground.color: "white"
+    rootBackground.color: showGraph ? "white" : "#ecf0f1"
     width: appState.windowWidth
     height: appState.windowHeight
+
+    property bool showGraph: false
 
     Label {
         id: progressLabel
@@ -22,6 +24,8 @@ BasicPage {
         anchors.left: parent.left
         anchors.leftMargin: 8 * units.scale
         font.pixelSize: 12 * units.fontScale
+        visible: showGraph
+        enabled: showGraph
     }
 
     Rectangle {
@@ -34,6 +38,8 @@ BasicPage {
         anchors.topMargin: 9 * units.scale
         height: 40 * units.scale
         width: 85 * units.scale
+        visible: showGraph
+        enabled: showGraph
 
         ComboBox {
             id: progressSelectorComboBox
@@ -66,9 +72,49 @@ BasicPage {
         }
     }
 
-    GraphSwipeable {
-        id: graph
+    Component.onCompleted: {
+        var count = StatsGraphDataSingleton.getMinPointCountForAnyExerciseFromDB();
+        if (count >= 2) {
+            showGraph = true;
+        }
+    }
+
+    Loader {
+        id: graphLoader
+        active: showGraph
         anchors.top: progressSelectorBackground.bottom
         anchors.topMargin: 10 * units.scale
+
+        sourceComponent: GraphSwipeable {
+            id: graph
+        }
+    }
+
+    Loader {
+        id: comeBackLoader
+        anchors.topMargin: 10 * units.scale
+        anchors.right: parent.right
+        anchors.rightMargin: 10 * units.scale
+        anchors.left: parent.left
+        anchors.leftMargin: 10 * units.scale
+        anchors.verticalCenter: parent.verticalCenter
+
+        active: !showGraph
+        sourceComponent: Rectangle {
+            color: "white"
+            height: childrenRect.height + 40 * units.scale
+            Label {
+                id: comeBackLabel
+                text: qsTr("You have no workouts done yet.\n\nCome back to this page after you've done a few.")
+                font.pixelSize: 10 * units.fontScale
+                wrapMode: Text.Wrap
+                anchors.top: parent.top
+                anchors.topMargin: 20 * units.scale
+                anchors.left: parent.left
+                anchors.leftMargin: 10 * units.scale
+                anchors.right: parent.right
+                anchors.rightMargin: 10 * units.scale
+            }
+        }
     }
 }

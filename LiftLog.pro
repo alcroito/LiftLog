@@ -85,6 +85,11 @@ OTHER_FILES += \
 #ios: database_install.path = Documents
 #QMAKE_BUNDLE_DATA += database_install
 
+mac {
+    CONFIG += c++14
+    QMAKE_CXXFLAGS += -stdlib=libc++
+}
+
 macx {
     QMAKE_INFO_PLIST = mac/Info.plist
     QTPLUGIN.imageformats=-
@@ -101,6 +106,7 @@ ios {
 }
 
 android {
+    QMAKE_CXXFLAGS += -std=c++1y
     QT += androidextras
     OTHER_FILES += android/AndroidManifest.xml
     QTPLUGIN.imageformats=-

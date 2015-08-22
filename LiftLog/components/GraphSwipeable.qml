@@ -88,10 +88,11 @@ Item {
             property int value: yUpper - index * ySegmentRange
             anchors.right: graphGrid.left
             anchors.top: graphGrid.top
-            anchors.rightMargin: 6 * units.scale
+            anchors.rightMargin: 2 * units.scale
             anchors.topMargin: graphGrid.yHeight * index - contentHeight / 2
-            text: appState.getWeightString(value, false, false, true, false);
+            text: appState.getWeightString(value, false, false, true, true);
             color: "#6e6e6e"
+            font.pixelSize: 7 * units.fontScale
         }
     }
 
