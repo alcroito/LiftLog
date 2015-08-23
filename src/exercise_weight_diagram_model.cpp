@@ -97,7 +97,8 @@ QString ExerciseWeightDiagramModel::getPlatesBreakdownText()
     qreal barbellWeight = entity->getBarbellWeight();
     delete entity;
 
-    text += QString("1 x %1 Barbell").arg(instance->getWeightString(barbellWeight, false, false, true));
+    QString weightString = instance->getWeightStringBuilder(barbellWeight)->setLowerCase(true)->get();
+    text += QString("1 x %1 Barbell").arg(weightString);
 
     return text;
 }

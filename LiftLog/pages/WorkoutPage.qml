@@ -104,9 +104,9 @@ BasicPage {
             exerciseModelIndex: exercisesDelegateModel.modelIndex(index)
             exerciseIndex: index
             setsAndReps: model.setsAndReps
-            weight: appState.getWeightString(model.weight, model.exerciseEntity.isAccessory())
-            currentWeightText: appState.getWeightString(model.weight, model.exerciseEntity.isAccessory())
-            nextWeightText: appState.getWeightString(model.weight + appState.getWeightTransformed(model.weightIncrement, appState.currentUser.weightSystem, User.Metric), model.exerciseEntity.isAccessory())
+            weight: appState.getWeightStringBuilder(model.weight).setBodyWeight(model.exerciseEntity.isAccessory()).get()
+            currentWeightText: appState.getWeightStringBuilder(model.weight).setBodyWeight(model.exerciseEntity.isAccessory()).get()
+            nextWeightText: appState.getWeightStringBuilder(model.weight + appState.getWeightTransformed(model.weightIncrement, appState.currentUser.weightSystem, User.Metric)).setBodyWeight(model.exerciseEntity.isAccessory()).get()
 
             onClicked: {
                 // Always reset to the standard state, so that in case if all sets were completed,
@@ -175,7 +175,10 @@ BasicPage {
         header: DateAndWeight {
             id: dateAndWeight
             workoutDate: appState.currentWorkoutModel.workoutEntity.dateStarted
-            weightText: appState.getWeightString(appState.currentWorkoutModel.workoutEntity.userWeight, User.Metric, appState.currentUser.weightSystem)
+            weightText: {
+                var dummyBindingToForceUpdate = appState.currentUser.weightSystem;
+                return appState.getWeightStringBuilder(appState.currentWorkoutModel.workoutEntity.userWeight).get();
+            }
 
             onDateClicked: {
                 showDatePicker()

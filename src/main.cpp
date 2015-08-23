@@ -21,6 +21,7 @@
 #include "set_and_rep_model.h"
 #include "exercise_weight_diagram_model.h"
 #include "stats_graph_data.h"
+#include "weight_string_builder.h"
 
 int main(int argc, char *argv[])
 {
@@ -54,6 +55,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<ExerciseAndSetIndexPair>(uri, 1, 0, "ExerciseSetAndPair");
     qmlRegisterType<ExerciseWeightDiagramModel>(uri, 1, 0, "ExerciseWeightDiagramModel");
     qmlRegisterType<StatsGraphData>(uri, 1, 0, "StatsGraphData");
+    qmlRegisterUncreatableType<WeightStringBuilder>(uri, 1, 0, "WeightStringBuilder", "Not instantiable");
     qmlRegisterSingletonType<StatsGraphDataSingleton>(uri, 1, 0, "StatsGraphDataSingleton", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject* {
         Q_UNUSED(engine);
         Q_UNUSED(scriptEngine);

@@ -19,7 +19,7 @@ BasicPage {
     property color borderColor: "#c6c6c6"
     property color redBorderColor: "#e74c3c"
     property alias weightText: weightInput.text
-    property string overallStatusText: qsTr("%1 %2").arg(setsList.currentItem.text).arg(appState.getWeightString(weightNumber, exerciseEntity.isAccessory()))
+    property string overallStatusText: qsTr("%1 %2").arg(setsList.currentItem.text).arg(appState.getWeightStringBuilder(weightNumber).setBodyWeight(exerciseEntity.isAccessory()).get())
 
     // Incoming weightNumber is always in metric.
     property real weightNumber
@@ -274,13 +274,13 @@ BasicPage {
                 if (weightNumber <= barbellWeight + 1.25) {
                     return qsTr("Lift the empty bar");
                 } else {
-                    return qsTr("Add %1/side").arg(appState.getWeightString((weightNumber - barbellWeight) / 2, false, false, true, neat));
+                    return qsTr("Add %1/side").arg(appState.getWeightStringBuilder((weightNumber - barbellWeight) / 2).setLowerCase(true).setNeat(neat).get());
                 }
             case 1:
                 if (weightNumber <= 0.1 && weightNumber >= -0.1) {
                     return qsTr("Lift yourself");
                 } else if (weightNumber > 0) {
-                    return qsTr("Add %1").arg(appState.getWeightString(weightNumber, false, false, true, neat));
+                    return qsTr("Add %1").arg(appState.getWeightStringBuilder(weightNumber).setLowerCase(true).setNeat(neat).get());
                 } else {
                     return qsTr("Assisted exercise");
                 }

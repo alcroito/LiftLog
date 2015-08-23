@@ -90,7 +90,7 @@ Item {
             anchors.top: graphGrid.top
             anchors.rightMargin: 2 * units.scale
             anchors.topMargin: graphGrid.yHeight * index - contentHeight / 2
-            text: appState.getWeightString(value, false, false, true, true);
+            text: appState.getWeightStringBuilder(value).setLowerCase(true).get();
             color: "#6e6e6e"
             font.pixelSize: 7 * units.fontScale
         }

@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QSharedPointer>
 #include "user.h"
+#include "weight_string_builder.h"
 
 class QScreen;
 class QtQuickControlsApplication;
@@ -56,15 +57,15 @@ public slots:
     void loadActiveUserOnDBInit();
     void clearActiveUserOnDBClose();
 
-    QString getWeightString(qreal weight, bool withBodyWeight = false, bool withSpaceBetween = false, bool lowerCase = false, bool neat = true);
+    WeightStringBuilder* getWeightStringBuilder(qreal weight);
     qreal getWeightTransformed(qreal weight, int from, int to);
     QString getWeightSystemSuffix(User::WeightSystem system = User::Metric, bool lowercase = false);
 
     void recheckUncompletedWorkoutExistsValue();
 
     qreal truncToTwoDecimals(qreal value);
-    qreal neatRoundForImperial(qreal imperialWeight);
-    qreal neatRoundForMetric(qreal metricWeight);
+    static qreal neatRoundForImperial(qreal imperialWeight);
+    static qreal neatRoundForMetric(qreal metricWeight);
     qreal neatRoundForSystem(qreal weight, int system = User::Metric);
 
 private:

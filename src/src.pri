@@ -36,7 +36,8 @@ HEADERS += \
     $$PWD/date_picker_model.h \
     $$PWD/set_and_rep_model.h \
     $$PWD/exercise_weight_diagram_model.h \
-    $$PWD/stats_graph_data.h
+    $$PWD/stats_graph_data.h \
+    $$PWD/weight_string_builder.h
 
 ios {
     HEADERS += \

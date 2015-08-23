@@ -284,7 +284,8 @@ QVariantMap StatsGraphData::getNearestPointAndExerciseData(QPoint p, qint32 exer
     ExerciseStatsData e = exercises[minI];
     ExerciseStatPoint statPoint = getPointForExerciseIndex(minPointI, minPointJ);
     AppState* app = AppState::getInstance();
-    QString bubbleText = QString("%1\n%2 %3\n%4").arg(e.name).arg(app->getWeightString(statPoint.weight)).arg(e.setsAndReps).arg(statPoint.date.toString("MMM dd, yyyy"));
+    QString weightString = app->getWeightStringBuilder(statPoint.weight)->get();
+    QString bubbleText = QString("%1\n%2 %3\n%4").arg(e.name).arg(weightString).arg(e.setsAndReps).arg(statPoint.date.toString("MMM dd, yyyy"));
 
     // Arbitrary minimum distance to point, to know when to show the bubble text.
     bool closeEnoughToPoint = smallestPointDistance < 0.1;

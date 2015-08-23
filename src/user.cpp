@@ -26,8 +26,10 @@ User::WeightSystem User::getWeightSystem() const
 
 void User::setWeightSystem(const User::WeightSystem value)
 {
-    weightSystem = value;
-    emit weightSystemChanged();
+    if (value != weightSystem) {
+        weightSystem = value;
+        emit weightSystemChanged(value);
+    }
 }
 
 bool User::getAutoAddWeight() const

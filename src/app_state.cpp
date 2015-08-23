@@ -3,6 +3,7 @@
 #include <QSqlError>
 #include <QScreen>
 #include <QStringBuilder>
+#include <QQmlEngine>
 #include <cmath>
 
 #include "application.h"
@@ -10,6 +11,7 @@
 #include "user.h"
 #include "punits.h"
 #include "workout_model.h"
+#include "weight_string_builder.h"
 
 AppState* AppState::instance = 0;
 
@@ -43,6 +45,13 @@ void AppState::recheckUncompletedWorkoutExistsValue() {
 void AppState::clearActiveUserOnDBClose() {
     // Reset the current user as if there is none set.
     currentUser->clear();
+}
+
+WeightStringBuilder* AppState::getWeightStringBuilder(qreal weight)
+{
+    auto builder = WeightStringBuilder::create(weight);
+    QQmlEngine::setObjectOwnership(builder, QQmlEngine::CppOwnership);
+    return builder;
 }
 
 qreal AppState::getWeightTransformed(qreal weight, int from, int to)
@@ -138,45 +147,6 @@ QString AppState::getWeightSystemSuffix(User::WeightSystem system, bool lowercas
     if (lowercase) weightSuffix = weightSuffix.toLower();
 
     return weightSuffix;
-}
-
-QString AppState::getWeightString(qreal weight, bool withBodyWeight, bool withSpaceBetween, bool lowerCase, bool neat)
-{
-    User::WeightSystem system = currentUser->getWeightSystem();
-    QString weightSuffix;
-    QString prefix;
-    QString result;
-
-    if (system == User::Metric) {
-        weightSuffix = "KG";
-        if (neat)
-            weight = neatRoundForMetric(weight);
-    } else {
-        weightSuffix = "LB";
-        if (neat)
-            weight = neatRoundForImperial(weight * oneKgToPounds);
-        else weight *= oneKgToPounds;
-    }
-
-    if (withBodyWeight) {
-        prefix = "BW";
-        if (weight > 0) prefix += "+";;
-        QTextStream(&result) << prefix;
-    }
-
-    if ((withBodyWeight && weight != 0) || !withBodyWeight) {
-        QTextStream(&result) << weight;
-
-        if (withSpaceBetween) {
-            QTextStream(&result) << " ";
-        }
-
-        QTextStream(&result) << weightSuffix;
-    }
-
-    if (lowerCase) result = result.toLower();
-
-    return result;
 }
 
 qint32 AppState::getWindowHeight() const
@@ -319,4 +289,44 @@ void AppState::saveCurrentUser() {
 void AppState::loadCurrentUser() {
     qDebug() << "Loading current user.";
     currentUser->loadById(getActiveUserId());
+}
+
+
+QString WeightStringBuilder::build()
+{
+    User::WeightSystem system = AppState::getInstance()->getCurrentUser()->getWeightSystem();
+    QString weightSuffix;
+    QString prefix;
+    QString result;
+
+    if (system == User::Metric) {
+        weightSuffix = "KG";
+        if (neat)
+            weight = AppState::neatRoundForMetric(weight);
+    } else {
+        weightSuffix = "LB";
+        if (neat)
+            weight = AppState::neatRoundForImperial(weight * oneKgToPounds);
+        else weight *= oneKgToPounds;
+    }
+
+    if (withBodyWeight) {
+        prefix = "BW";
+        if (weight > 0) prefix += "+";;
+        QTextStream(&result) << prefix;
+    }
+
+    if ((withBodyWeight && weight != 0) || !withBodyWeight) {
+        QTextStream(&result) << weight;
+
+        if (withSpaceBetween) {
+            QTextStream(&result) << " ";
+        }
+
+        QTextStream(&result) << weightSuffix;
+    }
+
+    if (lowerCase) result = result.toLower();
+
+    return result;
 }
