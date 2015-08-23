@@ -15,14 +15,17 @@ StatsGraphData::StatsGraphData(QObject *parent) : QObject(parent), maxExercisePo
 
 QSqlQuery StatsGraphData::runStatsQuery(bool* ok) {
     QSqlQuery query;
-    QString queryString = "SELECT e.name, e.id_exercise, uwew.weight, sr.set_count, sr.rep_count, uw.id_workout, uw.date_started, e.tags \
+    QString queryString = "SELECT e.name, e.id_exercise, uwew.weight, sr.set_count, sr.rep_count, \
+                          uw.id_workout, uw.date_started, e.tags, GROUP_CONCAT(uwes.reps_done, '/') AS reps_done, uwew.successful \
             FROM user_workout uw \
             INNER JOIN workout_template_exercises wte ON wte.id_workout_template = uw.id_workout_template AND wte.day = uw.day \
             INNER JOIN exercise e ON e.id_exercise = wte.id_exercise \
             INNER JOIN user_workout_exercise_weight uwew ON uwew.id_workout = uw.id_workout AND wte.id_exercise = uwew.id_exercise \
+            INNER JOIN user_workout_exercise_stats uwes ON uwes.id_workout = uw.id_workout AND uwes.id_exercise = uwew.id_exercise AND uwes.delta = uwew.delta \
             INNER JOIN set_and_rep sr ON sr.id_set_and_rep = uwew.id_set_and_rep \
             WHERE uw.id_user = :id_user AND uw.id_workout_template = :id_workout_template \
-            ORDER BY wte.id_exercise, date_started ASC";
+            GROUP BY e.name, e.id_exercise, uwew.weight, sr.set_count, sr.rep_count, uw.id_workout, uw.date_started, e.tags \
+            ORDER BY wte.id_exercise, date_started, uwes.set_number ASC";
     query.prepare(queryString);
 
     User* user = AppState::getInstance()->getCurrentUser();
@@ -105,6 +108,17 @@ void StatsGraphData::getStatsFromDB()
         Q_UNUSED(idWorkout);
         QDateTime date = query.value(6).toDateTime();
         QString tags = query.value("tags").toString();
+        QString repsDone = query.value("reps_done").toString();
+
+        bool exerciseSuccessful = query.value("successful").toBool();
+        QString repsDoneFinal = QString("%1x%2").arg(setCount).arg(repCount);
+        if (!exerciseSuccessful) {
+            if (setCount == 1) {
+                repsDoneFinal = "1x" + repsDone;
+            } else {
+                repsDoneFinal = repsDone;
+            }
+        }
 
         // Skip accessory exercises for now.
         bool isAccessory = tags.contains("accessory");
@@ -118,7 +132,6 @@ void StatsGraphData::getStatsFromDB()
             statsData.clear();
             statsData.idExercise = idExercise;
             statsData.name = name;
-            statsData.setsAndReps = QString("%1x%2").arg(setCount).arg(repCount);
             statsData.color = getColorForIndex(exerciseIndex);
             exerciseIndex++;
 
@@ -128,12 +141,11 @@ void StatsGraphData::getStatsFromDB()
             exercisePointCount = 0;
         }
 
-        ExerciseStatPoint point(weight, date);
+        ExerciseStatPoint point(weight, date, repsDoneFinal);
         statsData.points.append(point);
 
         prevExerciseId = idExercise;
         count++;
-
     }
 
     if (count > 0) {
@@ -285,7 +297,7 @@ QVariantMap StatsGraphData::getNearestPointAndExerciseData(QPoint p, qint32 exer
     ExerciseStatPoint statPoint = getPointForExerciseIndex(minPointI, minPointJ);
     AppState* app = AppState::getInstance();
     QString weightString = app->getWeightStringBuilder(statPoint.weight)->get();
-    QString bubbleText = QString("%1\n%2 %3\n%4").arg(e.name).arg(weightString).arg(e.setsAndReps).arg(statPoint.date.toString("MMM dd, yyyy"));
+    QString bubbleText = QString("%1\n%2 %3\n%4").arg(e.name).arg(weightString).arg(statPoint.getRepsDone()).arg(statPoint.date.toString("MMM dd, yyyy"));
 
     // Arbitrary minimum distance to point, to know when to show the bubble text.
     bool closeEnoughToPoint = smallestPointDistance < 0.1;
@@ -341,11 +353,6 @@ QString StatsGraphData::exerciseName(qint32 exerciseIndex)
     return exercises[exerciseIndex].name;
 }
 
-QString StatsGraphData::exerciseSetsAndReps(qint32 exerciseIndex)
-{
-    return exercises[exerciseIndex].setsAndReps;
-}
-
 QColor StatsGraphData::exerciseColor(qint32 exerciseIndex)
 {
     return exercises[exerciseIndex].color;
@@ -364,6 +371,11 @@ QDateTime StatsGraphData::dateForExercisePoint(qint32 exerciseIndex, qint32 poin
 qint64 StatsGraphData::timestampForExercisePoint(qint32 exerciseIndex, qint32 pointIndex)
 {
     return exercises[exerciseIndex].points[pointIndex].date.toMSecsSinceEpoch();
+}
+
+QString StatsGraphData::repsDoneForExercisePoint(qint32 exerciseIndex, qint32 pointIndex)
+{
+    return exercises[exerciseIndex].points[pointIndex].getRepsDone();
 }
 
 QDebug &operator<<(QDebug dbg, ExerciseStatPoint &p) {

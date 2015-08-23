@@ -13,9 +13,12 @@ class ExerciseStatPoint {
 public:
     ExerciseStatPoint() {}
     ExerciseStatPoint(qreal newWeight, QDateTime newDate) : weight(newWeight), date(newDate) {}
+    ExerciseStatPoint(qreal newWeight, QDateTime newDate, QString newRepsDone) : weight(newWeight), date(newDate), repsDone(newRepsDone) {}
     qint64 timestamp() { return date.toMSecsSinceEpoch() / 1000; }
+    QString getRepsDone() { return repsDone; }
     qreal weight;
     QDateTime date;
+    QString repsDone;
 };
 
 QDebug& operator<<(QDebug dbg, ExerciseStatPoint& p);
@@ -24,7 +27,6 @@ class ExerciseStatsData {
 public:
     qint64 idExercise;
     QString name;
-    QString setsAndReps;
     QColor color;
     QList<ExerciseStatPoint> points;
     void clear() { points.clear(); }
@@ -48,12 +50,13 @@ public slots:
     qint32 pointCount(qint32 exerciseIndex);
 
     QString exerciseName(qint32 exerciseIndex);
-    QString exerciseSetsAndReps(qint32 exerciseIndex);
     QColor exerciseColor(qint32 exerciseIndex);
 
     qreal weightForExercisePoint(qint32 exerciseIndex, qint32 pointIndex);
     QDateTime dateForExercisePoint(qint32 exerciseIndex, qint32 pointIndex);
     qint64 timestampForExercisePoint(qint32 exerciseIndex, qint32 pointIndex);
+    QString repsDoneForExercisePoint(qint32 exerciseIndex, qint32 pointIndex);
+
     QVariantMap getLowerAndUpperBounds();
     QPoint getCoordinatePoint(qint32 exerciseIndex, qint32 pointIndex);
     qint32 getBestSegmentCount();
