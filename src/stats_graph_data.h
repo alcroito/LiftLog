@@ -30,6 +30,7 @@ public:
     QColor color;
     QList<ExerciseStatPoint> points;
     void clear() { points.clear(); }
+    void sortPointsByTimeStamp();
 };
 
 class StatsGraphData : public QObject

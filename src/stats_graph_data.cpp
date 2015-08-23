@@ -5,6 +5,7 @@
 #include <QSqlError>
 #include <QDebug>
 #include <QVector2D>
+#include <QSet>
 #include <limits>
 #include <cmath>
 
@@ -16,7 +17,7 @@ StatsGraphData::StatsGraphData(QObject *parent) : QObject(parent), maxExercisePo
 QSqlQuery StatsGraphData::runStatsQuery(DatePeriod datePeriod, QDateTime specificDate, bool* ok) {
     QSqlQuery query;
     QString queryString = "SELECT e.name, e.id_exercise, uwew.weight, sr.set_count, sr.rep_count, \
-                          uw.id_workout, uw.date_started, e.tags, GROUP_CONCAT(uwes.reps_done, '/') AS reps_done, uwew.successful \
+                          uw.id_workout, uw.date_started, e.tags, GROUP_CONCAT(uwes.reps_done, '/') AS reps_done, uwew.successful, uw.user_weight \
             FROM user_workout uw \
             INNER JOIN workout_template_exercises wte ON wte.id_workout_template = uw.id_workout_template AND wte.day = uw.day \
             INNER JOIN exercise e ON e.id_exercise = wte.id_exercise \
@@ -42,7 +43,13 @@ QSqlQuery StatsGraphData::runStatsQuery(DatePeriod datePeriod, QDateTime specifi
         queryString = queryString.arg(" AND uw.date_started > '%1'").arg(finalDate.toString("yyyy-MM-ddTHH:mm:ss.z"));
     }
 
-    query.prepare(queryString);
+    bool prepareResult = query.prepare(queryString);
+    if (ok) *ok = prepareResult;
+    if (!prepareResult) {
+        qDebug() << "Error getting graph stats data.";
+        qDebug() << query.lastError();
+        return query;
+    }
 
     User* user = AppState::getInstance()->getCurrentUser();
     qint64 userId = user->getId();
@@ -151,6 +158,12 @@ void StatsGraphData::getStatsFromDB(DatePeriod datePeriod)
     int statFindingTries = 0;
     QDateTime dateForQuery;
 
+    QSet<qint64> workoutIdsSeen;
+    ExerciseStatsData bodyWeightFakeExercise;
+    bodyWeightFakeExercise.idExercise = -1;
+    bodyWeightFakeExercise.name = tr("Body weight");
+    bodyWeightFakeExercise.color = "#e1352d";
+
     while (!statsFound && statFindingTries < 4) {
         statFindingTries++;
         bool ok;
@@ -160,7 +173,6 @@ void StatsGraphData::getStatsFromDB(DatePeriod datePeriod)
         }
 
         qint64 prevExerciseId = 0;
-
         ExerciseStatsData statsData;
 
         int totalPointCount = 0;
@@ -174,12 +186,12 @@ void StatsGraphData::getStatsFromDB(DatePeriod datePeriod)
             qint32 setCount = query.value(3).toInt();
             qint32 repCount = query.value(4).toInt();
             qint64 idWorkout = query.value(5).toInt();
-            Q_UNUSED(idWorkout);
             QDateTime date = query.value(6).toDateTime();
             QString tags = query.value("tags").toString();
             QString repsDone = query.value("reps_done").toString();
 
             bool exerciseSuccessful = query.value("successful").toBool();
+            qreal userBodyWeight = query.value("user_weight").toReal();
             QString repsDoneFinal = QString("%1x%2").arg(setCount).arg(repCount);
             if (!exerciseSuccessful) {
                 if (setCount == 1) {
@@ -210,6 +222,12 @@ void StatsGraphData::getStatsFromDB(DatePeriod datePeriod)
                 exercisePointCount = 0;
             }
 
+            if (!workoutIdsSeen.contains(idWorkout)) {
+                ExerciseStatPoint userWeightPoint(userBodyWeight, date, "");
+                bodyWeightFakeExercise.points.append(userWeightPoint);
+                workoutIdsSeen.insert(idWorkout);
+            }
+
             ExerciseStatPoint point(weight, date, repsDoneFinal);
             statsData.points.append(point);
 
@@ -219,6 +237,9 @@ void StatsGraphData::getStatsFromDB(DatePeriod datePeriod)
 
         if (totalPointCount > 0) {
             exercises.append(statsData);
+            bodyWeightFakeExercise.sortPointsByTimeStamp();
+            exercises.append(bodyWeightFakeExercise);
+
             if (exercisePointCount > maxExercisePointCount) {
                 maxExercisePointCount = exercisePointCount;
             }
@@ -476,4 +497,12 @@ StatsGraphDataSingleton::StatsGraphDataSingleton(QObject *parent) : QObject(pare
 qint32 StatsGraphDataSingleton::getMinPointCountForAnyExerciseFromDB()
 {
     return StatsGraphData::getMinPointCountForAnyExerciseFromDB();
+}
+
+
+void ExerciseStatsData::sortPointsByTimeStamp()
+{
+    std::sort(points.begin(), points.end(), [] (ExerciseStatPoint& a, ExerciseStatPoint& b) -> bool {
+        return a.timestamp() < b.timestamp();
+    });
 }
