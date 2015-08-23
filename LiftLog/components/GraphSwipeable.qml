@@ -210,14 +210,25 @@ Item {
             }
         }
 
+        Timer {
+            id: dragMouseTimer
+            interval: 300
+            repeat: false
+            onTriggered: {
+                dragHandle.state = "shown"
+                dragMouseArea.drag.target = dragHandle
+            }
+        }
+
         MouseArea {
             id: dragMouseArea
             anchors.fill: parent
-            drag.target: dragHandle
+            drag.threshold: 0
             drag.axis: Drag.XAxis
             drag.minimumX: 0
             drag.maximumX: graphGrid.width - dragHandle.width
             drag.smoothed: false
+
             property int exerciseIndex: 0
 
             function updateViews(positionData) {
@@ -236,13 +247,14 @@ Item {
 
             onPressed: {
                 // Show the handle, and place it at the middle of the cursor.
-                dragHandle.state = "shown"
+                dragMouseTimer.start()
+                //dragHandle.state = "shown"
                 dragHandle.x = mouse.x - dragHandle.width / 2
 
                 var transformedPoint = graphGrid.mapFromPoint(Qt.point(mouse.x, mouse.y))
                 var positionData = statsData.getNearestPointAndExerciseData(transformedPoint)
 
-                // Set a chosn line.
+                // Set a chosen line.
                 graphGrid.chosenLineIndex =  positionData.exerciseIndex
                 graphGrid.lineChosen = true
 
@@ -255,6 +267,8 @@ Item {
                 updateViews(positionData)
             }
             onReleased: {
+                dragMouseTimer.stop()
+                dragMouseArea.drag.target = undefined
                 // Remove chosen line.
                 graphGrid.lineChosen = false
                 dragHandle.state = ""
