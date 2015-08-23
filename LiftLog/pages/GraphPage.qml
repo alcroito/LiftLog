@@ -48,10 +48,11 @@ BasicPage {
             width: progressSelectorBackground.width
             height: progressSelectorBackground.height
             model: ListModel {
-                ListElement { text: qsTr("All") }
-                ListElement { text: qsTr("6 months") }
-                ListElement { text: qsTr("3 monhts") }
-                ListElement { text: qsTr("30 days") }
+                id: progressSelectorModel
+                ListElement { text: qsTr("All"); value: 0 }
+                ListElement { text: qsTr("6 months"); value: 3 }
+                ListElement { text: qsTr("3 monhts"); value: 2 }
+                ListElement { text: qsTr("30 days"); value: 1 }
             }
             style: ComboBoxStyle {
                 background: Item {
@@ -87,6 +88,7 @@ BasicPage {
 
         sourceComponent: GraphSwipeable {
             id: graph
+            selectedPeriod: progressSelectorModel.get(progressSelectorComboBox.currentIndex).value
         }
     }
 

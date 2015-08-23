@@ -15,16 +15,25 @@ Item {
     property int yUpper: 90
     property real ySegmentRange: 10
     property var bounds
+    property int selectedPeriod: 0
 
     StatsGraphData {
         id: statsData
+        period: selectedPeriod
+
+        onPeriodChanged: {
+            var lowerAndUpper = statsData.getLowerAndUpperBounds()
+            segments = statsData.getBestSegmentCount();
+            bounds = lowerAndUpper
+            computeXAndYAxisRanges(bounds)
+            graphGrid.requestPaint()
+        }
 
         Component.onCompleted: {
             var lowerAndUpper = statsData.getLowerAndUpperBounds()
             segments = statsData.getBestSegmentCount();
             bounds = lowerAndUpper
             computeXAndYAxisRanges(bounds)
-
         }
     }
 

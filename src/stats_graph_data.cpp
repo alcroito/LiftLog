@@ -8,12 +8,12 @@
 #include <limits>
 #include <cmath>
 
-StatsGraphData::StatsGraphData(QObject *parent) : QObject(parent), maxExercisePointCount(std::numeric_limits<decltype(maxExercisePointCount)>::min())
+StatsGraphData::StatsGraphData(QObject *parent) : QObject(parent), maxExercisePointCount(std::numeric_limits<decltype(maxExercisePointCount)>::min()), period(All)
 {
-    getStatsFromDB();
+    getStatsFromDB(period);
 }
 
-QSqlQuery StatsGraphData::runStatsQuery(bool* ok) {
+QSqlQuery StatsGraphData::runStatsQuery(DatePeriod datePeriod, QDateTime specificDate, bool* ok) {
     QSqlQuery query;
     QString queryString = "SELECT e.name, e.id_exercise, uwew.weight, sr.set_count, sr.rep_count, \
                           uw.id_workout, uw.date_started, e.tags, GROUP_CONCAT(uwes.reps_done, '/') AS reps_done, uwew.successful \
@@ -23,9 +23,25 @@ QSqlQuery StatsGraphData::runStatsQuery(bool* ok) {
             INNER JOIN user_workout_exercise_weight uwew ON uwew.id_workout = uw.id_workout AND wte.id_exercise = uwew.id_exercise \
             INNER JOIN user_workout_exercise_stats uwes ON uwes.id_workout = uw.id_workout AND uwes.id_exercise = uwew.id_exercise AND uwes.delta = uwew.delta \
             INNER JOIN set_and_rep sr ON sr.id_set_and_rep = uwew.id_set_and_rep \
-            WHERE uw.id_user = :id_user AND uw.id_workout_template = :id_workout_template \
+            WHERE uw.id_user = :id_user AND uw.id_workout_template = :id_workout_template AND uw.completed = 1 %1 \
             GROUP BY e.name, e.id_exercise, uwew.weight, sr.set_count, sr.rep_count, uw.id_workout, uw.date_started, e.tags \
             ORDER BY wte.id_exercise, date_started, uwes.set_number ASC";
+    if (datePeriod == All) {
+        queryString = queryString.arg("");
+    } else {
+        QDateTime finalDate;
+        if (datePeriod == Specific) {
+            finalDate = specificDate;
+        } else {
+            QDateTime date = QDateTime::currentDateTimeUtc();
+            if (datePeriod == OneMonth) date = date.addMonths(-1);
+            else if (datePeriod == ThreeMonths) date = date.addMonths(-3);
+            else if (datePeriod == SixMonths) date = date.addMonths(-6);
+            finalDate = date;
+        }
+        queryString = queryString.arg(" AND uw.date_started > '%1'").arg(finalDate.toString("yyyy-MM-ddTHH:mm:ss.z"));
+    }
+
     query.prepare(queryString);
 
     User* user = AppState::getInstance()->getCurrentUser();
@@ -43,6 +59,53 @@ QSqlQuery StatsGraphData::runStatsQuery(bool* ok) {
     return query;
 }
 
+QDateTime StatsGraphData::getLatestDateWithMinimumRequiredExercisePoints(bool* ok) {
+    QDateTime date;
+    QSqlQuery query;
+    QString queryString = " \
+            SELECT date_started, COUNT(id_exercise) AS exercise_count_with_minimum_required_points \
+            FROM \
+            ( \
+                SELECT a.date_started, e.id_exercise, COUNT(e.id_exercise) AS point_count \
+                FROM user_workout uw \
+                INNER JOIN workout_template_exercises wte ON wte.id_workout_template = uw.id_workout_template AND wte.day = uw.day \
+                INNER JOIN exercise e ON e.id_exercise = wte.id_exercise \
+                INNER JOIN user_workout_exercise_weight uwew ON uwew.id_workout = uw.id_workout AND wte.id_exercise = uwew.id_exercise \
+                INNER JOIN set_and_rep sr ON sr.id_set_and_rep = uwew.id_set_and_rep \
+                INNER JOIN (SELECT DISTINCT uw2.date_started FROM user_workout uw2) a ON uw.date_started >= a.date_started \
+                WHERE uw.id_user = :id_user AND uw.id_workout_template = :id_workout_template AND uw.completed = 1 \
+                GROUP BY a.date_started, e.id_exercise \
+                HAVING COUNT(e.id_exercise) >= 2 \
+            ) \
+            GROUP BY date_started \
+            ORDER BY exercise_count_with_minimum_required_points ASC \
+            LIMIT 1";
+
+    query.prepare(queryString);
+
+    User* user = AppState::getInstance()->getCurrentUser();
+    qint64 userId = user->getId();
+    query.bindValue(":id_user", userId);
+    query.bindValue(":id_workout_template", user->getLastIdWorkoutTemplate());
+
+    if (ok) *ok = false;
+    bool result = query.exec();
+    if (!result) {
+        qDebug() << "Error getting latest date with minimum required exercise points for graph page.";
+        qDebug() << query.lastError();
+
+        return date;
+    }
+
+    while (query.next()) {
+        date = query.value("date_started").toDateTime();
+        if (ok) *ok = true;
+        break;
+    }
+
+    return date;
+}
+
 qint32 StatsGraphData::getMinPointCountForAnyExerciseFromDB() {
     auto count = 0;
     bool ok;
@@ -50,7 +113,7 @@ qint32 StatsGraphData::getMinPointCountForAnyExerciseFromDB() {
     auto minExercisePointCount = 0;
     qint64 prevExerciseId = 0;
 
-    QSqlQuery query = runStatsQuery(&ok);
+    QSqlQuery query = runStatsQuery(All, QDateTime(), &ok);
 
     if (ok) {
         minExercisePointCount = std::numeric_limits<decltype(minExercisePointCount)>::max();
@@ -80,82 +143,94 @@ qint32 StatsGraphData::getMinPointCountForAnyExerciseFromDB() {
     return count;
 }
 
-void StatsGraphData::getStatsFromDB()
+void StatsGraphData::getStatsFromDB(DatePeriod datePeriod)
 {
+    period = datePeriod;
     exercises.clear();
+    bool statsFound = false;
+    int statFindingTries = 0;
+    QDateTime dateForQuery;
 
-    bool ok;
-    QSqlQuery query = runStatsQuery(&ok);
-    if (!ok) {
-        return;
-    }
-
-    qint64 prevExerciseId = 0;
-
-    ExerciseStatsData statsData;
-
-    int count = 0;
-    int exerciseIndex = 0;
-    int exercisePointCount = 0;
-    while (query.next()) {
-        exercisePointCount++;
-        QString name = query.value(0).toString();
-        qint64 idExercise = query.value(1).toInt();
-        qreal weight = query.value(2).toReal();
-        qint32 setCount = query.value(3).toInt();
-        qint32 repCount = query.value(4).toInt();
-        qint64 idWorkout = query.value(5).toInt();
-        Q_UNUSED(idWorkout);
-        QDateTime date = query.value(6).toDateTime();
-        QString tags = query.value("tags").toString();
-        QString repsDone = query.value("reps_done").toString();
-
-        bool exerciseSuccessful = query.value("successful").toBool();
-        QString repsDoneFinal = QString("%1x%2").arg(setCount).arg(repCount);
-        if (!exerciseSuccessful) {
-            if (setCount == 1) {
-                repsDoneFinal = "1x" + repsDone;
-            } else {
-                repsDoneFinal = repsDone;
-            }
+    while (!statsFound && statFindingTries < 4) {
+        statFindingTries++;
+        bool ok;
+        QSqlQuery query = runStatsQuery(period, dateForQuery, &ok);
+        if (!ok) {
+            return;
         }
 
-        // Skip accessory exercises for now.
-        bool isAccessory = tags.contains("accessory");
-        if (isAccessory) continue;
+        qint64 prevExerciseId = 0;
 
-        if (idExercise != prevExerciseId) {
-            if (prevExerciseId != 0) {
-                exercises.append(statsData);
+        ExerciseStatsData statsData;
+
+        int totalPointCount = 0;
+        int exerciseIndex = 0;
+        int exercisePointCount = 0;
+        while (query.next()) {
+            exercisePointCount++;
+            QString name = query.value(0).toString();
+            qint64 idExercise = query.value(1).toInt();
+            qreal weight = query.value(2).toReal();
+            qint32 setCount = query.value(3).toInt();
+            qint32 repCount = query.value(4).toInt();
+            qint64 idWorkout = query.value(5).toInt();
+            Q_UNUSED(idWorkout);
+            QDateTime date = query.value(6).toDateTime();
+            QString tags = query.value("tags").toString();
+            QString repsDone = query.value("reps_done").toString();
+
+            bool exerciseSuccessful = query.value("successful").toBool();
+            QString repsDoneFinal = QString("%1x%2").arg(setCount).arg(repCount);
+            if (!exerciseSuccessful) {
+                if (setCount == 1) {
+                    repsDoneFinal = "1x" + repsDone;
+                } else {
+                    repsDoneFinal = repsDone;
+                }
             }
 
-            statsData.clear();
-            statsData.idExercise = idExercise;
-            statsData.name = name;
-            statsData.color = getColorForIndex(exerciseIndex);
-            exerciseIndex++;
+            // Skip accessory exercises for now.
+            bool isAccessory = tags.contains("accessory");
+            if (isAccessory) continue;
 
+            if (idExercise != prevExerciseId) {
+                if (prevExerciseId != 0) {
+                    exercises.append(statsData);
+                }
+
+                statsData.clear();
+                statsData.idExercise = idExercise;
+                statsData.name = name;
+                statsData.color = getColorForIndex(exerciseIndex);
+                exerciseIndex++;
+
+                if (exercisePointCount > maxExercisePointCount) {
+                    maxExercisePointCount = exercisePointCount;
+                }
+                exercisePointCount = 0;
+            }
+
+            ExerciseStatPoint point(weight, date, repsDoneFinal);
+            statsData.points.append(point);
+
+            prevExerciseId = idExercise;
+            totalPointCount++;
+        }
+
+        if (totalPointCount > 0) {
+            exercises.append(statsData);
             if (exercisePointCount > maxExercisePointCount) {
                 maxExercisePointCount = exercisePointCount;
             }
-            exercisePointCount = 0;
-        }
-
-        ExerciseStatPoint point(weight, date, repsDoneFinal);
-        statsData.points.append(point);
-
-        prevExerciseId = idExercise;
-        count++;
-    }
-
-    if (count > 0) {
-        exercises.append(statsData);
-        if (exercisePointCount > maxExercisePointCount) {
-            maxExercisePointCount = exercisePointCount;
+            statsFound = true;
+        } else {
+            // There were no points for the executed query, so we try a different query that should return results.
+            dateForQuery = getLatestDateWithMinimumRequiredExercisePoints(&ok);
+            if (ok) {
+                period = Specific;
+            }
         }
     }
-
-//    printAllPoints();
 }
 
 qint32 StatsGraphData::getBestSegmentCount() {
@@ -231,6 +306,16 @@ void StatsGraphData::printAllPoints()
         for (int j = 0; j < pointCount(i); j++) {
             qDebug() << getPointForExerciseIndex(i, j);
         }
+    }
+}
+
+StatsGraphData::DatePeriod StatsGraphData::getPeriod() const { return period; }
+
+void StatsGraphData::setPeriod(StatsGraphData::DatePeriod newDatePeriod) {
+    if (newDatePeriod != period) {
+        period = newDatePeriod;
+        getStatsFromDB(period);
+        emit periodChanged(period);
     }
 }
 

@@ -35,6 +35,8 @@ public:
 class StatsGraphData : public QObject
 {
     Q_OBJECT
+    Q_ENUMS(DatePeriod)
+    Q_PROPERTY(DatePeriod period READ getPeriod WRITE setPeriod NOTIFY periodChanged)
 public:
     explicit StatsGraphData(QObject *parent = 0);
 
@@ -44,8 +46,20 @@ public:
     qreal mapToRange(qint64 inputStart, qint64 inputEnd, qint64 outputStart, qint64 outputEnd, qint64 value);
     QVector2D normalizeToUnitVector(QVector2D p);
     void printAllPoints();
+
+    enum DatePeriod {
+        All = 0,
+        OneMonth,
+        ThreeMonths,
+        SixMonths,
+        Specific
+    };
+
 public slots:
-    void getStatsFromDB();
+    DatePeriod getPeriod() const;
+    void setPeriod(DatePeriod newDatePeriod);
+
+    void getStatsFromDB(DatePeriod datePeriod);
     qint32 exerciseCount();
     qint32 pointCount(qint32 exerciseIndex);
 
@@ -61,12 +75,17 @@ public slots:
     QPoint getCoordinatePoint(qint32 exerciseIndex, qint32 pointIndex);
     qint32 getBestSegmentCount();
     QVariantMap getNearestPointAndExerciseData(QPoint p, qint32 exerciseIndex = -1);
+
     static qint32 getMinPointCountForAnyExerciseFromDB();
-    static QSqlQuery runStatsQuery(bool* ok = 0);
+    static QSqlQuery runStatsQuery(DatePeriod datePeriod = All, QDateTime specificDate = QDateTime(), bool* ok = 0);
+    static QDateTime getLatestDateWithMinimumRequiredExercisePoints(bool *ok = 0);
+signals:
+    void periodChanged(DatePeriod);
 private:
     QList<ExerciseStatsData> exercises;
     qint32 maxExercisePointCount;
     QVariantMap bounds;
+    DatePeriod period;
 };
 
 class StatsGraphDataSingleton : public QObject {
