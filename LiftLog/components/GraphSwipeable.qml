@@ -428,7 +428,8 @@ Item {
 
         // Is between 0.1 and 1.0.
         var unitTickSize = unroundedTickSize / pow10x;
-        unitTickSize += 0.5;
+        //unitTickSize += 0.5;
+        unitTickSize *= 2;
 
         var roundedTickRange = unitTickSize * pow10x;
 
@@ -481,6 +482,11 @@ Item {
             var oldLower = lower;
             lower = roundedTickRange * Math.floor(lower / roundedTickRange);
             upper = lower + roundedTickRange * (ticks - 1) ;
+
+            if (lower === oldLower && (lower - roundedTickRange) >=0) {
+                lower -= roundedTickRange;
+                upper -= roundedTickRange;
+            }
 
             var tries = 5
             // If the new upper value does not include the old upper value in the respective interval,
