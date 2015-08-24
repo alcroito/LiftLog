@@ -43,6 +43,7 @@ APP_QML_FILES += \
     LiftLog/components/ExerciseWeightDiagram.qml\
     LiftLog/components/GraphSwipeable.qml\
     LiftLog/components/Triangle.qml\
+    LiftLog/components/DialogTextBox.qml\
     LiftLog/pages/qmldir \
     LiftLog/pages/DashboardPage.qml \
     LiftLog/pages/WelcomePage.qml \

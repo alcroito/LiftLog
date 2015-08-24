@@ -270,6 +270,7 @@ BasicPage {
             setSetValuesForExercise(exerciseIndex, mode);
         }
         appState.currentWorkoutModel.reInitializeExerciseSets();
+        checkIfWorkoutShouldBeSaved();
     }
 
     function setExerciseValues(mode) {
@@ -281,6 +282,7 @@ BasicPage {
 
         staticNextExerciseIndex = (staticNextExerciseIndex + 1) % exerciseCount;
         appState.currentWorkoutModel.reInitializeExerciseSets();
+        checkIfWorkoutShouldBeSaved();
     }
 
     function changeExerciseWeight(mode) {
@@ -305,6 +307,9 @@ BasicPage {
         staticNextExerciseIndex = (staticNextExerciseIndex + 1) % exerciseCount;
         appState.currentWorkoutModel.reInitializeExerciseSets();
     }
+
+    // Set focus true, so that keyboard shortcuts work.
+    focus: true
 
     Action {
         id: successAction

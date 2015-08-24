@@ -89,34 +89,15 @@ BasicPage {
         sourceComponent: GraphSwipeable {
             id: graph
             selectedPeriod: progressSelectorModel.get(progressSelectorComboBox.currentIndex).value
+            onCurrentGraphChanged: {
+                progressLabel.text = graphLabel
+            }
         }
     }
 
-    Loader {
+    DialogTextBox {
         id: comeBackLoader
-        anchors.topMargin: 10 * units.scale
-        anchors.right: parent.right
-        anchors.rightMargin: 10 * units.scale
-        anchors.left: parent.left
-        anchors.leftMargin: 10 * units.scale
-        anchors.verticalCenter: parent.verticalCenter
-
-        active: !showGraph
-        sourceComponent: Rectangle {
-            color: "white"
-            height: childrenRect.height + 40 * units.scale
-            Label {
-                id: comeBackLabel
-                text: qsTr("You have no workouts done yet.\n\nCome back to this page after you've done a few.")
-                font.pixelSize: 10 * units.fontScale
-                wrapMode: Text.Wrap
-                anchors.top: parent.top
-                anchors.topMargin: 20 * units.scale
-                anchors.left: parent.left
-                anchors.leftMargin: 10 * units.scale
-                anchors.right: parent.right
-                anchors.rightMargin: 10 * units.scale
-            }
-        }
+        showDialog: !showGraph
+        dialogText: qsTr("You have no workouts done yet.\n\nCome back to this page after you've done a few.")
     }
 }

@@ -9,12 +9,14 @@
 #include <limits>
 #include <cmath>
 
-StatsGraphData::StatsGraphData(QObject *parent) : QObject(parent), maxExercisePointCount(std::numeric_limits<decltype(maxExercisePointCount)>::min()), period(All)
+StatsGraphData::StatsGraphData(QObject *parent) :
+    QObject(parent), maxExercisePointCount(std::numeric_limits<decltype(maxExercisePointCount)>::min()), period(All), dataToShow(AllExercisesAndBodyWeight),
+    idExerciseToShow(0), listIndex(0)
 {
-    getStatsFromDB(period);
+
 }
 
-QSqlQuery StatsGraphData::runStatsQuery(DatePeriod datePeriod, QDateTime specificDate, bool* ok) {
+QSqlQuery StatsGraphData::runStatsQuery(const StatsQueryParams& params, bool* ok) {
     QSqlQuery query;
     QString queryString = "SELECT e.name, e.id_exercise, uwew.weight, sr.set_count, sr.rep_count, \
                           uw.id_workout, uw.date_started, e.tags, GROUP_CONCAT(uwes.reps_done, '/') AS reps_done, uwew.successful, uw.user_weight \
@@ -24,23 +26,30 @@ QSqlQuery StatsGraphData::runStatsQuery(DatePeriod datePeriod, QDateTime specifi
             INNER JOIN user_workout_exercise_weight uwew ON uwew.id_workout = uw.id_workout AND wte.id_exercise = uwew.id_exercise \
             INNER JOIN user_workout_exercise_stats uwes ON uwes.id_workout = uw.id_workout AND uwes.id_exercise = uwew.id_exercise AND uwes.delta = uwew.delta \
             INNER JOIN set_and_rep sr ON sr.id_set_and_rep = uwew.id_set_and_rep \
-            WHERE uw.id_user = :id_user AND uw.id_workout_template = :id_workout_template AND uw.completed = 1 %1 \
+            WHERE uw.id_user = :id_user AND uw.id_workout_template = :id_workout_template AND uw.completed = 1 %1 %2 \
             GROUP BY e.name, e.id_exercise, uwew.weight, sr.set_count, sr.rep_count, uw.id_workout, uw.date_started, e.tags \
             ORDER BY wte.id_exercise, date_started, uwes.set_number ASC";
-    if (datePeriod == All) {
+    if (params.datePeriod == All) {
         queryString = queryString.arg("");
     } else {
         QDateTime finalDate;
-        if (datePeriod == Specific) {
-            finalDate = specificDate;
+        if (params.datePeriod == Specific) {
+            finalDate = params.specificDate;
         } else {
             QDateTime date = QDateTime::currentDateTimeUtc();
-            if (datePeriod == OneMonth) date = date.addMonths(-1);
-            else if (datePeriod == ThreeMonths) date = date.addMonths(-3);
-            else if (datePeriod == SixMonths) date = date.addMonths(-6);
+            if (params.datePeriod == OneMonth) date = date.addMonths(-1);
+            else if (params.datePeriod == ThreeMonths) date = date.addMonths(-3);
+            else if (params.datePeriod == SixMonths) date = date.addMonths(-6);
             finalDate = date;
         }
         queryString = queryString.arg(" AND uw.date_started > '%1'").arg(finalDate.toString("yyyy-MM-ddTHH:mm:ss.z"));
+    }
+
+    if (params.dataToShow == AllExercisesAndBodyWeight || params.dataToShow == BodyWeight) {
+        queryString = queryString.arg("");
+    } else {
+        queryString = queryString.arg(" AND e.id_exercise = %2").arg(params.idExerciseToShow);
+
     }
 
     bool prepareResult = query.prepare(queryString);
@@ -113,6 +122,56 @@ QDateTime StatsGraphData::getLatestDateWithMinimumRequiredExercisePoints(bool* o
     return date;
 }
 
+QList<StatsGraphData::StatsQueryParams> StatsGraphData::getListOfExerciseQueryParamsThatHaveEnoughPoints()
+{
+    StatsQueryParams initialParams;
+    QList<StatsGraphData::StatsQueryParams> list;
+    QSet<qint64> exerciseIdsSeen;
+    bool ok = false;
+
+    QSqlQuery query = runStatsQuery(initialParams, &ok);
+    if (!ok) {
+        qWarning() << "Error getting list of exercise query parameters that have enough points for the graph.";
+        return list;
+    }
+
+    int exerciseCountWithEnoughPoints = 0;
+    while (query.next()) {
+        QString name = query.value("name").toString();
+        QString tags = query.value("tags").toString();
+        bool isAccessory = tags.contains("accessory");
+        if (isAccessory) continue;
+
+        qint64 idExercise = query.value("id_exercise").toInt();
+        if (exerciseIdsSeen.contains(idExercise)) continue;
+        exerciseIdsSeen.insert(idExercise);
+
+        StatsQueryParams params;
+        params.idExerciseToShow = idExercise;
+        params.dataToShow = SpecificExercise;
+        params.nameOfExerciseToShow = name;
+        list.append(params);
+
+        exerciseCountWithEnoughPoints++;
+    }
+
+    // If there are exercises to show, we also show All and Body weight configurations.
+    if (exerciseCountWithEnoughPoints > 0) {
+        // Prepend body weight configuration.
+        StatsQueryParams params;
+        params.dataToShow = BodyWeight;
+        params.nameOfExerciseToShow = tr("Body weight");
+        list.prepend(params);
+
+        // Prepend All Exercises + body weight configuration.
+        params.dataToShow = AllExercisesAndBodyWeight;
+        params.nameOfExerciseToShow = tr("All progress");
+        list.prepend(params);
+    }
+
+    return list;
+}
+
 qint32 StatsGraphData::getMinPointCountForAnyExerciseFromDB() {
     auto count = 0;
     bool ok;
@@ -120,7 +179,8 @@ qint32 StatsGraphData::getMinPointCountForAnyExerciseFromDB() {
     auto minExercisePointCount = 0;
     qint64 prevExerciseId = 0;
 
-    QSqlQuery query = runStatsQuery(All, QDateTime(), &ok);
+    StatsQueryParams params;
+    QSqlQuery query = runStatsQuery(params, &ok);
 
     if (ok) {
         minExercisePointCount = std::numeric_limits<decltype(minExercisePointCount)>::max();
@@ -150,24 +210,27 @@ qint32 StatsGraphData::getMinPointCountForAnyExerciseFromDB() {
     return count;
 }
 
-void StatsGraphData::getStatsFromDB(DatePeriod datePeriod)
+void StatsGraphData::getStatsFromDB()
 {
-    period = datePeriod;
+    StatsQueryParams params;
+    params.datePeriod = period;
+    params.dataToShow = dataToShow;
+    params.idExerciseToShow = idExerciseToShow;
+
     exercises.clear();
     bool statsFound = false;
     int statFindingTries = 0;
-    QDateTime dateForQuery;
 
     QSet<qint64> workoutIdsSeen;
     ExerciseStatsData bodyWeightFakeExercise;
-    bodyWeightFakeExercise.idExercise = -1;
+    bodyWeightFakeExercise.idExercise = fakeBodyWeightExerciseId;
     bodyWeightFakeExercise.name = tr("Body weight");
     bodyWeightFakeExercise.color = "#e1352d";
 
     while (!statsFound && statFindingTries < 4) {
         statFindingTries++;
         bool ok;
-        QSqlQuery query = runStatsQuery(period, dateForQuery, &ok);
+        QSqlQuery query = runStatsQuery(params, &ok);
         if (!ok) {
             return;
         }
@@ -213,7 +276,17 @@ void StatsGraphData::getStatsFromDB(DatePeriod datePeriod)
                 statsData.clear();
                 statsData.idExercise = idExercise;
                 statsData.name = name;
-                statsData.color = getColorForIndex(exerciseIndex);
+
+                // If this data represents a single specific exercise, we display the color
+                // that displayed on the All page.
+                if (dataToShow == SpecificExercise) {
+                    statsData.color = getColorForIndex(getListIndex());
+                }
+                // Otherwise display colors based on the order in the exercises list (All page).
+                else {
+                    statsData.color = getColorForIndex(exerciseIndex);
+                }
+
                 exerciseIndex++;
 
                 if (exercisePointCount > maxExercisePointCount) {
@@ -238,7 +311,13 @@ void StatsGraphData::getStatsFromDB(DatePeriod datePeriod)
         if (totalPointCount > 0) {
             exercises.append(statsData);
             bodyWeightFakeExercise.sortPointsByTimeStamp();
-            exercises.append(bodyWeightFakeExercise);
+            if (dataToShow == BodyWeight) {
+                exercises.clear();
+            }
+
+            if (dataToShow != SpecificExercise) {
+                exercises.append(bodyWeightFakeExercise);
+            }
 
             if (exercisePointCount > maxExercisePointCount) {
                 maxExercisePointCount = exercisePointCount;
@@ -246,9 +325,10 @@ void StatsGraphData::getStatsFromDB(DatePeriod datePeriod)
             statsFound = true;
         } else {
             // There were no points for the executed query, so we try a different query that should return results.
-            dateForQuery = getLatestDateWithMinimumRequiredExercisePoints(&ok);
+            params.specificDate = getLatestDateWithMinimumRequiredExercisePoints(&ok);
             if (ok) {
                 period = Specific;
+                params.datePeriod = Specific;
             }
         }
     }
@@ -263,8 +343,10 @@ qint32 StatsGraphData::getBestSegmentCount() {
 }
 
 QVariantMap StatsGraphData::getLowerAndUpperBounds() {
-    qint64 xLower = std::numeric_limits<qint64>::max(), xUpper = std::numeric_limits<qint64>::min();
-    qint64 yLower = std::numeric_limits<qint64>::max(), yUpper = std::numeric_limits<qint64>::min();
+    auto max = std::numeric_limits<qint64>::max();
+    auto min = std::numeric_limits<qint64>::min();
+    qint64 xLower = max, xUpper = min;
+    qint64 yLower = max, yUpper = min;
     for (int i = 0; i < exerciseCount(); i++) {
         for (int j = 0; j < pointCount(i); j++) {
             ExerciseStatPoint point = getPointForExerciseIndex(i, j);
@@ -286,6 +368,15 @@ QVariantMap StatsGraphData::getLowerAndUpperBounds() {
         }
     }
 
+    // Take care of case when no bounds are set, because no exercises are present.
+    // That should not happen, but just in case I missed something.
+
+    bool boundsSet = true;
+    if (xLower == max || xUpper == min || yLower == max || yUpper == min) {
+        boundsSet = false;
+    }
+
+    // Take care of degenerate case when the range of values is 0.
     if (xLower == xUpper) {
         qint64 middle = xLower;
         qint64 day = 60 * 60 * 24;
@@ -293,11 +384,20 @@ QVariantMap StatsGraphData::getLowerAndUpperBounds() {
         xUpper = middle + 3 * day;
     }
 
+    // Take care of degenerate case when the range of values is 0.
+    if (yLower == yUpper) {
+        qint64 middle = yLower;
+        qint64 carefullyChosenDeltaThatIsNotActuallySo = 10;
+        yLower = middle - carefullyChosenDeltaThatIsNotActuallySo;
+        yUpper = middle + carefullyChosenDeltaThatIsNotActuallySo;
+    }
+
     QVariantMap result;
     result.insert("xLower", xLower);
     result.insert("xUpper", xUpper);
     result.insert("yLower", yLower);
     result.insert("yUpper", yUpper);
+    result.insert("boundsSet", boundsSet);
 
     bounds = result;
     return result;
@@ -335,8 +435,46 @@ StatsGraphData::DatePeriod StatsGraphData::getPeriod() const { return period; }
 void StatsGraphData::setPeriod(StatsGraphData::DatePeriod newDatePeriod) {
     if (newDatePeriod != period) {
         period = newDatePeriod;
-        getStatsFromDB(period);
         emit periodChanged(period);
+    }
+}
+
+qint64 StatsGraphData::getIdExerciseToShow() const
+{
+    return idExerciseToShow;
+}
+
+void StatsGraphData::setIdExerciseToShow(qint64 value)
+{
+    if (value != idExerciseToShow) {
+        idExerciseToShow = value;
+        emit idExerciseToShowChanged(value);
+    }
+}
+
+StatsGraphData::DataToShow StatsGraphData::getDataToShow() const
+{
+    return dataToShow;
+}
+
+void StatsGraphData::setDataToShow(StatsGraphData::DataToShow value)
+{
+    if (value != dataToShow) {
+        dataToShow = value;
+        emit dataToShowChanged(value);
+    }
+}
+
+qint32 StatsGraphData::getListIndex() const
+{
+    return listIndex;
+}
+
+void StatsGraphData::setListIndex(const qint32 &value)
+{
+    if (listIndex != value) {
+        listIndex = value;
+        emit listIndexChanged(value);
     }
 }
 
@@ -394,6 +532,12 @@ QVariantMap StatsGraphData::getNearestPointAndExerciseData(QPoint p, qint32 exer
                 minJ = j;
             }
         }
+    }
+
+    // Safe-guard against any case when there was a problem selecting a point.
+    if (minI == -1 || minJ == -1 || minPointI == -1 || minPointJ == -1) {
+        qWarning() << "Error finding nearest point to given point";
+        return QVariantMap();
     }
 
 //    qDebug() << "the point " << p << " point distance " << smallestPointDistance << " line distance " << smallestLineDistance;
@@ -485,9 +629,12 @@ QString StatsGraphData::repsDoneForExercisePoint(qint32 exerciseIndex, qint32 po
 }
 
 QDebug &operator<<(QDebug dbg, ExerciseStatPoint &p) {
-    return dbg << "stat point" << p.weight << p.timestamp();
+    return dbg << "Stat point" << p.weight << p.timestamp();
 }
 
+QDebug &operator<<(QDebug dbg, const StatsGraphData::StatsQueryParams &p) {
+    return dbg << "Stats query params " << p.dataToShow << " " << p.idExerciseToShow;
+}
 
 StatsGraphDataSingleton::StatsGraphDataSingleton(QObject *parent) : QObject(parent)
 {

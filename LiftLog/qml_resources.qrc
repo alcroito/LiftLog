@@ -50,6 +50,7 @@
         <file>pages/GraphPage.qml</file>
         <file>components/GraphSwipeable.qml</file>
         <file>components/Triangle.qml</file>
+        <file>components/DialogTextBox.qml</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>

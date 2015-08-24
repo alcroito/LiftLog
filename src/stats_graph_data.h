@@ -21,8 +21,6 @@ public:
     QString repsDone;
 };
 
-QDebug& operator<<(QDebug dbg, ExerciseStatPoint& p);
-
 class ExerciseStatsData {
 public:
     qint64 idExercise;
@@ -37,7 +35,11 @@ class StatsGraphData : public QObject
 {
     Q_OBJECT
     Q_ENUMS(DatePeriod)
+    Q_ENUMS(DataToShow)
     Q_PROPERTY(DatePeriod period READ getPeriod WRITE setPeriod NOTIFY periodChanged)
+    Q_PROPERTY(DataToShow dataToShow READ getDataToShow WRITE setDataToShow NOTIFY dataToShowChanged)
+    Q_PROPERTY(qint64 idExerciseToShow READ getIdExerciseToShow WRITE setIdExerciseToShow NOTIFY idExerciseToShowChanged)
+    Q_PROPERTY(qint32 listIndex READ getListIndex WRITE setListIndex NOTIFY listIndexChanged)
 public:
     explicit StatsGraphData(QObject *parent = 0);
 
@@ -56,11 +58,37 @@ public:
         Specific
     };
 
+    enum DataToShow {
+        AllExercisesAndBodyWeight = 0,
+        SpecificExercise,
+        BodyWeight,
+    };
+
+    class StatsQueryParams {
+    public:
+        DatePeriod datePeriod = All;
+        QDateTime specificDate = QDateTime();
+        DataToShow dataToShow = AllExercisesAndBodyWeight;
+        qint64 idExerciseToShow = 0;
+        QString nameOfExerciseToShow;
+    };
+
+    const qint64 fakeBodyWeightExerciseId = -2;
+
 public slots:
     DatePeriod getPeriod() const;
     void setPeriod(DatePeriod newDatePeriod);
 
-    void getStatsFromDB(DatePeriod datePeriod);
+    qint64 getIdExerciseToShow() const;
+    void setIdExerciseToShow(qint64 value);
+
+    DataToShow getDataToShow() const;
+    void setDataToShow(DataToShow value);
+
+    qint32 getListIndex() const;
+    void setListIndex(const qint32 &value);
+
+    void getStatsFromDB();
     qint32 exerciseCount();
     qint32 pointCount(qint32 exerciseIndex);
 
@@ -78,15 +106,22 @@ public slots:
     QVariantMap getNearestPointAndExerciseData(QPoint p, qint32 exerciseIndex = -1);
 
     static qint32 getMinPointCountForAnyExerciseFromDB();
-    static QSqlQuery runStatsQuery(DatePeriod datePeriod = All, QDateTime specificDate = QDateTime(), bool* ok = 0);
+    static QSqlQuery runStatsQuery(const StatsQueryParams &params, bool* ok = 0);
     static QDateTime getLatestDateWithMinimumRequiredExercisePoints(bool *ok = 0);
+    static QList<StatsQueryParams> getListOfExerciseQueryParamsThatHaveEnoughPoints();
 signals:
     void periodChanged(DatePeriod);
+    void idExerciseToShowChanged(qint64);
+    void dataToShowChanged(DataToShow);
+    void listIndexChanged(qint32);
 private:
     QList<ExerciseStatsData> exercises;
     qint32 maxExercisePointCount;
     QVariantMap bounds;
     DatePeriod period;
+    DataToShow dataToShow;
+    qint64 idExerciseToShow;
+    qint32 listIndex;
 };
 
 class StatsGraphDataSingleton : public QObject {
@@ -96,5 +131,8 @@ public:
 public slots:
     qint32 getMinPointCountForAnyExerciseFromDB();
 };
+
+QDebug& operator<<(QDebug dbg, ExerciseStatPoint& p);
+QDebug& operator<<(QDebug dbg, const StatsGraphData::StatsQueryParams& p);
 
 #endif // STATSGRAPHDATA_H
