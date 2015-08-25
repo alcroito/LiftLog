@@ -12,6 +12,7 @@ void scheduleNotificationImpl(NSString* id, NSDate* date, NSString* title, NSStr
     notification.actionButtonTitle = actionText;
     notification.informativeText = text;
     notification.deliveryDate = date;
+    notification.soundName = NSUserNotificationDefaultSoundName;
     notification.userInfo = [[NSDictionary alloc] initWithObjectsAndKeys:
         id, @"id",
         nil];

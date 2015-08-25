@@ -96,9 +96,9 @@ int main(int argc, char *argv[])
     LocalNotificationService* localNotificationService = LocalNotificationService::getInstance();
     rootContext->setContextProperty("localNotificationService", localNotificationService);
 
-    //QDateTime currentDate = QDateTime::currentDateTime();
-    //QDateTime notificationDate = currentDate.addSecs(5);
-    //localNotificationService->scheduleNotification("id5", notificationDate, "Awesome title2", "Hello world2", "View", 1);
+//    QDateTime currentDate = QDateTime::currentDateTime();
+//    QDateTime notificationDate = currentDate.addSecs(5);
+//    localNotificationService->scheduleNotification("id5", notificationDate, "Awesome title2", "Hello world2", "View", 1);
 
     return app.exec();
 }

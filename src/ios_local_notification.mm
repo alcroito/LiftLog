@@ -13,8 +13,8 @@ void scheduleNotificationImpl(NSString* id, NSDate* date, NSString* text, NSStri
 
     localNotif.alertBody = text;
     localNotif.alertAction = actionText;
-    localNotif.soundName = UILocalNotificationDefaultSoundName;
     localNotif.applicationIconBadgeNumber = badgeNumber;
+    localNotif.soundName = UILocalNotificationDefaultSoundName;
     localNotif.userInfo = [[NSDictionary alloc] initWithObjectsAndKeys:
         id, @"id",
         nil];

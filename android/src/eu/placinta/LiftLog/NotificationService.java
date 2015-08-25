@@ -65,6 +65,7 @@ public class NotificationService extends org.qtproject.qt5.android.bindings.QtAc
             m_builder = new Notification.Builder(m_instance);
             m_builder.setSmallIcon(R.drawable.icon);
             m_builder.setAutoCancel(true);
+            m_builder.setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE);
         }
     }
 
