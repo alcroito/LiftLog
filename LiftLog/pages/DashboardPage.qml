@@ -66,7 +66,7 @@ BasicPage {
 
         RectangleButton {
             id: graphButton
-            iconText: "\ue610"
+            iconText: "\ue60d"
             labelText: "Graph"
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -78,10 +78,13 @@ BasicPage {
 
         RectangleButton {
             id: settingsButton
-            iconText: "\ue994"
+            iconText: "\ue612"
             labelText: "Settings"
             Layout.fillWidth: true
             Layout.fillHeight: true
+            onClicked: {
+                pageStack.showSettingsPage()
+            }
 
             onStateChanged: buttonStageChange(state)
         }

@@ -44,6 +44,8 @@ APP_QML_FILES += \
     LiftLog/components/GraphSwipeable.qml\
     LiftLog/components/Triangle.qml\
     LiftLog/components/DialogTextBox.qml\
+    LiftLog/components/SectionedTableView.qml\
+    LiftLog/components/SliderStyled.qml\
     LiftLog/pages/qmldir \
     LiftLog/pages/DashboardPage.qml \
     LiftLog/pages/WelcomePage.qml \
@@ -56,6 +58,7 @@ APP_QML_FILES += \
     LiftLog/pages/BottomPopupView.qml \
     LiftLog/pages/ExerciseWeightPage.qml \
     LiftLog/pages/GraphPage.qml \
+    LiftLog/pages/SettingsPage.qml \
     LiftLog/extras/qmldir \
     LiftLog/extras/Tumbler.qml \
     LiftLog/extras/TumblerColumn.qml \

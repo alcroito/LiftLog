@@ -51,6 +51,9 @@
         <file>components/GraphSwipeable.qml</file>
         <file>components/Triangle.qml</file>
         <file>components/DialogTextBox.qml</file>
+        <file>components/SectionedTableView.qml</file>
+        <file>pages/SettingsPage.qml</file>
+        <file>components/SliderStyled.qml</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>

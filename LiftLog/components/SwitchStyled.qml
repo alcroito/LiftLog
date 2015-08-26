@@ -4,11 +4,21 @@ import QtQuick.Controls.Styles 1.3
 import "../UI.js" as UI
 
 Switch {
+    id: root
+    property color backgroundColorChecked: "#e64c3c"
+    property color backgroundColorUnchecked: "#ffffff"
+    property color backgroundBorderColorChecked: "#e64c3c"
+    property color backgroundBorderColorUnchecked: "#dadada"
+
     Component {
         id: ios
-        SwitchStyleIOS {}
+        SwitchStyleIOS {
+            backgroundColorChecked: root.backgroundColorChecked
+            backgroundColorUnchecked: root.backgroundColorUnchecked
+            backgroundBorderColorChecked: root.backgroundBorderColorChecked
+            backgroundBorderColorUnchecked: root.backgroundBorderColorUnchecked
+        }
     }
-
 
     Component {
         id: standard

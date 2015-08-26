@@ -95,6 +95,13 @@ ApplicationWindow {
         }
     }
 
+    Component {
+        id: settingsPage
+        SettingsPage {
+            onGoBack: pageStack.goBack()
+        }
+    }
+
     StackView {
         id: pageStack
         anchors.fill: parent
@@ -197,6 +204,14 @@ ApplicationWindow {
         function showGraphPage() {
             push({
                      item: graphPage,
+                     properties: {
+                     }
+                 })
+        }
+
+        function showSettingsPage() {
+            push({
+                     item: settingsPage,
                      properties: {
                      }
                  })
