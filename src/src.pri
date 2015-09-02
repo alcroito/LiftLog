@@ -16,7 +16,8 @@ SOURCES += \
     $$PWD/set_and_rep_model.cpp \
     $$PWD/exercise_weight_diagram_model.cpp \
     $$PWD/stats_graph_data.cpp \
-    $$PWD/stats_graph_slider_model.cpp
+    $$PWD/stats_graph_slider_model.cpp \
+    $$PWD/settings_model.cpp
 
 HEADERS += \
 #    $$PWD/pieutilsplugin.h \
@@ -28,7 +29,6 @@ HEADERS += \
     $$PWD/workout_entity.h \
     $$PWD/workout_set_entity.h \
     $$PWD/workout_exercise_entity.h \
-    $$PWD/workout_tree_node.h \
     $$PWD/app_state.h \
     $$PWD/db_manager.h \
     $$PWD/workout_template_list_model.h \
@@ -39,7 +39,9 @@ HEADERS += \
     $$PWD/exercise_weight_diagram_model.h \
     $$PWD/stats_graph_data.h \
     $$PWD/weight_string_builder.h \
-    $$PWD/stats_graph_slider_model.h
+    $$PWD/stats_graph_slider_model.h \
+    $$PWD/generic_tree_node.h \
+    $$PWD/settings_model.h
 
 ios {
     HEADERS += \

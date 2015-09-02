@@ -7,7 +7,7 @@
 
 class WorkoutEntity;
 class WorkoutSetEntity;
-class WorkoutTreeNode;
+class GenericTreeNode;
 
 class ExerciseAndSetIndexPair : public QObject {
     Q_OBJECT
@@ -61,9 +61,9 @@ public:
                       const QModelIndex &parent = QModelIndex()) const;
     QModelIndex parent(const QModelIndex &index) const;
 
-    WorkoutTreeNode* getModelItem(const QModelIndex &index) const;
+    GenericTreeNode* getModelItem(const QModelIndex &index) const;
     WorkoutEntity* fetchWorkoutDataFromDB();
-    WorkoutTreeNode* parseEntityToTree(WorkoutEntity* entity);
+    GenericTreeNode* parseEntityToTree(WorkoutEntity* entity);
 
     qint64 getLastNotCompletedWorkoutId(qint64 idUser);
 
@@ -107,7 +107,7 @@ protected:
     virtual QHash<int, QByteArray> roleNames() const;
 
 private:
-    WorkoutTreeNode* root;
+    GenericTreeNode* root;
     WorkoutEntity* workoutEntity;
     qint64 workoutId;
     qint64 workoutDay;

@@ -26,6 +26,7 @@ BasicPage {
         font.pixelSize: 12 * units.fontScale
         visible: showGraph
         enabled: showGraph
+        Accessible.ignored: true
     }
 
     Rectangle {
@@ -40,6 +41,7 @@ BasicPage {
         width: 85 * units.scale
         visible: showGraph
         enabled: showGraph
+        Accessible.ignored: true
 
         ComboBox {
             id: progressSelectorComboBox
@@ -47,6 +49,7 @@ BasicPage {
             anchors.verticalCenter: parent.verticalCenter
             width: progressSelectorBackground.width
             height: progressSelectorBackground.height
+            Accessible.ignored: true
             model: ListModel {
                 id: progressSelectorModel
                 ListElement { text: qsTr("All"); value: 0 }

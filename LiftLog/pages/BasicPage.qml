@@ -153,6 +153,34 @@ Item {
                 // Hide the window.
                 hideSideWindow()
             }
+            onCloseAndGoToOtherPageForOperation: {
+                function goToPageHandler() {
+                    // Disconnect the slot, so it's a one-time fire event.
+                    sideWindow.sideWindowHidingComplete.disconnect(goToPageHandler)
+
+                    // Show the page after a delay.
+                    delayTimer.start()
+                    delayTimer.triggered.connect(showSettingsPageHandler);
+                }
+                function showSettingsPageHandler() {
+                    // Disconnect the slot, so it's a one-time fire event.
+                    delayTimer.triggered.disconnect(showSettingsPageHandler)
+
+                    // Go to page.
+                    pageStack.showSettingsPage()
+                }
+
+                // Connect to the sideWindowHidingComplete signal, to show the popup when it emits.
+                sideWindow.sideWindowHidingComplete.connect(goToPageHandler)
+
+                // Hide the window.
+                hideSideWindow()
+            }
+
+            Timer {
+                id: delayTimer
+                interval: 500;
+            }
         }
     }
 

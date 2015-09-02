@@ -23,6 +23,7 @@
 #include "stats_graph_data.h"
 #include "weight_string_builder.h"
 #include "stats_graph_slider_model.h"
+#include "settings_model.h"
 
 int main(int argc, char *argv[])
 {
@@ -57,6 +58,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<ExerciseWeightDiagramModel>(uri, 1, 0, "ExerciseWeightDiagramModel");
     qmlRegisterType<StatsGraphData>(uri, 1, 0, "StatsGraphData");
     qmlRegisterType<StatsGraphSliderModel>(uri, 1, 0, "StatsGraphSliderModel");
+    qmlRegisterType<SettingsModel>(uri, 1, 0, "SettingsModel");
     qmlRegisterUncreatableType<WeightStringBuilder>(uri, 1, 0, "WeightStringBuilder", "Not instantiable");
     qmlRegisterSingletonType<StatsGraphDataSingleton>(uri, 1, 0, "StatsGraphDataSingleton", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject* {
         Q_UNUSED(engine);

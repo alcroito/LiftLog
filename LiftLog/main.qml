@@ -217,6 +217,15 @@ ApplicationWindow {
                  })
         }
 
+        function showSpecificSettingsPage(settingsPageId) {
+            push({
+                     item: settingsPage,
+                     properties: {
+                         settingsPageId: settingsPageId
+                     }
+                 })
+        }
+
         function goBack() {
             if (pageStack.depth > 1) {
                 pageStack.pop()

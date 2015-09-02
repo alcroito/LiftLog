@@ -67,5 +67,6 @@ private:
     qint64 lastIdWorkoutTemplate;
     qint64 nextWorkoutTemplateDay;
 };
+Q_DECLARE_METATYPE(User::WeightSystem)
 
 #endif // USER_H

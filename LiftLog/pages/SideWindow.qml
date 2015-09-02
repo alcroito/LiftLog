@@ -19,6 +19,7 @@ Item {
 
     signal close
     signal closeAndShowPopupForOperation(string op)
+    signal closeAndGoToOtherPageForOperation(string op)
     signal sideWindowHidingComplete
 
     Rectangle {
@@ -119,7 +120,11 @@ Item {
                         onClicked: {
                             switch (model.op) {
                                 case "delete":
-                                    closeAndShowPopupForOperation(model.op)
+                                    closeAndShowPopupForOperation(model.op);
+                                    break;
+                                case "settings":
+                                    closeAndGoToOtherPageForOperation(model.op);
+                                    break;
                             }
                         }
                     }

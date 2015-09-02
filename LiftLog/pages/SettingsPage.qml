@@ -10,9 +10,25 @@ BasicPage {
     navigationBar.onBackClicked: {
         goBack()
     }
-    rootBackground.color:  "#ecf0f1"
+    rootBackground.color: "#ecf0f1"
     width: appState.windowWidth
     height: appState.windowHeight
+
+    onIsGoingToBeShown: {
+        model.refresh()
+    }
+
+    property string settingsPageId: "initial"
+
+    SettingsModel {
+        id: model
+        Component.onCompleted: {
+            model.getSettingsData(settingsPageId);
+        }
+        onSwitchToSettingsPage: {
+            pageStack.showSpecificSettingsPage(pageId)
+        }
+    }
 
     SectionedTableView {
         id: tableView
@@ -20,5 +36,6 @@ BasicPage {
         anchors.topMargin: 10 * units.scale
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 10 * units.scale
+        settingsModel: model
     }
 }

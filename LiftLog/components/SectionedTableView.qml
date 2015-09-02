@@ -9,40 +9,42 @@ Rectangle {
     height: appState.windowHeight
     color: "#ecf0f1"
 
+    property var settingsModel
+
     ListModel {
         id: testModel
         ListElement {
-            label: "Weight unit"; section: "SETTINGS"; icon: "\ue614"; showIcon: true; showAccessory: true; accessoryIcon: "\ue60b"; value: "KG"; type: "text"
+            label: "Weight unit"; section: "SETTINGS"; icon: "\ue614"; showIcon: true; showAccessory: true; accessoryIcon: "\ue60b"; value: "KG"; cellType: "text"
         }
         ListElement {
-            label: "Bar & Plates"; section: "SETTINGS"; icon: "\ue600"; showIcon: true; showAccessory: true; accessoryIcon: "\ue60b"; value: ""; type: "text"
+            label: "Bar & Plates"; section: "SETTINGS"; icon: "\ue600"; showIcon: true; showAccessory: true; accessoryIcon: "\ue60b"; value: ""; cellType: "text"
         }
         ListElement {
-            label: "Timer"; section: "SETTINGS"; icon: "\ue952"; showIcon: true; value: "1"; type: "switch"
+            label: "Timer"; section: "SETTINGS"; icon: "\ue952"; showIcon: true; value: "1"; cellType: "switch"
         }
         ListElement {
-            section: "SETTINGS"; type: "slider"; value: "75"
+            section: "SETTINGS"; cellType: "slider"; value: "75"
         }
         ListElement {
-            label: "Auto-add weight"; section: "SETTINGS"; icon: "\uf160"; showIcon: true; showAccessory: true; accessoryIcon: "\ue60b"; value: "On"; type: "text"
+            label: "Auto-add weight"; section: "SETTINGS"; icon: "\uf160"; showIcon: true; showAccessory: true; accessoryIcon: "\ue60b"; value: "On"; cellType: "text"
         }
         ListElement {
-            label: "Sets & Reps"; section: "SETTINGS"; icon: "\ue2fc"; showIcon: true; showAccessory: true; accessoryIcon: "\ue60b"; value: ""; type: "text"
+            label: "Sets & Reps"; section: "SETTINGS"; icon: "\ue2fc"; showIcon: true; showAccessory: true; accessoryIcon: "\ue60b"; value: ""; cellType: "text"
         }
         ListElement {
-            label: "Backup"; section: "DATA"; icon: ""; showIcon: false; showAccessory: true; accessoryIcon: "\ue60b"; value: ""; type: "text"
+            label: "Backup"; section: "DATA"; icon: ""; showIcon: false; showAccessory: true; accessoryIcon: "\ue60b"; value: ""; cellType: "text"
         }
         ListElement {
-            label: "Recover"; section: "DATA"; icon: ""; showIcon: false; showAccessory: true; accessoryIcon: "\ue60b"; value: ""; type: "text"
+            label: "Recover"; section: "DATA"; icon: ""; showIcon: false; showAccessory: true; accessoryIcon: "\ue60b"; value: ""; cellType: "text"
         }
         ListElement {
-            label: "Export"; section: "DATA"; icon: ""; showIcon: false; showAccessory: true; accessoryIcon: "\ue60b"; value: ""; type: "text"
+            label: "Export"; section: "DATA"; icon: ""; showIcon: false; showAccessory: true; accessoryIcon: "\ue60b"; value: ""; cellType: "text"
         }
         ListElement {
-            label: "Restore"; section: "DATA"; icon: ""; showIcon: false; showAccessory: false; accessoryIcon: ""; value: ""; type: "text"
+            label: "Restore"; section: "DATA"; icon: ""; showIcon: false; showAccessory: false; accessoryIcon: ""; value: ""; cellType: "text"
         }
         ListElement {
-            label: "Reset"; section: "DATA"; icon: ""; showIcon: false; showAccessory: false; accessoryIcon: ""; value: ""; type: "text"
+            label: "Reset"; section: "DATA"; icon: ""; showIcon: false; showAccessory: false; accessoryIcon: ""; value: ""; cellType: "text"
         }
     }
 
@@ -78,8 +80,9 @@ Rectangle {
                 sourceComponent: Label {
                     id: cellIcon
                     font.family: icomoon.name
-                    font.pixelSize: 18 * units.scale
+                    font.pixelSize: 12 * units.fontScale
                     text: itemModelData.icon
+                    Accessible.ignored: true
                 }
                 active: itemModelData.showIcon
             }
@@ -91,7 +94,8 @@ Rectangle {
                 anchors.left: parent.left
                 anchors.leftMargin: leftMarginOfLabel * units.scale
                 anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: 16 * units.scale
+                font.pixelSize: 12 * units.fontScale
+                Accessible.ignored: true
             }
 
             Label {
@@ -101,7 +105,8 @@ Rectangle {
                 anchors.right:  parent.right
                 anchors.rightMargin: 30 * units.scale
                 anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: 16 * units.scale
+                font.pixelSize: 12 * units.fontScale
+                Accessible.ignored: true
             }
 
             Loader {
@@ -113,11 +118,12 @@ Rectangle {
                 sourceComponent: Label {
                     id: cellAccessory
                     font.family: icomoon.name
-                    font.pixelSize: 16 * units.scale
+                    font.pixelSize: itemModelData.selectable ? 16 * units.fontScale : 12 * units.fontScale
                     text: itemModelData.accessoryIcon
-                    color: "#c7c7cc"
+                    color: itemModelData.accessoryIconColorRed ? "#e74c3c" : "#c7c7cc"
+                    Accessible.ignored: true
                 }
-                active: itemModelData.showAccessory
+                active: itemModelData.selectable ? itemModelData.selected : itemModelData.showAccessory
             }
         }
     }
@@ -141,8 +147,9 @@ Rectangle {
                 sourceComponent: Label {
                     id: cellIcon
                     font.family: icomoon.name
-                    font.pixelSize: 18 * units.scale
+                    font.pixelSize: 12 * units.fontScale
                     text: itemModelData.icon
+                    Accessible.ignored: true
                 }
                 active: itemModelData.showIcon
             }
@@ -154,7 +161,8 @@ Rectangle {
                 anchors.left: parent.left
                 anchors.leftMargin: leftMarginOfLabel * units.scale
                 anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: 16 * units.scale
+                font.pixelSize: 12 * units.fontScale
+                Accessible.ignored: true
             }
 
             SwitchStyled {
@@ -163,6 +171,7 @@ Rectangle {
                 anchors.rightMargin: 10 * units.scale
                 anchors.verticalCenter: parent.verticalCenter
                 checked: itemModelData.value === "1"
+                Accessible.ignored: true
             }
         }
     }
@@ -186,8 +195,9 @@ Rectangle {
                 sourceComponent: Label {
                     id: cellIconBefore
                     font.family: icomoon.name
-                    font.pixelSize: 18 * units.scale
+                    font.pixelSize: 12 * units.fontScale
                     text: "\uea29"
+                    Accessible.ignored: true
                 }
             }
 
@@ -201,6 +211,7 @@ Rectangle {
                 minimumValue: 0
                 maximumValue: 100
                 value: itemModelData.value
+                Accessible.ignored: true
             }
 
             Loader {
@@ -212,8 +223,9 @@ Rectangle {
                 sourceComponent: Label {
                     id: cellIconAfter
                     font.family: icomoon.name
-                    font.pixelSize: 18 * units.scale
+                    font.pixelSize: 12 * units.fontScale
                     text: "\uea26"
+                    Accessible.ignored: true
                 }
             }
         }
@@ -236,7 +248,8 @@ Rectangle {
         anchors.leftMargin: 6 * units.scale
         anchors.rightMargin: 6 * units.scale
         spacing: 0
-        model: testModel
+//        model: testModel
+        model: settingsModel
 
         focus: true
         highlightMoveDuration: 0
@@ -284,18 +297,22 @@ Rectangle {
                         target: cellSeparator; color: "#dde0e1"
                     }
                 }
-
             ]
 
             MouseArea {
                 id: pressedMouseArea
                 anchors.fill: parent
                 onPressed: {
-                    if (model.type !== "switch" && model.type !== "slider")
-                    cellWrapper.state = "pressed"
+                    if (model.cellType !== "switch" && model.cellType !== "slider")
+                        cellWrapper.state = "pressed"
                 }
                 onReleased: {
                     cellWrapper.state = ""
+                }
+                onClicked: {
+                    if (model.cellType !== "switch" && model.cellType !== "slider") {
+                        settingsModel.cellClicked(index);
+                    }
                 }
             }
 
@@ -329,7 +346,7 @@ Rectangle {
                 Binding {
                     id: binder
                     property: "itemModelData"
-                    value: model
+                    value: model.properties
                 }
                 Binding {
                     id: binder2
@@ -341,12 +358,13 @@ Rectangle {
                     binder2.target = cellTypeLoader.item
                 }
 
-                sourceComponent: componentChooser(model.type);
+                sourceComponent: componentChooser(model.cellType);
                 function componentChooser(type) {
                     if (type === "switch") return cellTypeSwitch;
                     if (type === "slider") return cellTypeSlider;
                     if (type === "text") return cellTypeTextAndIcon;
                     // Fix undefined errors.
+                    console.warn("Trying to intantiate unknown cell type.");
                     return cellTypeDummy;
                 }
             }
@@ -361,6 +379,5 @@ Rectangle {
             }
         }
     }
-
 }
 

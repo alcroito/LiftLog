@@ -12,7 +12,7 @@
 #include "workout_exercise_entity.h"
 #include "workout_set_entity.h"
 #include "workout_entity.h"
-#include "workout_tree_node.h"
+#include "generic_tree_node.h"
 #include "set_and_rep_model.h"
 
 WorkoutModel::WorkoutModel(QObject* parent) : QAbstractItemModel(parent), root(0), workoutEntity(0), workoutId(0), workoutDay(0)
@@ -37,13 +37,13 @@ void WorkoutModel::clear() {
 
 int WorkoutModel::rowCount(const QModelIndex &parent) const
 {
-    WorkoutTreeNode* parentItem;
+    GenericTreeNode* parentItem;
     if (parent.column() > 0) return 0;
 
     if (!parent.isValid())
         parentItem = root;
     else
-        parentItem = static_cast<WorkoutTreeNode*>(parent.internalPointer());
+        parentItem = static_cast<GenericTreeNode*>(parent.internalPointer());
 
     if (!parentItem) return 0;
     return parentItem->childCount();
@@ -52,7 +52,7 @@ int WorkoutModel::rowCount(const QModelIndex &parent) const
 int WorkoutModel::columnCount(const QModelIndex &parent) const
 {
     if (parent.isValid())
-        return static_cast<WorkoutTreeNode*>(parent.internalPointer())->columnCount();
+        return static_cast<GenericTreeNode*>(parent.internalPointer())->columnCount();
     else
         return root->columnCount();
 }
@@ -77,14 +77,14 @@ QModelIndex WorkoutModel::index(int row, int column, const QModelIndex &parent) 
     if (!hasIndex(row, column, parent))
         return QModelIndex();
 
-    WorkoutTreeNode* parentItem;
+    GenericTreeNode* parentItem;
 
     if (!parent.isValid())
         parentItem = root;
     else
-        parentItem = static_cast<WorkoutTreeNode*>(parent.internalPointer());
+        parentItem = static_cast<GenericTreeNode*>(parent.internalPointer());
 
-    WorkoutTreeNode* childItem = parentItem->child(row);
+    GenericTreeNode* childItem = parentItem->child(row);
     if (childItem)
         return createIndex(row, column, childItem);
     else
@@ -96,8 +96,8 @@ QModelIndex WorkoutModel::parent(const QModelIndex &index) const
     if (!index.isValid())
         return QModelIndex();
 
-    WorkoutTreeNode *childItem = static_cast<WorkoutTreeNode*>(index.internalPointer());
-    WorkoutTreeNode *parentItem = childItem->parentItem();
+    GenericTreeNode *childItem = static_cast<GenericTreeNode*>(index.internalPointer());
+    GenericTreeNode *parentItem = childItem->parentItem();
 
     if (parentItem == root)
         return QModelIndex();
@@ -105,10 +105,10 @@ QModelIndex WorkoutModel::parent(const QModelIndex &index) const
     return createIndex(parentItem->row(), 0, parentItem);
 }
 
-WorkoutTreeNode* WorkoutModel::getModelItem(const QModelIndex &index) const
+GenericTreeNode* WorkoutModel::getModelItem(const QModelIndex &index) const
 {
     if (index.isValid()) {
-        WorkoutTreeNode* item = static_cast<WorkoutTreeNode*>(index.internalPointer());
+        GenericTreeNode* item = static_cast<GenericTreeNode*>(index.internalPointer());
         if (item)
             return item;
     }
@@ -120,7 +120,7 @@ QVariant WorkoutModel::data(const QModelIndex &index, int role) const
     if (!index.isValid())
         return QVariant();
 
-    WorkoutTreeNode *item = static_cast<WorkoutTreeNode*>(index.internalPointer());
+    GenericTreeNode *item = static_cast<GenericTreeNode*>(index.internalPointer());
     if (!item) {
         return QVariant();
     }
@@ -187,7 +187,7 @@ QVariant WorkoutModel::data(const QModelIndex &index, int role) const
 
 bool WorkoutModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    WorkoutTreeNode* item = getModelItem(index);
+    GenericTreeNode* item = getModelItem(index);
 
     QVariant itemData = item->data();
     int itemDataType = itemData.userType();
@@ -297,7 +297,7 @@ QModelIndex WorkoutModel::getSetModelIndex(int exerciseIndex, int setIndex) {
 
 QVariant WorkoutModel::getSet(int exerciseIndex, int setIndex) {
     QModelIndex setModelIndex = getSetModelIndex(exerciseIndex, setIndex);
-    WorkoutTreeNode *item = static_cast<WorkoutTreeNode*>(setModelIndex.internalPointer());
+    GenericTreeNode *item = static_cast<GenericTreeNode*>(setModelIndex.internalPointer());
     WorkoutSetEntity* set = qvariant_cast<WorkoutSetEntity*>(item->data());
     QQmlEngine::setObjectOwnership(set, QQmlEngine::CppOwnership);
     return QVariant::fromValue(set);
@@ -509,7 +509,7 @@ void WorkoutModel::reInitializeExerciseSets() {
 
         // Get exercise tree node, using which we will add / remove children set nodes.
         QModelIndex exerciseModelIndex = getExerciseModelIndex(i);
-        WorkoutTreeNode* exerciseWorkoutTreeNode = static_cast<WorkoutTreeNode*>(exerciseModelIndex.internalPointer());
+        GenericTreeNode* exerciseWorkoutTreeNode = static_cast<GenericTreeNode*>(exerciseModelIndex.internalPointer());
 
         // Set the set count.
         qint32 setCount = setAndRep.getSetCount();
@@ -537,7 +537,7 @@ void WorkoutModel::reInitializeExerciseSets() {
         for (int j = 0; j < setsToAdd; ++j) {
             WorkoutSetEntity* set = new WorkoutSetEntity(repCount);
             exercise->setsAndReps.append(set);
-            WorkoutTreeNode* setNode = new WorkoutTreeNode(QVariant::fromValue(set), exerciseWorkoutTreeNode);
+            GenericTreeNode* setNode = new GenericTreeNode(QVariant::fromValue(set), exerciseWorkoutTreeNode);
             exerciseWorkoutTreeNode->appendChild(setNode);
         }
 
@@ -761,15 +761,15 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
     return workout;
 }
 
-WorkoutTreeNode* WorkoutModel::parseEntityToTree(WorkoutEntity* entity) {
+GenericTreeNode* WorkoutModel::parseEntityToTree(WorkoutEntity* entity) {
     if (!entity) return 0;
-    WorkoutTreeNode* top = new WorkoutTreeNode(QVariant::fromValue(entity));
+    GenericTreeNode* top = new GenericTreeNode(QVariant::fromValue(entity));
     for (int i = 0; i < entity->exercises.count(); ++i) {
         WorkoutExerciseEntity* exercise = entity->exercises.value(i);
-        WorkoutTreeNode* exerciseNode = new WorkoutTreeNode(QVariant::fromValue(exercise), top);
+        GenericTreeNode* exerciseNode = new GenericTreeNode(QVariant::fromValue(exercise), top);
         for (int j = 0; j < exercise->setsAndReps.count(); j++) {
             WorkoutSetEntity* set = exercise->setsAndReps.value(j);
-            WorkoutTreeNode* setNode = new WorkoutTreeNode(QVariant::fromValue(set), exerciseNode);
+            GenericTreeNode* setNode = new GenericTreeNode(QVariant::fromValue(set), exerciseNode);
             exerciseNode->appendChild(setNode);
         }
         top->appendChild(exerciseNode);
