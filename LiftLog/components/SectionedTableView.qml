@@ -59,7 +59,14 @@ Rectangle {
             height: listView.cellHeight
             width: listView.width
 
-            property var itemModelData: null
+            property var itemModelData
+//            onItemModelDataChanged: {
+//                console.log("data", itemModelData, itemModelIndex);
+//            }
+//            onItemModelIndexChanged: {
+//                console.log("index", itemModelData, itemModelIndex);
+//            }
+
             property int itemModelIndex: -1
 
             Loader {
@@ -122,7 +129,7 @@ Rectangle {
             id: cellTypeWrapper
             height: listView.cellHeight
             width: listView.width
-            property var itemModelData: null
+            property var itemModelData
             property int itemModelIndex: -1
 
             Loader {
@@ -167,7 +174,7 @@ Rectangle {
             id: cellTypeWrapper
             height: listView.cellHeight
             width: listView.width
-            property var itemModelData: null
+            property var itemModelData
             property int itemModelIndex: -1
 
             Loader {
@@ -324,8 +331,14 @@ Rectangle {
                     property: "itemModelData"
                     value: model
                 }
+                Binding {
+                    id: binder2
+                    property: "itemModelIndex"
+                    value: index
+                }
                 onLoaded: {
                     binder.target = cellTypeLoader.item
+                    binder2.target = cellTypeLoader.item
                 }
 
                 sourceComponent: componentChooser(model.type);

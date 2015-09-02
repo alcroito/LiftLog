@@ -46,6 +46,7 @@ Rectangle {
         font.pixelSize: 12 * units.fontScale
         enabled: showBackButton
         visible: showBackButton
+        Accessible.ignored: true
 
         MouseArea {
             anchors.fill: parent
@@ -79,6 +80,7 @@ Rectangle {
         font.pixelSize: 12 * units.fontScale
         enabled: showBurgerButton
         visible: showBurgerButton
+        Accessible.ignored: true
 
         MouseArea {
             anchors.fill: parent
@@ -101,6 +103,7 @@ Rectangle {
         font.pixelSize: 12 * units.fontScale
         enabled: showSpreadsheetsButton
         visible: showSpreadsheetsButton
+        Accessible.ignored: true
 
         MouseArea {
             anchors.fill: parent
@@ -123,6 +126,7 @@ Rectangle {
         font.pixelSize: 12 * units.fontScale
         enabled: showDoneButton
         visible: showDoneButton
+        Accessible.ignored: true
 
         MouseArea {
             anchors.fill: parent
@@ -146,6 +150,7 @@ Rectangle {
         font.pixelSize: 12 * units.fontScale
         enabled: showWarmupButton
         visible: showWarmupButton
+        Accessible.ignored: true
 
         MouseArea {
             anchors.fill: parent
@@ -167,6 +172,7 @@ Rectangle {
         font.pixelSize: 12 * units.fontScale
         enabled: showLeftGearButton
         visible: showLeftGearButton
+        Accessible.ignored: true
 
         MouseArea {
             anchors.fill: parent

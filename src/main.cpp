@@ -89,6 +89,7 @@ int main(int argc, char *argv[])
     dbManager->init();
 
     // Add search path for QML modules and components.
+    qDebug() << "Loading qml components.";
     engine.addImportPath("qrc:///");
     engine.load(QUrl(QStringLiteral("qrc:///LiftLog/main.qml")));    
 

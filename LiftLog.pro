@@ -90,8 +90,9 @@ OTHER_FILES += \
 #QMAKE_BUNDLE_DATA += database_install
 
 mac {
-    CONFIG += c++14
+    CONFIG += c++11
     QMAKE_CXXFLAGS += -stdlib=libc++
+    QMAKE_CXXFLAGS_CXX11 += -std=c++14
 }
 
 macx {
