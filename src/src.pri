@@ -6,7 +6,6 @@ SOURCES += \
     $$PWD/workout_entity.cpp \
     $$PWD/workout_exercise_entity.cpp \
     $$PWD/workout_set_entity.cpp \
-    $$PWD/workout_tree_node.cpp \
     $$PWD/db_manager.cpp \
     $$PWD/app_state.cpp \
     $$PWD/workout_template_list_model.cpp \

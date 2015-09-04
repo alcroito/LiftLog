@@ -58,6 +58,18 @@ BasicPage {
         acceptedValues(newUserWeight, newSetAndRepId, newSetsAndRepsString, exerciseIndex)
         goBack()
     }
+    onGoBack: pageStack.goBack();
+    onAcceptedValues: {
+        var workoutPage = Stack.view.get(
+                    Stack.index - 1)
+        if (!workoutPage) {
+            console.log("Can't get workoutPage to change the exercise weight.")
+        } else {
+            workoutPage.updateExerciseWeight(
+                        newExerciseWeight, newSetAndRepId,
+                        newSetsAndRepsString, exerciseIndex)
+        }
+    }
 
     Item {
         id: upperContainer

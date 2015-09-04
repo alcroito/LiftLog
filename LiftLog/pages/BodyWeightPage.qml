@@ -30,6 +30,16 @@ BasicPage {
         acceptedValues(newUserWeight, newWeightSystem)
         goBack()
     }
+    onGoBack: pageStack.goBack();
+    onAcceptedValues: {
+        var workoutPage = Stack.view.get(Stack.index - 1)
+        if (!workoutPage) {
+            console.log("Can't get workoutPage to change the user weight.")
+        } else {
+            workoutPage.updateUserWeightAndSystem(
+                        newUserWeight, newWeightSystem)
+        }
+    }
 
     Rectangle {
         id: weightBackground

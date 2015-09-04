@@ -3,8 +3,6 @@ import QtQuick.Controls 1.3
 import QtQuick.Window 2.0
 
 import LiftLog 1.0
-import LiftLog.pages 1.0
-import LiftLog.extras 1.0
 import "components"
 
 ApplicationWindow {
@@ -19,114 +17,65 @@ ApplicationWindow {
     width: appState.windowWidth
     height: appState.windowHeight
 
+    property var pageComponents: ({
+
+                                  })
+
     // Always define a component inline, instead of as a property, so that Qt Quick Designer
     // can properly display the component when it's set as the initial item of a StackView.
     // Also make sure that the "Always use the QML emulation layer provided by Qt Creator"
     // option is disabled in preferences.
-    Component {
-        id: welcomePage
-        WelcomePage {
-            Component.onCompleted: console.log("Welcome page loaded")
-        }
-    }
-
-    Component {
-        id: dashboardPage
-        DashboardPage {
-            Component.onCompleted: console.log("Dashboard page loaded")
-        }
-    }
-
-    Component {
-        id: workoutPage
-        WorkoutPage {
-            Component.onCompleted: {
-                console.log("Workout page loaded")
-            }
-        }
-    }
-
-    Component {
-        id: calendarPage
-        CalendarPage {
-            Component.onCompleted: {
-                console.log("Calendar page loaded")
-            }
-            onGoBack: pageStack.goBack()
-        }
-    }
-
-    Component {
-        id: bodyWeightPage
-        BodyWeightPage {
-            onAcceptedValues: {
-                var workoutPage = Stack.view.get(Stack.index - 1)
-                if (!workoutPage) {
-                    console.log("Can't get workoutPage to change the user weight.")
-                } else {
-                    workoutPage.updateUserWeightAndSystem(newUserWeight, newWeightSystem)
-                }
-            }
-
-            onGoBack: pageStack.goBack()
-        }
-    }
-
-    Component {
-        id: exerciseWeightPage
-        ExerciseWeightPage {
-            onAcceptedValues: {
-                var workoutPage = Stack.view.get(Stack.index - 1)
-                if (!workoutPage) {
-                    console.log("Can't get workoutPage to change the exercise weight.")
-                } else {
-                    workoutPage.updateExerciseWeight(newExerciseWeight, newSetAndRepId, newSetsAndRepsString, exerciseIndex)
-                }
-            }
-
-            onGoBack: pageStack.goBack()
-        }
-    }
-
-    Component {
-        id: graphPage
-        GraphPage {
-            onGoBack: pageStack.goBack()
-        }
-    }
-
-    Component {
-        id: settingsPage
-        SettingsPage {
-            onGoBack: pageStack.goBack()
-        }
-    }
-
     StackView {
         id: pageStack
         anchors.fill: parent
         focus: true
 
-        states: [
-            State {
-                name: "welcome"
-                PropertyChanges {
-                    target: pageStack
-                    initialItem: welcomePage
-                }
-                // Fix to use a property instead of function call, so that QML emulation layer
-                // shows the proper page.
-                when: !appState.isActiveUserSet()
-            },
-            State {
-                name: "dashboard"
-                PropertyChanges {
-                    target: pageStack
-                    initialItem: dashboardPage
-                }
-                when: appState.isActiveUserSet()
+        function initPageStackFirstPage() {
+            if (appState.isActiveUserSet()) {
+                pageStack.push(pageComponents.dashboardPage)
+            } else {
+                pageStack.push(pageComponents.welcomePage)
             }
-        ]
+        }
+
+        Component.onCompleted: {
+
+            // Load initial components depending on user active state.
+            // Load the necessary component synchronously, and the rest of them asynchronously.
+            var dashboardPageMode = Component.PreferSynchronous
+            var welcomePageMode = Component.PreferSynchronous
+
+            if (appState.isActiveUserSet()) {
+                welcomePageMode = Component.Asynchronous
+            } else {
+                dashboardPageMode = Component.Asynchronous
+            }
+
+            pageComponents.dashboardPage = Qt.createComponent(
+                        "pages/DashboardPage.qml", dashboardPageMode, appWindow)
+            pageComponents.welcomePage = Qt.createComponent(
+                        "pages/WelcomePage.qml", welcomePageMode, appWindow)
+            initPageStackFirstPage()
+
+            pageComponents.workoutPage = Qt.createComponent(
+                        "pages/WorkoutPage.qml", Component.Asynchronous,
+                        appWindow)
+            pageComponents.calendarPage = Qt.createComponent(
+                        "pages/CalendarPage.qml", Component.Asynchronous,
+                        appWindow)
+            pageComponents.bodyWeightPage = Qt.createComponent(
+                        "pages/BodyWeightPage.qml", Component.Asynchronous,
+                        appWindow)
+            pageComponents.exerciseWeightPage = Qt.createComponent(
+                        "pages/ExerciseWeightPage.qml", Component.Asynchronous,
+                        appWindow)
+            pageComponents.graphPage = Qt.createComponent(
+                        "pages/GraphPage.qml", Component.Asynchronous,
+                        appWindow)
+            pageComponents.settingsPage = Qt.createComponent(
+                        "pages/SettingsPage.qml", Component.Asynchronous,
+                        appWindow)
+        }
 
         delegate: CustomStackViewDelegate {
         }
@@ -138,92 +87,133 @@ ApplicationWindow {
             }
         }
 
+        function createComponentObjectGuarded(component, creationFunction) {
+            if (component.status === Component.Ready || component.status === Component.Error)
+                finishComponentObjectCreation(component, creationFunction);
+            else
+                component.statusChanged.connect(function() { finishComponentObjectCreation(component, creationFunction); });
+        }
+
+        function finishComponentObjectCreation(component, creationFunction) {
+            if (component.status === Component.Ready) {
+                var image = creationFunction();
+                if (image === null)
+                    console.warn("Error creating object based on component.");
+            }
+            else if (component.status === Component.Error)
+                console.warn("Error loading component:", component.errorString());
+        }
+
         function showWelcomePage() {
-            push({
-                     item: welcomePage
-                 }, replace)
+            createComponentObjectGuarded(pageComponents.welcomePage, function() {
+                push({
+                         item: pageComponents.welcomePage,
+                     }, replace)
+            });
         }
 
         function showDashboardPage() {
-            push({
-                     item: dashboardPage
-                 }, replace)
+            createComponentObjectGuarded(pageComponents.dashboardPage, function() {
+                push({
+                         item: pageComponents.dashboardPage,
+                     }, replace)
+            });
         }
 
         function showWorkoutPage() {
             appState.currentWorkoutModel.clear()
             appState.currentWorkoutModel.getLastNotCompletedWorkoutOrCreateNew()
             appState.currentWorkoutModel.getWorkoutData()
-            push({
-                     item: workoutPage
-                 })
+
+            createComponentObjectGuarded(pageComponents.workoutPage, function() {
+                push({
+                         item: pageComponents.workoutPage
+                     })
+            });
         }
 
         function showSpecificWorkoutPage(date) {
             appState.currentWorkoutModel.clear()
             appState.currentWorkoutModel.getWorkoutOnDateOrCreateNewAtDate(date)
             appState.currentWorkoutModel.getWorkoutData()
-            push({
-                     item: workoutPage
-                 })
+
+            createComponentObjectGuarded(pageComponents.workoutPage, function() {
+                push({
+                         item: pageComponents.workoutPage
+                     })
+            });
         }
 
         function showCalendarPage() {
-            push({
-                     item: calendarPage
-                 })
+            createComponentObjectGuarded(pageComponents.calendarPage, function() {
+                push({
+                         item: pageComponents.calendarPage
+                     })
+            });
         }
 
         function showBodyWeightPage(userWeight, weightSystem) {
-            push({
-                     item: bodyWeightPage,
-                     properties: {
-                         transitionOrientation: "vertical",
-                         weightSystem: weightSystem,
-                         weightNumber: userWeight
-                     }
-                 })
+            var properties = {
+                transitionOrientation: "vertical",
+                weightSystem: weightSystem,
+                weightNumber: userWeight
+            }
+
+            createComponentObjectGuarded(pageComponents.bodyWeightPage, function() {
+                push({
+                         item: pageComponents.bodyWeightPage,
+                         properties: properties
+                     })
+            });
         }
 
         function showExerciseWeightPage(exerciseWeight, setAndRepId, weightSystem, weightIncrement, exerciseCategory, exerciseEntity, exerciseIndex) {
-            push({
-                     item: exerciseWeightPage,
-                     properties: {
-                         transitionOrientation: "vertical",
-                         weightNumber: exerciseWeight,
-                         weightSystem: weightSystem,
-                         weightIncrement: weightIncrement,
-                         setAndRepId: setAndRepId,
-                         exerciseCategory: exerciseCategory,
-                         exerciseEntity: exerciseEntity,
-                         exerciseIndex: exerciseIndex
-                     }
-                 })
+            var properties = {
+                transitionOrientation: "vertical",
+                weightNumber: exerciseWeight,
+                weightSystem: weightSystem,
+                weightIncrement: weightIncrement,
+                setAndRepId: setAndRepId,
+                exerciseCategory: exerciseCategory,
+                exerciseEntity: exerciseEntity,
+                exerciseIndex: exerciseIndex
+            }
+
+            createComponentObjectGuarded(pageComponents.exerciseWeightPage, function() {
+                push({
+                         item: pageComponents.exerciseWeightPage,
+                         properties: properties
+                     })
+            });
         }
 
         function showGraphPage() {
-            push({
-                     item: graphPage,
-                     properties: {
-                     }
-                 })
+            createComponentObjectGuarded(pageComponents.graphPage, function() {
+                push({
+                         item: pageComponents.graphPage
+                     })
+            });
+
         }
 
         function showSettingsPage() {
-            push({
-                     item: settingsPage,
-                     properties: {
-                     }
-                 })
+            createComponentObjectGuarded(pageComponents.settingsPage, function() {
+                push({
+                         item: pageComponents.settingsPage
+                     })
+            });
         }
 
         function showSpecificSettingsPage(settingsPageId) {
-            push({
-                     item: settingsPage,
-                     properties: {
-                         settingsPageId: settingsPageId
-                     }
-                 })
+            createComponentObjectGuarded(pageComponents.settingsPage, function() {
+                push({
+                         item: pageComponents.settingsPage,
+                         properties: {
+                             settingsPageId: settingsPageId
+                         }
+                     })
+            });
+
         }
 
         function goBack() {

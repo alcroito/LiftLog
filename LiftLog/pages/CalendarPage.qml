@@ -9,7 +9,8 @@ BasicPage {
 
     showNavigationBarBackButton: true
     showNavigationBarSpreadsheetButton: true
-    navigationBar.onBackClicked: goBack()
+    navigationBar.onBackClicked: goBack();
+    onGoBack: pageStack.goBack();
 
     Stack.onStatusChanged: {
         if (Stack.status == Stack.Active)

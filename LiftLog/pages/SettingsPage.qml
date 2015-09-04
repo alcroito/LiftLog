@@ -7,9 +7,8 @@ import "../components"
 BasicPage {
     id: root
     showNavigationBarBackButton: true
-    navigationBar.onBackClicked: {
-        goBack()
-    }
+    navigationBar.onBackClicked: goBack();
+    onGoBack: pageStack.goBack();
     rootBackground.color: "#ecf0f1"
     width: appState.windowWidth
     height: appState.windowHeight
