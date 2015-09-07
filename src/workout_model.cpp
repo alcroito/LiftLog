@@ -430,7 +430,7 @@ bool WorkoutModel::workoutIsPartiallyCompleted(qint64 id)
     bool isPartiallyCompleted = false;
     QSqlQuery query;
     query.prepare("SELECT uw.id_workout "
-                  "FROM user_workout_exercise_stats uwes "
+                  "FROM user_workout_exercise_set_stats uwes "
                   "INNER JOIN user_workout uw ON uwes.id_workout = uw.id_workout "
                   "WHERE uw.id_workout = :id_workout "
                   "LIMIT 1");
@@ -606,9 +606,9 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
                   "e.default_weight, "
                   "e.default_weight_increment, "
                   "COALESCE(sr2.set_count, sr.set_count) AS set_count, "
-                  "COALESCE(sr2.rep_count, sr.rep_count) AS rep_count, "
+                  "COALESCE(sr2.consistent_rep_count, sr.consistent_rep_count) AS rep_count, "
                   "e.id_exercise, wte.delta, uw.id_workout_template, \
-                  uw.day, uw.date_started, uw.date_ended, uw.last_updated, uw.user_weight, uw.completed, e.tags, \
+                  uw.day, uw.date_started, uw.date_ended, uw.last_updated, uw.user_weight, uw.completed, e.exercise_type, \
                   COALESCE(uwew2.id_set_and_rep, sr.id_set_and_rep) AS id_set_and_rep, \
                   COALESCE(uwew2.successful, 0) AS successful, \
                   COALESCE(uwew2.completed_all_sets, 0) AS completed_all_sets, \
@@ -620,14 +620,14 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
                   INNER JOIN exercise e ON e.id_exercise = wte.id_exercise \
                   INNER JOIN set_and_rep sr ON sr.id_set_and_rep = e.id_default_set_and_rep \
                   INNER JOIN user_workout uw ON uw.id_workout_template = wt.id_workout_template \
-                  LEFT JOIN user_workout_exercise_weight uwew2 ON uwew2.id_exercise = e.id_exercise AND uwew2.delta = wte.delta AND uwew2.id_workout = uw.id_workout \
+                  LEFT JOIN user_workout_exercise_general_stats uwew2 ON uwew2.id_exercise = e.id_exercise AND uwew2.delta = wte.delta AND uwew2.id_workout = uw.id_workout \
                   LEFT JOIN set_and_rep sr2 ON sr2.id_set_and_rep = uwew2.id_set_and_rep \
                   LEFT JOIN \
                     /* Extracts a list of exercises, combined from previous workouts relative to this one, to use as a source for weights, and successful flag. */ \
                     (SELECT uwew3.id_exercise, uwew3.delta, MAX(uw2.date_started), uwew3.weight, uwew3.successful \
                     FROM user_workout uw1 \
                     INNER JOIN user_workout uw2 ON uw2.date_started < uw1.date_started AND uw2.id_workout_template = uw1.id_workout_template AND uw2.id_user = uw1.id_user \
-                    INNER JOIN user_workout_exercise_weight uwew3 ON uwew3.id_workout = uw2.id_workout \
+                    INNER JOIN user_workout_exercise_general_stats uwew3 ON uwew3.id_workout = uw2.id_workout \
                     WHERE uw1.id_workout = :id_workout \
                     GROUP BY uwew3.id_exercise, uwew3.delta \
                     ORDER BY uw2.date_started DESC) previous_workout ON previous_workout.id_exercise = e.id_exercise AND previous_workout.delta = wte.delta \
@@ -650,7 +650,7 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
 
     QSqlQuery queryStats;
     queryStats.prepare("SELECT id_exercise, delta, set_number, reps_done "
-                       "FROM user_workout_exercise_stats "
+                       "FROM user_workout_exercise_set_stats "
                        "WHERE id_workout = :id_workout ORDER BY delta, set_number");
     queryStats.bindValue(":id_workout", workoutId);
     bool resultStats = queryStats.exec();
@@ -708,7 +708,7 @@ WorkoutEntity* WorkoutModel::fetchWorkoutDataFromDB()
 
         exercise->idExercise = query.value(7).toInt();
         exercise->delta = query.value(8).toInt();
-        exercise->tags = query.value(16).toString().split(",");
+        exercise->exerciseType = query.value(16).toInt();
         exercise->idSetAndRep = query.value(17).toInt();
         exercise->successful = query.value(18).toBool();
         exercise->completedAllSets = query.value(19).toBool();
@@ -889,7 +889,7 @@ void WorkoutModel::saveWorkoutData(bool setCompleted)
     bool isPartiallyCompleted = workoutIsPartiallyCompleted(workoutId);
 
     // Remove old stats data.
-    query.prepare("DELETE FROM user_workout_exercise_stats "
+    query.prepare("DELETE FROM user_workout_exercise_set_stats "
                   "WHERE id_workout = :id_workout");
     query.bindValue(":id_workout", workoutId);
 
@@ -905,7 +905,7 @@ void WorkoutModel::saveWorkoutData(bool setCompleted)
         WorkoutExerciseEntity* exercise = workoutEntity->exercises.value(i);
 
         if (!isPartiallyCompleted) {
-            query.prepare("INSERT INTO user_workout_exercise_weight "
+            query.prepare("INSERT INTO user_workout_exercise_general_stats "
                           "(id_workout, id_exercise, delta, weight, id_set_and_rep, successful, completed_all_sets, completed_set_count) "
                           "VALUES (:id_workout, :id_exercise, :delta, :weight, :id_set_and_rep, :successful, :completed_all_sets, :completed_set_count)");
             query.bindValue(":id_workout", workoutId);
@@ -925,7 +925,7 @@ void WorkoutModel::saveWorkoutData(bool setCompleted)
                 return;
             }
         } else {
-            query.prepare("UPDATE user_workout_exercise_weight "
+            query.prepare("UPDATE user_workout_exercise_general_stats "
                           "SET weight = :weight, id_set_and_rep = :id_set_and_rep, successful = :successful, "
                           "completed_all_sets = :completed_all_sets, completed_set_count = :completed_set_count "
                           "WHERE id_workout = :id_workout AND id_exercise = :id_exercise AND delta = :delta");
@@ -953,7 +953,7 @@ void WorkoutModel::saveWorkoutData(bool setCompleted)
             // If next set is an invalid one (crossed for example, don't save it, nor the next ones).
             if (set->isInvalid()) break;
 
-            query.prepare("INSERT INTO user_workout_exercise_stats (id_workout, id_exercise, delta, set_number, reps_done)"
+            query.prepare("INSERT INTO user_workout_exercise_set_stats (id_workout, id_exercise, delta, set_number, reps_done)"
                           "VALUES (:id_workout, :id_exercise, :delta, :set_number, :reps_done)");
             query.bindValue(":id_workout", workoutId);
             query.bindValue(":id_exercise", exercise->idExercise);
@@ -995,7 +995,7 @@ void WorkoutModel::deleteWorkoutData()
         return;
     }
 
-    query.prepare("DELETE FROM user_workout_exercise_weight "
+    query.prepare("DELETE FROM user_workout_exercise_general_stats "
                   "WHERE id_workout = :id_workout");
 
     query.bindValue(":id_workout", workoutId);
@@ -1007,7 +1007,7 @@ void WorkoutModel::deleteWorkoutData()
         return;
     }
 
-    query.prepare("DELETE FROM user_workout_exercise_stats "
+    query.prepare("DELETE FROM user_workout_exercise_set_stats "
                   "WHERE id_workout = :id_workout");
 
     query.bindValue(":id_workout", workoutId);

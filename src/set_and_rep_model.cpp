@@ -60,7 +60,7 @@ SetAndRep SetAndRepModel::getSetAndRepById(qint64 id)
 {
     SetAndRep set;
     QSqlQuery query;
-    query.prepare("SELECT id_set_and_rep, set_count, rep_count, delta "
+    query.prepare("SELECT id_set_and_rep, set_count, consistent_rep_count AS rep_count, delta "
                   "FROM set_and_rep "
                   "WHERE id_set_and_rep = :id");
     query.bindValue(":id", id);
@@ -101,7 +101,7 @@ QList<SetAndRep> SetAndRepModel::getDBSetAndRepList(qint64 initId) {
     QList<SetAndRep> setAndRepList;
 
     QSqlQuery query;
-    query.prepare("SELECT id_set_and_rep, set_count, rep_count, delta "
+    query.prepare("SELECT id_set_and_rep, set_count, consistent_rep_count AS rep_count, delta "
                   "FROM set_and_rep "
                   "ORDER BY delta");
 

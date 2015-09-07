@@ -18,16 +18,16 @@ StatsGraphData::StatsGraphData(QObject *parent) :
 
 QSqlQuery StatsGraphData::runStatsQuery(const StatsQueryParams& params, bool* ok) {
     QSqlQuery query;
-    QString queryString = "SELECT e.name, e.id_exercise, uwew.weight, sr.set_count, sr.rep_count, \
-                          uw.id_workout, uw.date_started, e.tags, GROUP_CONCAT(uwes.reps_done, '/') AS reps_done, uwew.successful, uw.user_weight \
+    QString queryString = "SELECT e.name, e.id_exercise, uwew.weight, sr.set_count, sr.consistent_rep_count AS rep_count, \
+                          uw.id_workout, uw.date_started, e.exercise_type, GROUP_CONCAT(uwes.reps_done, '/') AS reps_done, uwew.successful, uw.user_weight \
             FROM user_workout uw \
             INNER JOIN workout_template_exercises wte ON wte.id_workout_template = uw.id_workout_template AND wte.day = uw.day \
             INNER JOIN exercise e ON e.id_exercise = wte.id_exercise \
-            INNER JOIN user_workout_exercise_weight uwew ON uwew.id_workout = uw.id_workout AND wte.id_exercise = uwew.id_exercise \
-            INNER JOIN user_workout_exercise_stats uwes ON uwes.id_workout = uw.id_workout AND uwes.id_exercise = uwew.id_exercise AND uwes.delta = uwew.delta \
+            INNER JOIN user_workout_exercise_general_stats uwew ON uwew.id_workout = uw.id_workout AND wte.id_exercise = uwew.id_exercise \
+            INNER JOIN user_workout_exercise_set_stats uwes ON uwes.id_workout = uw.id_workout AND uwes.id_exercise = uwew.id_exercise AND uwes.delta = uwew.delta \
             INNER JOIN set_and_rep sr ON sr.id_set_and_rep = uwew.id_set_and_rep \
             WHERE uw.id_user = :id_user AND uw.id_workout_template = :id_workout_template AND uw.completed = 1 %1 %2 \
-            GROUP BY e.name, e.id_exercise, uwew.weight, sr.set_count, sr.rep_count, uw.id_workout, uw.date_started, e.tags \
+            GROUP BY e.name, e.id_exercise, uwew.weight, sr.set_count, sr.consistent_rep_count, uw.id_workout, uw.date_started, e.exercise_type \
             ORDER BY wte.id_exercise, date_started, uwes.set_number ASC";
     if (params.datePeriod == All) {
         queryString = queryString.arg("");
@@ -86,7 +86,7 @@ QDateTime StatsGraphData::getLatestDateWithMinimumRequiredExercisePoints(bool* o
                 FROM user_workout uw \
                 INNER JOIN workout_template_exercises wte ON wte.id_workout_template = uw.id_workout_template AND wte.day = uw.day \
                 INNER JOIN exercise e ON e.id_exercise = wte.id_exercise \
-                INNER JOIN user_workout_exercise_weight uwew ON uwew.id_workout = uw.id_workout AND wte.id_exercise = uwew.id_exercise \
+                INNER JOIN user_workout_exercise_general_stats uwew ON uwew.id_workout = uw.id_workout AND wte.id_exercise = uwew.id_exercise \
                 INNER JOIN set_and_rep sr ON sr.id_set_and_rep = uwew.id_set_and_rep \
                 INNER JOIN (SELECT DISTINCT uw2.date_started FROM user_workout uw2) a ON uw.date_started >= a.date_started \
                 WHERE uw.id_user = :id_user AND uw.id_workout_template = :id_workout_template AND uw.completed = 1 \
@@ -138,8 +138,8 @@ QList<StatsGraphData::StatsQueryParams> StatsGraphData::getListOfExerciseQueryPa
     int exerciseCountWithEnoughPoints = 0;
     while (query.next()) {
         QString name = query.value("name").toString();
-        QString tags = query.value("tags").toString();
-        bool isAccessory = tags.contains("accessory");
+        qint64 exerciseType = query.value("exercise_type").toInt();
+        bool isAccessory = exerciseType == 1;
         if (isAccessory) continue;
 
         qint64 idExercise = query.value("id_exercise").toInt();
@@ -250,7 +250,7 @@ void StatsGraphData::getStatsFromDB()
             qint32 repCount = query.value(4).toInt();
             qint64 idWorkout = query.value(5).toInt();
             QDateTime date = query.value(6).toDateTime();
-            QString tags = query.value("tags").toString();
+            qint64 exerciseType = query.value("exercise_type").toInt();
             QString repsDone = query.value("reps_done").toString();
 
             bool exerciseSuccessful = query.value("successful").toBool();
@@ -265,7 +265,7 @@ void StatsGraphData::getStatsFromDB()
             }
 
             // Skip accessory exercises for now.
-            bool isAccessory = tags.contains("accessory");
+            bool isAccessory = exerciseType == 1;
             if (isAccessory) continue;
 
             if (idExercise != prevExerciseId) {

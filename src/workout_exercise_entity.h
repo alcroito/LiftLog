@@ -24,7 +24,7 @@ public:
     qreal defaultWeightImperial;
     qreal defaultWeightIncrement;
     qint64 delta;
-    QStringList tags;
+    qint64 exerciseType;
 
 
     QString setsAndRepsString;
@@ -40,8 +40,8 @@ public slots:
     qint32 getValidSetCount() { return validSetCount; }
     void setValidSetCount(qint32 value) { validSetCount = value; }
     qint64 getIdSetAndRep() const { return idSetAndRep; }
-    bool isPrimary() { return tags.contains("primary"); }
-    bool isAccessory() { return tags.contains("accessory"); }
+    bool isPrimary() { return exerciseType == 0; }
+    bool isAccessory() { return exerciseType == 1; }
     ExerciseCategory exerciseCategory();
     qreal getBarbellWeight();
 };
