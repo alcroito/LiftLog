@@ -132,7 +132,7 @@ Item {
             property int yLower: 0
             property int yUpper: 90
             property real ySegmentRange: 10
-            property var bounds
+            property var bounds: ({boundsSet: false})
             property string exerciseNameToShow: model.exerciseNameToShow
 
             function requestGraphGridRepaint() {

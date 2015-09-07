@@ -13,6 +13,13 @@ Rectangle {
     z: 2
     state: "hidden"
 
+    MouseArea {
+        id: mouseBlockerForElementsBehindThisOne
+        propagateComposedEvents: false
+        anchors.fill: parent
+        enabled: true
+    }
+
     function start() {
         state = ""
         reset()
@@ -36,6 +43,7 @@ Rectangle {
             name: "hidden"
             PropertyChanges { target: root; anchors.topMargin: -root.height }
             PropertyChanges { target: timer; running: false; explicit: true }
+            PropertyChanges { target: mouseBlockerForElementsBehindThisOne; enabled: false }
         }
     ]
 
