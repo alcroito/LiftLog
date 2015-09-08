@@ -120,7 +120,7 @@ Rectangle {
                     font.family: icomoon.name
                     font.pixelSize: itemModelData.selectable ? 16 * units.fontScale : 12 * units.fontScale
                     text: itemModelData.accessoryIcon
-                    color: itemModelData.accessoryIconColorRed ? "#e74c3c" : "#c7c7cc"
+                    color: itemModelData.selectable ? "#e74c3c" : "#c7c7cc"
                     Accessible.ignored: true
                 }
                 active: itemModelData.selectable ? itemModelData.selected : itemModelData.showAccessory
@@ -170,8 +170,9 @@ Rectangle {
                 anchors.right: parent.right
                 anchors.rightMargin: 10 * units.scale
                 anchors.verticalCenter: parent.verticalCenter
-                checked: itemModelData.value === "1"
+                checked: itemModelData.value == "1"
                 Accessible.ignored: true
+                onClicked: settingsModel.cellSwitchValueChanged(itemModelIndex, checked);
             }
         }
     }
@@ -208,10 +209,16 @@ Rectangle {
                 anchors.leftMargin: 35 * units.scale
                 anchors.rightMargin: 50 * units.scale
                 anchors.verticalCenter: parent.verticalCenter
-                minimumValue: 0
-                maximumValue: 100
+                minimumValue: 0.0
+                maximumValue: 100.0
+                stepSize: 1.0
                 value: itemModelData.value
+                updateValueWhileDragging: false
                 Accessible.ignored: true
+                onValueChanged: {
+                    if (itemModelIndex != -1)
+                        settingsModel.cellSliderValueChanged(itemModelIndex, value);
+                }
             }
 
             Loader {

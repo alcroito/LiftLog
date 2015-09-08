@@ -2,6 +2,7 @@
 #include "generic_tree_node.h"
 #include "app_state.h"
 #include "user.h"
+#include "icons.h"
 #include <QDebug>
 
 SettingsModel::SettingsModel(QObject* parent) : QAbstractItemModel(parent), root(0), currentPageId(PAGE_INITIAL) {}
@@ -178,10 +179,10 @@ void SettingsModel::getSettingsData(QString pageId)
         settingsMap.insert("cellType", "text");
         settingsMap.insert("label", tr("Weight System"));
         settingsMap.insert("section", tr("SETTINGS"));
-        settingsMap.insert("icon", "\ue614");
+        settingsMap.insert("icon", ICON_WEIGHT);
         settingsMap.insert("showIcon", true);
         settingsMap.insert("showAccessory", true);
-        settingsMap.insert("accessoryIcon", "\ue60b");
+        settingsMap.insert("accessoryIcon", ICON_CHEVRON_RIGHT);
         QString weightSystemValue = tr("Metric");
         if (currentUser->getWeightSystem() == User::Imperial)
             weightSystemValue = tr("Imperial");
@@ -194,29 +195,33 @@ void SettingsModel::getSettingsData(QString pageId)
         settingsMap.insert("cellType", "text");
         settingsMap.insert("label", tr("Bar & Plates"));
         settingsMap.insert("section", tr("SETTINGS"));
-        settingsMap.insert("icon", "\ue600");
+        settingsMap.insert("icon", ICON_BARBELL);
         settingsMap.insert("showIcon", true);
         settingsMap.insert("showAccessory", true);
-        settingsMap.insert("accessoryIcon", "\ue60b");
+        settingsMap.insert("accessoryIcon", ICON_CHEVRON_RIGHT);
         settingsMap.insert("value", "");
         settingNode = new GenericTreeNode(QVariant::fromValue(settingsMap), root);
         root->appendChild(settingNode);
         settingsMap.clear();
 
+        settingsMap.insert("id", "timerEnabled");
         settingsMap.insert("cellType", "switch");
         settingsMap.insert("label", tr("Timer"));
         settingsMap.insert("section", tr("SETTINGS"));
-        settingsMap.insert("icon", "\ue952");
+        settingsMap.insert("icon", ICON_TIMER);
         settingsMap.insert("showIcon", true);
-        settingsMap.insert("value", "1");
+        bool timerEnabled = currentUser->getTimerEnabled();
+        settingsMap.insert("value", timerEnabled);
         settingNode = new GenericTreeNode(QVariant::fromValue(settingsMap), root);
         root->appendChild(settingNode);
         settingsMap.clear();
 
+        settingsMap.insert("id", "timerSoundVolume");
         settingsMap.insert("cellType", "slider");
         settingsMap.insert("label", tr("Timer ring volume"));
         settingsMap.insert("section", tr("SETTINGS"));
-        settingsMap.insert("value", "75");
+        qreal timerSoundVolume = currentUser->getTimerSoundVolume();
+        settingsMap.insert("value", timerSoundVolume);
         settingNode = new GenericTreeNode(QVariant::fromValue(settingsMap), root);
         root->appendChild(settingNode);
         settingsMap.clear();
@@ -224,10 +229,10 @@ void SettingsModel::getSettingsData(QString pageId)
         settingsMap.insert("cellType", "text");
         settingsMap.insert("label", tr("Auto-add weight"));
         settingsMap.insert("section", tr("SETTINGS"));
-        settingsMap.insert("icon", "\uf160");
+        settingsMap.insert("icon", ICON_SORT_UP);
         settingsMap.insert("showIcon", true);
         settingsMap.insert("showAccessory", true);
-        settingsMap.insert("accessoryIcon", "\ue60b");
+        settingsMap.insert("accessoryIcon", ICON_CHEVRON_RIGHT);
         settingsMap.insert("value", tr("On"));
         settingNode = new GenericTreeNode(QVariant::fromValue(settingsMap), root);
         root->appendChild(settingNode);
@@ -236,10 +241,10 @@ void SettingsModel::getSettingsData(QString pageId)
         settingsMap.insert("cellType", "text");
         settingsMap.insert("label", tr("Sets & Reps"));
         settingsMap.insert("section", tr("SETTINGS"));
-        settingsMap.insert("icon", "\ue2fc");
+        settingsMap.insert("icon", ICON_SETS_AND_REPS);
         settingsMap.insert("showIcon", true);
         settingsMap.insert("showAccessory", true);
-        settingsMap.insert("accessoryIcon", "\ue60b");
+        settingsMap.insert("accessoryIcon", ICON_CHEVRON_RIGHT);
         settingsMap.insert("value", "");
         settingNode = new GenericTreeNode(QVariant::fromValue(settingsMap), root);
         root->appendChild(settingNode);
@@ -251,7 +256,7 @@ void SettingsModel::getSettingsData(QString pageId)
         settingsMap.insert("icon", "");
         settingsMap.insert("showIcon", false);
         settingsMap.insert("showAccessory", true);
-        settingsMap.insert("accessoryIcon", "\ue60b");
+        settingsMap.insert("accessoryIcon", ICON_CHEVRON_RIGHT);
         settingsMap.insert("value", "");
         settingNode = new GenericTreeNode(QVariant::fromValue(settingsMap), root);
         root->appendChild(settingNode);
@@ -263,7 +268,7 @@ void SettingsModel::getSettingsData(QString pageId)
         settingsMap.insert("icon", "");
         settingsMap.insert("showIcon", false);
         settingsMap.insert("showAccessory", true);
-        settingsMap.insert("accessoryIcon", "\ue60b");
+        settingsMap.insert("accessoryIcon", ICON_CHEVRON_RIGHT);
         settingsMap.insert("value", "");
         settingNode = new GenericTreeNode(QVariant::fromValue(settingsMap), root);
         root->appendChild(settingNode);
@@ -275,7 +280,7 @@ void SettingsModel::getSettingsData(QString pageId)
         settingsMap.insert("icon", "");
         settingsMap.insert("showIcon", false);
         settingsMap.insert("showAccessory", true);
-        settingsMap.insert("accessoryIcon", "\ue60b");
+        settingsMap.insert("accessoryIcon", ICON_CHEVRON_RIGHT);
         settingsMap.insert("value", "");
         settingNode = new GenericTreeNode(QVariant::fromValue(settingsMap), root);
         root->appendChild(settingNode);
@@ -313,8 +318,7 @@ void SettingsModel::getSettingsData(QString pageId)
         settingsMap.insert("section", tr("WEIGHT SYSTEM"));
         settingsMap.insert("icon", "");
         settingsMap.insert("showIcon", false);
-        settingsMap.insert("accessoryIcon", "\ue206");
-        settingsMap.insert("accessoryIconColorRed", true);
+        settingsMap.insert("accessoryIcon", ICON_CHECK);
         settingsMap.insert("value", "");
         settingsMap.insert("internalValue", QVariant::fromValue(User::Metric));
         settingsMap.insert("selectable", true);
@@ -328,8 +332,7 @@ void SettingsModel::getSettingsData(QString pageId)
         settingsMap.insert("section", tr("WEIGHT SYSTEM"));
         settingsMap.insert("icon", "");
         settingsMap.insert("showIcon", false);
-        settingsMap.insert("accessoryIcon", "\ue206");
-        settingsMap.insert("accessoryIconColorRed", true);
+        settingsMap.insert("accessoryIcon", ICON_CHECK);
         settingsMap.insert("value", "");
         settingsMap.insert("internalValue", QVariant::fromValue(User::Imperial));
         settingsMap.insert("selectable", true);
@@ -368,6 +371,32 @@ void SettingsModel::cellClicked(int row)
         User* currentUser = AppState::getInstance()->getCurrentUser();
         currentUser->setWeightSystem(newWeightSystem);
         currentUser->save();
+    }
+}
+
+void SettingsModel::cellSwitchValueChanged(int row, bool checked)
+{
+    GenericTreeNode* node = root->child(row);
+    QVariantMap map = node->data().value<QVariantMap>();
+    if (currentPageId == PAGE_INITIAL) {
+        if (map.contains("id") && map["id"] == "timerEnabled") {
+            User* currentUser = AppState::getInstance()->getCurrentUser();
+            currentUser->setTimerEnabled(checked);
+            currentUser->save();
+        }
+    }
+}
+
+void SettingsModel::cellSliderValueChanged(int row, qreal value)
+{
+    GenericTreeNode* node = root->child(row);
+    QVariantMap map = node->data().value<QVariantMap>();
+    if (currentPageId == PAGE_INITIAL) {
+        if (map.contains("id") && map["id"] == "timerSoundVolume") {
+            User* currentUser = AppState::getInstance()->getCurrentUser();
+            currentUser->setTimerSoundVolume(value);
+            currentUser->save();
+        }
     }
 }
 

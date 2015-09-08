@@ -40,7 +40,8 @@ HEADERS += \
     $$PWD/weight_string_builder.h \
     $$PWD/stats_graph_slider_model.h \
     $$PWD/generic_tree_node.h \
-    $$PWD/settings_model.h
+    $$PWD/settings_model.h \
+    $$PWD/icons.h
 
 ios {
     HEADERS += \

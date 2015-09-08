@@ -44,6 +44,8 @@ public slots:
 
     void getSettingsData(QString page = PAGE_INITIAL);
     void cellClicked(int row);
+    void cellSwitchValueChanged(int row, bool checked);
+    void cellSliderValueChanged(int row, qreal value);
     void refresh();
 signals:
     void switchToSettingsPage(QString pageId);

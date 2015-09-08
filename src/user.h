@@ -15,6 +15,8 @@ class User : public QObject
     Q_PROPERTY(bool autoAddWeight READ getAutoAddWeight WRITE setAutoAddWeight NOTIFY autoAddWeightChanged)
     Q_PROPERTY(qint64 lastIdWorkoutTemplate READ getLastIdWorkoutTemplate WRITE setLastIdWorkoutTemplate NOTIFY lastIdWorkoutTemplateChanged)
     Q_PROPERTY(qint64 nextWorkoutTemplateDay READ getNextWorkoutTemplateDay WRITE setNextWorkoutTemplateDay NOTIFY nextWorkoutTemplateDayChanged)
+    Q_PROPERTY(bool timerEnabled READ getTimerEnabled WRITE setTimerEnabled NOTIFY timerEnabledChanged)
+    Q_PROPERTY(qreal timerSoundVolume READ getTimerSoundVolume WRITE setTimerSoundVolume NOTIFY timerSoundVolumeChanged)
 
 public:
     explicit User(QObject *parent = 0);
@@ -51,6 +53,12 @@ public:
 
     void clear();
 
+    bool getTimerEnabled() const;
+    void setTimerEnabled(bool value);
+
+    qreal getTimerSoundVolume() const;
+    void setTimerSoundVolume(const qreal &value);
+
 signals:
     void nameChanged();
     void weightSystemChanged(User::WeightSystem);
@@ -58,12 +66,16 @@ signals:
     void idChanged();
     void lastIdWorkoutTemplateChanged();
     void nextWorkoutTemplateDayChanged();
+    void timerEnabledChanged(bool);
+    void timerSoundVolumeChanged(qreal);
 
 private:
     qint64 id;
     QString name;
     WeightSystem weightSystem;
     bool autoAddWeight;
+    bool timerEnabled = true;
+    qreal timerSoundVolume = 30;
     qint64 lastIdWorkoutTemplate;
     qint64 nextWorkoutTemplateDay;
 };

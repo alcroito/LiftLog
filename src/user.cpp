@@ -120,18 +120,20 @@ qint64 User::getNextUserId()
 bool User::loadById(qint64 idUser)
 {
     QSqlQuery query;
-    query.prepare("SELECT id_user, name, weight_system, auto_add_weight, last_id_workout_template, last_workout_template_day "
+    query.prepare("SELECT id_user, name, weight_system, auto_add_weight, timer_enabled, timer_sound_volume, last_id_workout_template, last_workout_template_day "
                   "FROM user WHERE id_user = :id_user");
     query.bindValue(":id_user", idUser);
     bool result = query.exec();
     bool userLoaded = result && query.next();
     if (userLoaded) {
         setId(idUser);
-        setName(query.value(1).toString());
-        setWeightSystem((User::WeightSystem) query.value(2).toInt());
-        setAutoAddWeight(query.value(3).toBool());
-        setLastIdWorkoutTemplate(query.value(4).toInt());
-        setNextWorkoutTemplateDay(query.value(5).toInt());
+        setName(query.value("name").toString());
+        setWeightSystem((User::WeightSystem) query.value("weight_system").toInt());
+        setAutoAddWeight(query.value("auto_add_weight").toBool());
+        setTimerEnabled(query.value("timer_enabled").toBool());
+        setTimerSoundVolume(query.value("timer_sound_volume").toReal());
+        setLastIdWorkoutTemplate(query.value("last_id_workout_template").toInt());
+        setNextWorkoutTemplateDay(query.value("last_workout_template_day").toInt());
     }
     else {
         qDebug() << "Error loading user by id.";
@@ -147,29 +149,28 @@ bool User::save()
     QSqlQuery query;
     if (!getId()) {
         setId(getNextUserId());
-        query.prepare("INSERT INTO user (id_user, name, weight_system, auto_add_weight, last_id_workout_template, last_workout_template_day) "
-                      "VALUES (:id_user, :name, :weight_system, :auto_add_weight, :last_id_workout_template, :last_workout_template_day)");
-        query.bindValue(":id_user", getId());
-        query.bindValue(":name", getName());
-        query.bindValue(":weight_system", getWeightSystem());
-        query.bindValue(":auto_add_weight", getAutoAddWeight());
-        query.bindValue(":last_id_workout_template", getLastIdWorkoutTemplate());
-        query.bindValue(":last_workout_template_day", getNextWorkoutTemplateDay());
-        result = query.exec();
+        query.prepare("INSERT INTO user (id_user, name, weight_system, auto_add_weight, timer_enabled, timer_sound_volume, last_id_workout_template, last_workout_template_day) "
+                      "VALUES (:id_user, :name, :weight_system, :auto_add_weight, :timer_enabled, :timer_sound_volume, :last_id_workout_template, :last_workout_template_day)");
+
     }
     else {
         query.prepare("UPDATE user "
-                      "SET name = :name, weight_system = :weight_system, auto_add_weight = :auto_add_weight, last_id_workout_template = :last_id_workout_template, last_workout_template_day = :last_workout_template_day "
+                      "SET name = :name, weight_system = :weight_system, auto_add_weight = :auto_add_weight, "
+                      "timer_enabled = :timer_enabled, timer_sound_volume = :timer_sound_volume, "
+                      "last_id_workout_template = :last_id_workout_template, last_workout_template_day = :last_workout_template_day "
                       "WHERE id_user = :id_user"
                       );
-        query.bindValue(":id_user", getId());
-        query.bindValue(":name", getName());
-        query.bindValue(":weight_system", getWeightSystem());
-        query.bindValue(":auto_add_weight", getAutoAddWeight());
-        query.bindValue(":last_id_workout_template", getLastIdWorkoutTemplate());
-        query.bindValue(":last_workout_template_day", getNextWorkoutTemplateDay());
-        result = query.exec();
     }
+
+    query.bindValue(":id_user", getId());
+    query.bindValue(":name", getName());
+    query.bindValue(":weight_system", getWeightSystem());
+    query.bindValue(":auto_add_weight", getAutoAddWeight());
+    query.bindValue(":timer_enabled", getTimerEnabled());
+    query.bindValue(":timer_sound_volume", getTimerSoundVolume());
+    query.bindValue(":last_id_workout_template", getLastIdWorkoutTemplate());
+    query.bindValue(":last_workout_template_day", getNextWorkoutTemplateDay());
+    result = query.exec();
 
     if (!result) {
         qDebug() << "Error saving user.";
@@ -186,4 +187,30 @@ void User::clear() {
     autoAddWeight = false;
     lastIdWorkoutTemplate = 0;
     nextWorkoutTemplateDay = 0;
+}
+
+bool User::getTimerEnabled() const
+{
+    return timerEnabled;
+}
+
+void User::setTimerEnabled(bool value)
+{
+    if (timerEnabled != value) {
+        timerEnabled = value;
+        emit timerEnabledChanged(value);
+    }
+}
+
+qreal User::getTimerSoundVolume() const
+{
+    return timerSoundVolume;
+}
+
+void User::setTimerSoundVolume(const qreal &value)
+{
+    if (timerSoundVolume != value) {
+        timerSoundVolume = value;
+        emit timerSoundVolumeChanged(value);
+    }
 }
