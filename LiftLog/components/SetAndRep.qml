@@ -18,6 +18,8 @@ Item {
     property alias text: label.text
     property int repsDone: 5
     property int repsToDo: 5
+    property bool isVarying: false
+    property var varyingRepCount: [5, 5, 3]
     property var setModelIndex
     property bool isUsedForWorkout: false
     signal clicked(int repsDone, int repsToDo)
@@ -65,11 +67,68 @@ Item {
             }
         }
 
+        SequentialAnimation {
+            id: varyingCountAnimation
+            loops: Animation.Infinite
+
+            PauseAnimation {
+                duration: 500
+            }
+            PropertyAnimation {
+                target: label; property: "opacity"; to: 0; duration: 1000;
+            }
+            PropertyAnimation {
+                target: varyingCountLabel; property: "opacity"; to: 1; duration: 1000;
+            }
+            PauseAnimation {
+                duration: 500
+            }
+            PropertyAnimation {
+                target: varyingCountLabel; property: "opacity"; to: 0; duration: 1000;
+            }
+            PropertyAnimation {
+                target: label; property: "opacity"; to: 1; duration: 1000;
+            }
+
+        }
+
         Label {
             id: label
             text: "5x5"
             anchors.verticalCenter: parent.verticalCenter
             anchors.horizontalCenter: parent.horizontalCenter
+            Accessible.ignored: true
+        }
+
+        Label {
+            id: varyingCountLabel
+            text: ""
+            wrapMode: Text.WrapAnywhere
+            fontSizeMode: Text.Fit
+            minimumPixelSize: 6 * units.fontScale
+            font.pixelSize: 12 * units.fontScale
+            elide: Text.ElideRight
+            opacity: 0
+
+            anchors.fill: parent
+            anchors.margins: 5 * units.scale
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.horizontalCenter: parent.horizontalCenter
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            Accessible.ignored: true
+
+            Component.onCompleted: {
+                if (isVarying) {
+                    text = generateVaryingCountLabel();
+                    varyingCountAnimation.running = true;
+                }
+            }
+
+            function generateVaryingCountLabel() {
+                var t = varyingRepCount.join("/");
+                return t;
+            }
         }
 
         MouseArea {
@@ -142,6 +201,7 @@ Item {
             name: "empty"
             PropertyChanges { target: label; text: "" }
             PropertyChanges { target: circle; color: whiteColor }
+            PropertyChanges { target: varyingCountLabel; text: "" }
         },
         State {
             name: "standard"
@@ -150,10 +210,13 @@ Item {
             name: "active"
             PropertyChanges { target: circle; color: redColor }
             PropertyChanges { target: label; color: whiteColor }
+            PropertyChanges { target: varyingCountLabel; color: whiteColor }
         },
         State {
             name: "crossed"
             PropertyChanges { target: label; text: "" }
+            PropertyChanges { target: varyingCountLabel; text: "" }
+            PropertyChanges { target: varyingCountAnimation; running: false }
             PropertyChanges { target: circle; border.width: 0; color: crossedColor }
             PropertyChanges { target: cross; opacity: 1 }
         },
@@ -161,6 +224,7 @@ Item {
             name: "blinking"
             PropertyChanges { target: label; text: "" }
             PropertyChanges { target: blinkingAnimation; running: true }
+            PropertyChanges { target: varyingCountAnimation; running: false }
         }
     ]
 }
