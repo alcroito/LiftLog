@@ -59,6 +59,7 @@ public:
     qreal getTimerSoundVolume() const;
     void setTimerSoundVolume(const qreal &value);
 
+    bool copyDefaultPlatesIntoUserPlatesTable();
 signals:
     void nameChanged();
     void weightSystemChanged(User::WeightSystem);

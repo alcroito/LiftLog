@@ -147,13 +147,14 @@ bool User::save()
 {
     bool result;
     QSqlQuery query;
+    bool newUser = true;
     if (!getId()) {
         setId(getNextUserId());
         query.prepare("INSERT INTO user (id_user, name, weight_system, auto_add_weight, timer_enabled, timer_sound_volume, last_id_workout_template, last_workout_template_day) "
                       "VALUES (:id_user, :name, :weight_system, :auto_add_weight, :timer_enabled, :timer_sound_volume, :last_id_workout_template, :last_workout_template_day)");
-
     }
     else {
+        newUser = false;
         query.prepare("UPDATE user "
                       "SET name = :name, weight_system = :weight_system, auto_add_weight = :auto_add_weight, "
                       "timer_enabled = :timer_enabled, timer_sound_volume = :timer_sound_volume, "
@@ -175,9 +176,36 @@ bool User::save()
     if (!result) {
         qDebug() << "Error saving user.";
         qDebug() << query.lastError();
+    } else {
+        if (newUser) {
+            copyDefaultPlatesIntoUserPlatesTable();
+        }
     }
 
     return result;
+}
+
+bool User::copyDefaultPlatesIntoUserPlatesTable() {
+    QSqlQuery query;
+    bool result;
+    result = query.prepare("INSERT INTO plate_user (id_user, weight_metric, weight_imperial, plate_count) "
+                  "SELECT :id_user, weight_metric, weight_imperial, plate_count "
+                  "FROM plate_default "
+                  "ORDER BY id_plate ");
+    if (!result) {
+        qWarning() << "Error preparing query to copy default plates to user plates table.";
+        qWarning() << query.lastError();
+        return false;
+    }
+    query.bindValue(":id_user", getId());
+    result = query.exec();
+    if (!result) {
+        qWarning() << "Error copying default plates to user plates table.";
+        qWarning() << query.lastError();
+        return false;
+    }
+
+    return true;
 }
 
 void User::clear() {
