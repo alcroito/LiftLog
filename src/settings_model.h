@@ -33,6 +33,8 @@ public:
 
     static const QString PAGE_INITIAL;
     static const QString PAGE_WEIGHT;
+    static const QString PAGE_PLATES;
+    static const QString PAGE_BARBELL;
 
 protected:
     virtual QHash<int, QByteArray> roleNames() const;
@@ -47,12 +49,14 @@ public slots:
     void cellSwitchValueChanged(int row, bool checked);
     void cellSliderValueChanged(int row, qreal value);
     void refresh();
+    void prependNewCell();
 signals:
     void switchToSettingsPage(QString pageId);
 
 private:
     GenericTreeNode* root;
     QString currentPageId;
+    QAbstractItemModel* innerModel = nullptr;
 };
 
 #endif // SETTINGSMODEL_H

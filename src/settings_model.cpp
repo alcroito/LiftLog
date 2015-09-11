@@ -3,6 +3,8 @@
 #include "app_state.h"
 #include "user.h"
 #include "icons.h"
+#include "plates_model.h"
+
 #include <QDebug>
 
 SettingsModel::SettingsModel(QObject* parent) : QAbstractItemModel(parent), root(0), currentPageId(PAGE_INITIAL) {}
@@ -14,11 +16,15 @@ SettingsModel::~SettingsModel()
 
 const QString SettingsModel::PAGE_INITIAL = "initial";
 const QString SettingsModel::PAGE_WEIGHT = "weight";
+const QString SettingsModel::PAGE_PLATES = "plates";
+const QString SettingsModel::PAGE_BARBELL = "barbell";
 
 void SettingsModel::clear() {
     if (root) delete root;
-    root = 0;
+    root = nullptr;
     currentPageId = PAGE_INITIAL;
+    if (innerModel) delete innerModel;
+    innerModel = nullptr;
 }
 
 int SettingsModel::rowCount(const QModelIndex &parent) const
@@ -200,6 +206,7 @@ void SettingsModel::getSettingsData(QString pageId)
         settingsMap.insert("showAccessory", true);
         settingsMap.insert("accessoryIcon", ICON_CHEVRON_RIGHT);
         settingsMap.insert("value", "");
+        settingsMap.insert("nextPageId", PAGE_PLATES);
         settingNode = new GenericTreeNode(QVariant::fromValue(settingsMap), root);
         root->appendChild(settingNode);
         settingsMap.clear();
@@ -341,6 +348,40 @@ void SettingsModel::getSettingsData(QString pageId)
         root->appendChild(settingNode);
         settingsMap.clear();
     }
+    else if (pageId == PAGE_PLATES) {
+        PlatesModel* platesModel = new PlatesModel;
+        platesModel->init();
+        innerModel = platesModel;
+        AppState* appState = AppState::getInstance();
+        User* user = appState->getCurrentUser();
+        User::WeightSystem system = user->getWeightSystem();
+
+        for (int i = 0; i < platesModel->rowCount(); ++i) {
+            QModelIndex modelIndex = platesModel->index(i, 0);
+            settingsMap.insert("cellType", "doubleTextEdit");
+            settingsMap.insert("section", tr("AVAILABLE PLATES"));
+            settingsMap.insert("value1", platesModel->data(modelIndex, PlatesModel::PlateWeightRole));
+            settingsMap.insert("displayValue1Suffix", appState->getWeightSystemSuffix(system));
+            settingsMap.insert("value1ValidateAsWeight", true);
+            settingsMap.insert("value2", platesModel->data(modelIndex, PlatesModel::PlateCountRole));
+            settingsMap.insert("displayValue2Suffix", "");
+            settingsMap.insert("value2ValidateAsInt", true);
+            settingNode = new GenericTreeNode(QVariant::fromValue(settingsMap), root);
+            root->appendChild(settingNode);
+            settingsMap.clear();
+        }
+    }
+    else if (pageId == PAGE_BARBELL) {
+        settingsMap.insert("cellType", "textEdit");
+        settingsMap.insert("section", tr("BAR WEIGHT"));
+        settingsMap.insert("label", "SQUAT");
+        settingsMap.insert("value1", "20");
+        settingsMap.insert("displayValue1Suffix", "KG");
+        settingsMap.insert("value1ValidateAsWeight", true);
+        settingNode = new GenericTreeNode(QVariant::fromValue(settingsMap), root);
+        root->appendChild(settingNode);
+        settingsMap.clear();
+    }
 
     endResetModel();
 }
@@ -405,4 +446,32 @@ void SettingsModel::refresh()
     QString pageId = currentPageId;
     clear();
     getSettingsData(pageId);
+}
+
+void SettingsModel::prependNewCell()
+{
+    if (currentPageId == PAGE_PLATES) {
+        PlatesModel* platesModel = qobject_cast<PlatesModel*>(innerModel);
+        platesModel->prependNewPlate();
+
+        AppState* appState = AppState::getInstance();
+        User* user = appState->getCurrentUser();
+        User::WeightSystem system = user->getWeightSystem();
+
+        QVariantMap settingsMap;
+        QModelIndex modelIndex = platesModel->index(0, 0);
+        settingsMap.insert("cellType", "doubleTextEdit");
+        settingsMap.insert("section", tr("AVAILABLE PLATES"));
+        settingsMap.insert("value1", platesModel->data(modelIndex, PlatesModel::PlateWeightRole));
+        settingsMap.insert("displayValue1Suffix", appState->getWeightSystemSuffix(system));
+        settingsMap.insert("value1ValidateAsWeight", true);
+        settingsMap.insert("value2", platesModel->data(modelIndex, PlatesModel::PlateCountRole));
+        settingsMap.insert("displayValue2Suffix", "");
+        settingsMap.insert("value2ValidateAsInt", true);
+
+        GenericTreeNode* settingNode = new GenericTreeNode(QVariant::fromValue(settingsMap), root);
+        beginResetModel();
+        root->prependChild(settingNode);
+        endResetModel();
+    }
 }

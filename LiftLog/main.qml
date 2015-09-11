@@ -75,6 +75,9 @@ ApplicationWindow {
             pageComponents.settingsPage = Qt.createComponent(
                         "pages/SettingsPage.qml", Component.Asynchronous,
                         appWindow)
+            pageComponents.platesBarbellSettingsPage = Qt.createComponent(
+                        "pages/PlatesBarbellSettingsPage.qml", Component.Asynchronous,
+                        appWindow)
         }
 
         delegate: CustomStackViewDelegate {
@@ -205,7 +208,8 @@ ApplicationWindow {
         }
 
         function showSpecificSettingsPage(settingsPageId) {
-            createComponentObjectGuarded(pageComponents.settingsPage, function() {
+            if (settingsPageId === "plates") showPlatesBarbellSettingsPage();
+            else createComponentObjectGuarded(pageComponents.settingsPage, function() {
                 push({
                          item: pageComponents.settingsPage,
                          properties: {
@@ -213,7 +217,16 @@ ApplicationWindow {
                          }
                      })
             });
+        }
 
+        function showPlatesBarbellSettingsPage() {
+            createComponentObjectGuarded(pageComponents.platesBarbellSettingsPage, function() {
+                push({
+                         item: pageComponents.platesBarbellSettingsPage,
+                         properties: {
+                         }
+                     })
+            });
         }
 
         function goBack() {

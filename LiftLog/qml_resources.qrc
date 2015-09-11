@@ -54,6 +54,15 @@
         <file>components/SectionedTableView.qml</file>
         <file>pages/SettingsPage.qml</file>
         <file>components/SliderStyled.qml</file>
+        <file>components/CellTypeBase.qml</file>
+        <file>components/CellTypeTextAndIcon.qml</file>
+        <file>components/CellTypeSwitch.qml</file>
+        <file>components/CellTypeSlider.qml</file>
+        <file>components/CellTypeTextEdit.qml</file>
+        <file>components/CellTypeDoubleTextEdit.qml</file>
+        <file>pages/PlatesBarbellSettingsPage.qml</file>
+        <file>components/TabViewStyleIOS.qml</file>
+        <file>components/CellTextInputWithSuffix.qml</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>

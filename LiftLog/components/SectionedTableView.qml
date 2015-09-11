@@ -10,6 +10,16 @@ Rectangle {
     color: "#ecf0f1"
 
     property var settingsModel
+    property var footerComponent
+    property alias cellWidth: listView.width
+
+    Item {
+        // When a tab gets active focus in a TabView, the first child of a TableView gets forced active focus
+        // which might bring up the keyboard if the child is a TextInput, which we don't want to happen.
+        // That's why we add a dummy focus scope before any children of the TableView.
+        id: dummyFocusScope
+        activeFocusOnTab: true
+    }
 
     ListModel {
         id: testModel
@@ -55,186 +65,41 @@ Rectangle {
 
     Component {
         id: cellTypeTextAndIcon
-
-        Item {
-            id: cellTypeWrapper
-            height: listView.cellHeight
+        CellTypeTextAndIcon {
             width: listView.width
-
-            property var itemModelData
-//            onItemModelDataChanged: {
-//                console.log("data", itemModelData, itemModelIndex);
-//            }
-//            onItemModelIndexChanged: {
-//                console.log("index", itemModelData, itemModelIndex);
-//            }
-
-            property int itemModelIndex: -1
-
-            Loader {
-                id: cellIconLoader
-
-                anchors.left: parent.left
-                anchors.leftMargin: 15 * units.scale
-                anchors.verticalCenter: parent.verticalCenter
-                sourceComponent: Label {
-                    id: cellIcon
-                    font.family: icomoon.name
-                    font.pixelSize: 12 * units.fontScale
-                    text: itemModelData.icon
-                    Accessible.ignored: true
-                }
-                active: itemModelData.showIcon
-            }
-
-            Label {
-                property int leftMarginOfLabel: itemModelData.showIcon ? 40 : 10;
-                id: cellLabel
-                text: itemModelData.label
-                anchors.left: parent.left
-                anchors.leftMargin: leftMarginOfLabel * units.scale
-                anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: 12 * units.fontScale
-                Accessible.ignored: true
-            }
-
-            Label {
-                id: cellValueLabel
-                text: itemModelData.value
-                color: "#c7c7cc"
-                anchors.right:  parent.right
-                anchors.rightMargin: 30 * units.scale
-                anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: 12 * units.fontScale
-                Accessible.ignored: true
-            }
-
-            Loader {
-                id: cellAccessoryLoader
-
-                anchors.right: parent.right
-                anchors.rightMargin: 10 * units.scale
-                anchors.verticalCenter: parent.verticalCenter
-                sourceComponent: Label {
-                    id: cellAccessory
-                    font.family: icomoon.name
-                    font.pixelSize: itemModelData.selectable ? 16 * units.fontScale : 12 * units.fontScale
-                    text: itemModelData.accessoryIcon
-                    color: itemModelData.selectable ? "#e74c3c" : "#c7c7cc"
-                    Accessible.ignored: true
-                }
-                active: itemModelData.selectable ? itemModelData.selected : itemModelData.showAccessory
-            }
+            height: listView.cellHeight
         }
     }
 
     Component {
         id: cellTypeSwitch
-
-        Item {
-            id: cellTypeWrapper
-            height: listView.cellHeight
+        CellTypeSwitch {
             width: listView.width
-            property var itemModelData
-            property int itemModelIndex: -1
-
-            Loader {
-                id: cellIconLoader
-
-                anchors.left: parent.left
-                anchors.leftMargin: 15 * units.scale
-                anchors.verticalCenter: parent.verticalCenter
-                sourceComponent: Label {
-                    id: cellIcon
-                    font.family: icomoon.name
-                    font.pixelSize: 12 * units.fontScale
-                    text: itemModelData.icon
-                    Accessible.ignored: true
-                }
-                active: itemModelData.showIcon
-            }
-
-            Label {
-                property int leftMarginOfLabel: itemModelData.showIcon ? 40 : 10;
-                id: cellLabel
-                text: itemModelData.label
-                anchors.left: parent.left
-                anchors.leftMargin: leftMarginOfLabel * units.scale
-                anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: 12 * units.fontScale
-                Accessible.ignored: true
-            }
-
-            SwitchStyled {
-                id: cellSwitch
-                anchors.right: parent.right
-                anchors.rightMargin: 10 * units.scale
-                anchors.verticalCenter: parent.verticalCenter
-                checked: itemModelData.value == "1"
-                Accessible.ignored: true
-                onClicked: settingsModel.cellSwitchValueChanged(itemModelIndex, checked);
-            }
+            height: listView.cellHeight
         }
     }
 
     Component {
         id: cellTypeSlider
-
-        Item {
-            id: cellTypeWrapper
-            height: listView.cellHeight
+        CellTypeSlider {
             width: listView.width
-            property var itemModelData
-            property int itemModelIndex: -1
+            height: listView.cellHeight
+        }
+    }
 
-            Loader {
-                id: cellIconLoaderBefore
+    Component {
+        id: cellTypeTextEdit
+        CellTypeTextEdit {
+            width: listView.width
+            height: listView.cellHeight
+        }
+    }
 
-                anchors.left: parent.left
-                anchors.leftMargin: 18 * units.scale
-                anchors.verticalCenter: parent.verticalCenter
-                sourceComponent: Label {
-                    id: cellIconBefore
-                    font.family: icomoon.name
-                    font.pixelSize: 12 * units.fontScale
-                    text: "\uea29"
-                    Accessible.ignored: true
-                }
-            }
-
-            SliderStyled {
-                id: cellSlider
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.leftMargin: 35 * units.scale
-                anchors.rightMargin: 50 * units.scale
-                anchors.verticalCenter: parent.verticalCenter
-                minimumValue: 0.0
-                maximumValue: 100.0
-                stepSize: 1.0
-                value: itemModelData.value
-                updateValueWhileDragging: false
-                Accessible.ignored: true
-                onValueChanged: {
-                    if (itemModelIndex != -1)
-                        settingsModel.cellSliderValueChanged(itemModelIndex, value);
-                }
-            }
-
-            Loader {
-                id: cellIconLoaderAfter
-
-                anchors.right: parent.right
-                anchors.rightMargin: 15 * units.scale
-                anchors.verticalCenter: parent.verticalCenter
-                sourceComponent: Label {
-                    id: cellIconAfter
-                    font.family: icomoon.name
-                    font.pixelSize: 12 * units.fontScale
-                    text: "\uea26"
-                    Accessible.ignored: true
-                }
-            }
+    Component {
+        id: cellTypeDoubleTextEdit
+        CellTypeDoubleTextEdit {
+            width: listView.width
+            height: listView.cellHeight
         }
     }
 
@@ -268,6 +133,8 @@ Rectangle {
         section.delegate: sectionHeading
 
         property int cellHeight: 55 * units.scale
+
+        footer: footerComponent ? footerComponent : null
 
         Component {
             id: sectionHeading
@@ -310,14 +177,14 @@ Rectangle {
                 id: pressedMouseArea
                 anchors.fill: parent
                 onPressed: {
-                    if (model.cellType !== "switch" && model.cellType !== "slider")
+                    if (model.cellType !== "switch" && model.cellType !== "slider" && model.cellType !== "doubleTextEdit" && model.cellType !== "textEdit")
                         cellWrapper.state = "pressed"
                 }
                 onReleased: {
                     cellWrapper.state = ""
                 }
                 onClicked: {
-                    if (model.cellType !== "switch" && model.cellType !== "slider") {
+                    if (model.cellType !== "switch" && model.cellType !== "slider" && model.cellType !== "doubleTextEdit" && model.cellType !== "textEdit") {
                         settingsModel.cellClicked(index);
                     }
                 }
@@ -370,6 +237,8 @@ Rectangle {
                     if (type === "switch") return cellTypeSwitch;
                     if (type === "slider") return cellTypeSlider;
                     if (type === "text") return cellTypeTextAndIcon;
+                    if (type === "doubleTextEdit") return cellTypeDoubleTextEdit;
+                    if (type === "textEdit") return cellTypeTextEdit;
                     // Fix undefined errors.
                     console.warn("Trying to intantiate unknown cell type.");
                     return cellTypeDummy;
@@ -385,6 +254,12 @@ Rectangle {
                 separator.anchors.leftMargin: 15 * units.scale
             }
         }
+    }
+
+    function forceActiveFocusForFirstCell() {
+        listView.currentIndex = 0;
+        var next = listView.currentItem.nextItemInFocusChain(true);
+        next.forceActiveFocus();
     }
 }
 

@@ -32,6 +32,7 @@ APP_QML_FILES += \
     LiftLog/components/SetAndRep.qml \
     LiftLog/components/ExerciseStatsInput.qml \
     LiftLog/components/TopNotification.qml \
+    LiftLog/components/FinishWorkoutButton.qml \
     LiftLog/components/DateAndWeight.qml \
     LiftLog/components/Separator.qml \
     LiftLog/components/SwipeArea.qml \
@@ -46,6 +47,14 @@ APP_QML_FILES += \
     LiftLog/components/DialogTextBox.qml\
     LiftLog/components/SectionedTableView.qml\
     LiftLog/components/SliderStyled.qml\
+    LiftLog/components/CellTypeBase.qml\
+    LiftLog/components/CellTypeTextAndIcon.qml\
+    LiftLog/components/CellTypeSlider.qml\
+    LiftLog/components/CellTypeSwitch.qml\
+    LiftLog/components/CellTypeTextEdit.qml\
+    LiftLog/components/CellTypeDoubleTextEdit.qml\
+    LiftLog/components/CellTextInputWithSuffix.qml\
+    LiftLog/components/TabViewStyleIOS.qml\
     LiftLog/pages/qmldir \
     LiftLog/pages/DashboardPage.qml \
     LiftLog/pages/WelcomePage.qml \
@@ -59,14 +68,13 @@ APP_QML_FILES += \
     LiftLog/pages/ExerciseWeightPage.qml \
     LiftLog/pages/GraphPage.qml \
     LiftLog/pages/SettingsPage.qml \
+    LiftLog/pages/PlatesBarbellSettingsPage.qml \
     LiftLog/extras/qmldir \
     LiftLog/extras/Tumbler.qml \
     LiftLog/extras/TumblerColumn.qml \
     LiftLog/extras/TumblerStyle.qml \
     LiftLog/extras/BaseTumblerStyle.qml\
     LiftLog/extras/FlatStyle.qml
-
-
 
 FONTS += \
     icomoon.ttf
