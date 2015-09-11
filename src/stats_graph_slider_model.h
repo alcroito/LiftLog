@@ -6,10 +6,6 @@
 #include <QDate>
 #include "stats_graph_data.h"
 
-class StatsGraphSliderModelEntry {
-
-};
-
 class StatsGraphSliderModel : public QAbstractListModel
 {
     Q_OBJECT
