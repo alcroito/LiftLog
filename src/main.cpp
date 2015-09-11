@@ -5,6 +5,7 @@
 #include <QtQml>
 #include <QFont>
 #include <QFontDatabase>
+#include <QLoggingCategory>
 
 #include "application.h"
 #include "punits.h"
@@ -102,6 +103,10 @@ int main(int argc, char *argv[])
 //    QDateTime currentDate = QDateTime::currentDateTime();
 //    QDateTime notificationDate = currentDate.addSecs(5);
 //    localNotificationService->scheduleNotification("id5", notificationDate, "Awesome title2", "Hello world2", "View", 1);
+    
+//    QLoggingCategory::setFilterRules("qt.qpa.input.methods=true");
+//    QSharedPointer<AppEventFilter> filter = QSharedPointer<AppEventFilter>(new AppEventFilter());
+//    app.installEventFilter(filter.data());
 
     return app.exec();
 }

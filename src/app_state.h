@@ -10,6 +10,13 @@ class QScreen;
 class QtQuickControlsApplication;
 class WorkoutModel;
 
+class AppEventFilter : public QObject {
+    Q_OBJECT
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event);
+};
+
 class AppState : public QObject
 {
     Q_OBJECT

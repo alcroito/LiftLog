@@ -4,6 +4,8 @@
 #include <QScreen>
 #include <QStringBuilder>
 #include <QQmlEngine>
+#include <QEvent>
+#include <QInputMethodQueryEvent>
 #include <cmath>
 
 #include "application.h"
@@ -12,6 +14,10 @@
 #include "punits.h"
 #include "workout_model.h"
 #include "weight_string_builder.h"
+
+#ifdef Q_OS_IOS
+//#include <UIKit/UIKit.h>
+#endif
 
 AppState* AppState::instance = 0;
 
@@ -329,4 +335,31 @@ QString WeightStringBuilder::build()
     if (lowerCase) result = result.toLower();
 
     return result;
+}
+
+bool AppEventFilter::eventFilter(QObject *obj, QEvent *event)
+{
+    static bool here = false;
+    if (event->type() == QEvent::InputMethodQuery) {
+        QInputMethodQueryEvent* imEvent = static_cast<QInputMethodQueryEvent *>(event);
+        QVariantMap platformData = imEvent->value(Qt::ImPlatformData).toMap();
+#ifdef Q_OS_IOS
+        platformData.insert("returnKeyType", 4);
+        imEvent->setValue(Qt::ImPlatformData, platformData);
+        qDebug() << "queries" << imEvent->queries() << "platformData" << platformData;
+        auto im = QGuiApplication::inputMethod();
+        if (!here) {
+            here = true;
+            im->update(imEvent->queries() | Qt::ImQueryAll);
+            here = false;
+        }
+        else {
+            int a = 1;
+        }
+#endif
+        return QObject::eventFilter(obj, event);
+    } else {
+        // standard event processing
+        return QObject::eventFilter(obj, event);
+    }
 }
