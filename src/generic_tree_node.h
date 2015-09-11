@@ -8,6 +8,7 @@ public:
     explicit GenericTreeNode(const QVariant& theData, GenericTreeNode* parentItem = 0) : parent(parentItem), itemData(theData) {}
     ~GenericTreeNode() { qDeleteAll(children); }
     void appendChild(GenericTreeNode* child) { children.append(child); }
+    void prependChild(GenericTreeNode* child) { children.prepend(child); }
     GenericTreeNode* child(int row) { return children.value(row); }
     int childCount() const { return children.count(); }
     int columnCount() const { return 1; }
