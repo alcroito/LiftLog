@@ -6,6 +6,7 @@ Item {
     width: appState.windowWidth
     height: 54 * units.scale
     property alias text: textLabel.text
+    property bool noMargins: false
     signal clicked
 
     states: [
@@ -30,10 +31,10 @@ Item {
         id : inner
         color: "#e1352d"
         anchors.fill: parent
-        anchors.topMargin: 7 * units.scale
-        anchors.bottomMargin: 7 * units.scale
-        anchors.leftMargin: 7 * units.scale
-        anchors.rightMargin: 7 * units.scale
+        anchors.topMargin: noMargins ? 0 : 7 * units.scale
+        anchors.bottomMargin: noMargins ? 0 : 7 * units.scale
+        anchors.leftMargin: noMargins ? 0 : 7 * units.scale
+        anchors.rightMargin: noMargins ? 0 : 7 * units.scale
 
         Rectangle {
             id: pressedShadow
