@@ -30,6 +30,7 @@ Item {
     property bool showNavigationBarDoneButton: false
     property bool showNavigationBarWarmupButton: false
     property bool showNavigationLeftGearButton: false
+    property bool showNavigationRightResetButton: false
 
     default property alias content: innerItem.data
 
@@ -59,6 +60,7 @@ Item {
             showDoneButton: showNavigationBarDoneButton
             showWarmupButton: showNavigationBarWarmupButton
             showLeftGearButton: showNavigationLeftGearButton
+            showRightResetButton: showNavigationRightResetButton
             onBurgerClicked: {
                 showSideWindow()
             }

@@ -14,6 +14,7 @@ Rectangle {
     signal doneClicked
     signal warmupClicked
     signal leftGearClicked
+    signal resetClicked
 
     property alias text: label.text
     property alias pixelSize: label.font.pixelSize
@@ -24,6 +25,7 @@ Rectangle {
     property bool showDoneButton: false
     property bool showWarmupButton: false
     property bool showLeftGearButton: false
+    property bool showRightResetButton: false
 
     property alias backButton: backButton
 
@@ -177,6 +179,29 @@ Rectangle {
         MouseArea {
             anchors.fill: parent
             onClicked: leftGearClicked()
+        }
+    }
+
+    Label {
+        id: rightResetButton
+        height: root.height
+        width: 40 * units.scale
+        color: "#ffffff"
+        text: "\ue611"
+
+        verticalAlignment: Text.AlignVCenter
+        horizontalAlignment: Text.AlignHCenter
+        anchors.right: parent.right
+
+        font.family: icomoon.name
+        font.pixelSize: 12 * units.fontScale
+        enabled: showRightResetButton
+        visible: showRightResetButton
+        Accessible.ignored: true
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: resetClicked()
         }
     }
 }
