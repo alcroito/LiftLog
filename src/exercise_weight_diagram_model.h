@@ -3,16 +3,7 @@
 
 #include <QObject>
 #include <QAbstractListModel>
-
-class ExercisePlate {
-public:
-    ExercisePlate() {}
-    ExercisePlate(qreal newWeight) : weight(newWeight) {}
-    ExercisePlate(qreal newWeight, qreal newImperialWeight) : weight(newWeight), imperialWeight(newImperialWeight) {}
-    qreal weight;
-    qreal imperialWeight;
-    qreal getWeight(int system);
-};
+#include "plate.h"
 
 class ExerciseWeightDiagramModel : public QAbstractListModel
 {
@@ -38,8 +29,8 @@ protected:
     QHash<int, QByteArray> roleNames() const;
 
 private:
-    QList<ExercisePlate> plateList;
-    QList<ExercisePlate> availablePlates;
+    QList<Plate> plateList;
+    QList<Plate> availablePlates;
     qreal weight;
 };
 

@@ -7,12 +7,12 @@
 ExerciseWeightDiagramModel::ExerciseWeightDiagramModel(QObject *parent) : QAbstractListModel(parent), weight(20)
 {
     // @TODO Make the available plates list configurable.
-    availablePlates.append(ExercisePlate(20, 45));
-    availablePlates.append(ExercisePlate(10, 25));
-    availablePlates.append(ExercisePlate(5, 10));
-    availablePlates.append(ExercisePlate(2.5, 5));
-    availablePlates.append(ExercisePlate(1.25, 2.5));
-    availablePlates.append(ExercisePlate(1, 2));
+    availablePlates.append(Plate(20, 45));
+    availablePlates.append(Plate(10, 25));
+    availablePlates.append(Plate(5, 10));
+    availablePlates.append(Plate(2.5, 5));
+    availablePlates.append(Plate(1.25, 2.5));
+    availablePlates.append(Plate(1, 2));
 }
 
 ExerciseWeightDiagramModel::~ExerciseWeightDiagramModel()
@@ -68,7 +68,7 @@ QString ExerciseWeightDiagramModel::getPlatesBreakdownText()
     QString text;
     qint32 plateCount = 0;
     qreal prevPlateWeight = 0;
-    ExercisePlate prevPlate;
+    Plate prevPlate;
     bool prevPlateWeightSet = false;
 
     AppState* instance = AppState::getInstance();
@@ -78,13 +78,13 @@ QString ExerciseWeightDiagramModel::getPlatesBreakdownText()
     qint32 plateListCount = plateList.count();
 
     for (int i = 0; i < plateListCount; ++i) {
-        ExercisePlate& plate = plateList[i];
-        if (plate.weight != prevPlateWeight && prevPlateWeightSet) {
+        Plate& plate = plateList[i];
+        if (plate.getWeight(User::Metric) != prevPlateWeight && prevPlateWeightSet) {
             text += QString("%1 x %2%3\n").arg(plateCount).arg(prevPlate.getWeight(system)).arg(weightSystemSuffix);
             plateCount = 0;
         }
         plateCount++;
-        prevPlateWeight = plate.weight;
+        prevPlateWeight = plate.getWeight(User::Metric);
         prevPlateWeightSet = true;
         prevPlate = plate;
     }
@@ -114,9 +114,9 @@ QVariant ExerciseWeightDiagramModel::data(const QModelIndex &index, int role) co
     if (index.row() < 0 || index.row() >= plateList.count())
             return QVariant();
 
-    const ExercisePlate& plate = plateList[index.row()];
+    const Plate& plate = plateList[index.row()];
     if (role == WeightRole)
-        return plate.weight;
+        return plate.getWeight(User::Metric);
     return QVariant();
 }
 
@@ -124,10 +124,4 @@ QHash<int, QByteArray> ExerciseWeightDiagramModel::roleNames() const {
     QHash<int, QByteArray> roles;
     roles[WeightRole] = "weight";
     return roles;
-}
-
-qreal ExercisePlate::getWeight(int system)
-{
-    if (system == User::Metric) return weight;
-    else return imperialWeight;
 }
