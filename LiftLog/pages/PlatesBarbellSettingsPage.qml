@@ -19,17 +19,17 @@ BasicPage {
         barbellModel.refresh()
     }
 
-    SettingsModel {
+    SettingsProxyModel {
         id: platesModel
         Component.onCompleted: {
-            platesModel.getSettingsData("plates");
+            platesModel.init("plates");
         }
     }
 
     SettingsModel {
         id: barbellModel
         Component.onCompleted: {
-            barbellModel.getSettingsData("barbell");
+            barbellModel.init("barbell");
         }
     }
 
@@ -64,7 +64,7 @@ BasicPage {
                         height: 42 * units.scale
                         text: qsTr("Add Plate")
                         onClicked: {
-                            platesModel.prependNewCell()
+                            platesModel.prependNewRow()
                             tableView.forceActiveFocusForFirstCell()
                         }
                     }

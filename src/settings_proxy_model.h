@@ -3,6 +3,43 @@
 
 #include <QObject>
 #include <QAbstractItemModel>
+#include <QIdentityProxyModel>
+#include "settings_models/settings_pages.h"
+
+class SettingsProxyModel : public QIdentityProxyModel {
+    Q_OBJECT
+    Q_ENUMS(SettingsProxyRoles)
+public:
+    enum SettingsProxyRoles {
+        SettingsProxyPropertiesRole = Qt::UserRole + 1,
+        SettingsProxyCellTypeRole,
+        SettingsProxySectionRole,
+    };
+
+    explicit SettingsProxyModel(QObject* parent = 0);
+    ~SettingsProxyModel();
+
+public slots:
+    QVariant data(const QModelIndex &index, int role) const;
+
+    void init(QString pageId = SETTINGS_PAGE_INITIAL);
+    void clear();
+    void refresh();
+    void cellClicked(int row);
+    void cellSwitchValueChanged(int row, bool checked);
+    void cellSliderValueChanged(int row, qreal value);
+    void prependNewRow();
+
+protected:
+    virtual QHash<int, QByteArray> roleNames() const;
+
+signals:
+    void switchToSettingsPage(QString pageId);
+
+private:
+    QAbstractItemModel* sourceModel;
+    QString currentPageId;
+};
 
 class GenericTreeNode;
 class SettingsModel : public QAbstractItemModel
@@ -31,25 +68,22 @@ public:
 
     GenericTreeNode* getModelItem(const QModelIndex &index) const;
 
-    static const QString PAGE_INITIAL;
-    static const QString PAGE_WEIGHT;
-    static const QString PAGE_PLATES;
-    static const QString PAGE_BARBELL;
-
 protected:
     virtual QHash<int, QByteArray> roleNames() const;
 
 public slots:
-    void clear();
+
     QVariant data(const QModelIndex &index, int role) const;
     bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
 
-    void getSettingsData(QString page = PAGE_INITIAL);
+    void init(QString page = SETTINGS_PAGE_INITIAL);
+    void clear();
+    void refresh();
     void cellClicked(int row);
     void cellSwitchValueChanged(int row, bool checked);
     void cellSliderValueChanged(int row, qreal value);
-    void refresh();
-    void prependNewCell();
+
+    void prependNewRow();
 signals:
     void switchToSettingsPage(QString pageId);
 

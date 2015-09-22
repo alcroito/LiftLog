@@ -1,28 +1,25 @@
-#include "settings_model.h"
+#include "settings_proxy_model.h"
 #include "generic_tree_node.h"
 #include "app_state.h"
 #include "user.h"
 #include "icons.h"
 #include "plates_model.h"
+#include "settings_models/main_settings_model.h"
+#include "settings_models/settings_interface.h"
 
 #include <QDebug>
 
-SettingsModel::SettingsModel(QObject* parent) : QAbstractItemModel(parent), root(0), currentPageId(PAGE_INITIAL) {}
+SettingsModel::SettingsModel(QObject* parent) : QAbstractItemModel(parent), root(0), currentPageId(SETTINGS_PAGE_INITIAL) {}
 
 SettingsModel::~SettingsModel()
 {
     clear();
 }
 
-const QString SettingsModel::PAGE_INITIAL = "initial";
-const QString SettingsModel::PAGE_WEIGHT = "weight";
-const QString SettingsModel::PAGE_PLATES = "plates";
-const QString SettingsModel::PAGE_BARBELL = "barbell";
-
 void SettingsModel::clear() {
     if (root) delete root;
     root = nullptr;
-    currentPageId = PAGE_INITIAL;
+    currentPageId = SETTINGS_PAGE_INITIAL;
     if (innerModel) delete innerModel;
     innerModel = nullptr;
 }
@@ -172,7 +169,7 @@ QHash<int, QByteArray> SettingsModel::roleNames() const {
     return roles;
 }
 
-void SettingsModel::getSettingsData(QString pageId)
+void SettingsModel::init(QString pageId)
 {
     currentPageId = pageId;
     beginResetModel();
@@ -181,7 +178,7 @@ void SettingsModel::getSettingsData(QString pageId)
     GenericTreeNode* settingNode;
     User* currentUser = AppState::getInstance()->getCurrentUser();
 
-    if (pageId == PAGE_INITIAL) {
+    if (pageId == SETTINGS_PAGE_INITIAL) {
         settingsMap.insert("cellType", "text");
         settingsMap.insert("label", tr("Weight System"));
         settingsMap.insert("section", tr("SETTINGS"));
@@ -193,7 +190,7 @@ void SettingsModel::getSettingsData(QString pageId)
         if (currentUser->getWeightSystem() == User::Imperial)
             weightSystemValue = tr("Imperial");
         settingsMap.insert("value", weightSystemValue);
-        settingsMap.insert("nextPageId", PAGE_WEIGHT);
+        settingsMap.insert("nextPageId", SETTINGS_PAGE_WEIGHT);
         settingNode = new GenericTreeNode(QVariant::fromValue(settingsMap), root);
         root->appendChild(settingNode);
         settingsMap.clear();
@@ -206,7 +203,7 @@ void SettingsModel::getSettingsData(QString pageId)
         settingsMap.insert("showAccessory", true);
         settingsMap.insert("accessoryIcon", ICON_CHEVRON_RIGHT);
         settingsMap.insert("value", "");
-        settingsMap.insert("nextPageId", PAGE_PLATES);
+        settingsMap.insert("nextPageId", SETTINGS_PAGE_PLATES);
         settingNode = new GenericTreeNode(QVariant::fromValue(settingsMap), root);
         root->appendChild(settingNode);
         settingsMap.clear();
@@ -317,7 +314,7 @@ void SettingsModel::getSettingsData(QString pageId)
         root->appendChild(settingNode);
         settingsMap.clear();
     }
-    else if (pageId == PAGE_WEIGHT) {
+    else if (pageId == SETTINGS_PAGE_WEIGHT) {
         bool metricActive = currentUser->getWeightSystem() == User::Metric;
         bool imperialActive = currentUser->getWeightSystem() == User::Imperial;
         settingsMap.insert("cellType", "text");
@@ -348,7 +345,7 @@ void SettingsModel::getSettingsData(QString pageId)
         root->appendChild(settingNode);
         settingsMap.clear();
     }
-    else if (pageId == PAGE_PLATES) {
+    else if (pageId == SETTINGS_PAGE_PLATES) {
         PlatesModel* platesModel = new PlatesModel;
         platesModel->init();
         innerModel = platesModel;
@@ -371,7 +368,7 @@ void SettingsModel::getSettingsData(QString pageId)
             settingsMap.clear();
         }
     }
-    else if (pageId == PAGE_BARBELL) {
+    else if (pageId == SETTINGS_PAGE_BARBELL) {
         settingsMap.insert("cellType", "textEdit");
         settingsMap.insert("section", tr("BAR WEIGHT"));
         settingsMap.insert("label", "SQUAT");
@@ -406,7 +403,7 @@ void SettingsModel::cellClicked(int row)
         }
     }
 
-    if (currentPageId == PAGE_WEIGHT) {
+    if (currentPageId == SETTINGS_PAGE_WEIGHT) {
         QVariantMap map2 = node->data().value<QVariantMap>();
         User::WeightSystem newWeightSystem = map2["internalValue"].value<User::WeightSystem>();
         User* currentUser = AppState::getInstance()->getCurrentUser();
@@ -419,7 +416,7 @@ void SettingsModel::cellSwitchValueChanged(int row, bool checked)
 {
     GenericTreeNode* node = root->child(row);
     QVariantMap map = node->data().value<QVariantMap>();
-    if (currentPageId == PAGE_INITIAL) {
+    if (currentPageId == SETTINGS_PAGE_INITIAL) {
         if (map.contains("id") && map["id"] == "timerEnabled") {
             User* currentUser = AppState::getInstance()->getCurrentUser();
             currentUser->setTimerEnabled(checked);
@@ -432,7 +429,7 @@ void SettingsModel::cellSliderValueChanged(int row, qreal value)
 {
     GenericTreeNode* node = root->child(row);
     QVariantMap map = node->data().value<QVariantMap>();
-    if (currentPageId == PAGE_INITIAL) {
+    if (currentPageId == SETTINGS_PAGE_INITIAL) {
         if (map.contains("id") && map["id"] == "timerSoundVolume") {
             User* currentUser = AppState::getInstance()->getCurrentUser();
             currentUser->setTimerSoundVolume(value);
@@ -445,12 +442,12 @@ void SettingsModel::refresh()
 {
     QString pageId = currentPageId;
     clear();
-    getSettingsData(pageId);
+    init(pageId);
 }
 
-void SettingsModel::prependNewCell()
+void SettingsModel::prependNewRow()
 {
-    if (currentPageId == PAGE_PLATES) {
+    if (currentPageId == SETTINGS_PAGE_PLATES) {
         PlatesModel* platesModel = qobject_cast<PlatesModel*>(innerModel);
         platesModel->prependNewPlate();
 
@@ -473,5 +470,130 @@ void SettingsModel::prependNewCell()
         beginResetModel();
         root->prependChild(settingNode);
         endResetModel();
+    }
+}
+
+SettingsProxyModel::SettingsProxyModel(QObject *parent) : QIdentityProxyModel(parent)
+{
+
+}
+
+SettingsProxyModel::~SettingsProxyModel()
+{
+    if (sourceModel) delete sourceModel;
+}
+
+QHash<int, QByteArray> SettingsProxyModel::roleNames() const {
+    QHash<int, QByteArray> roles;
+    roles[SettingsProxyPropertiesRole] = "properties";
+    roles[SettingsProxyCellTypeRole] = "cellType";
+    roles[SettingsProxySectionRole] = "section";
+    return roles;
+}
+
+QVariant SettingsProxyModel::data(const QModelIndex &index, int role) const
+{
+    if (role == SettingsProxyPropertiesRole) {
+        SettingsInterface* i = qobject_cast<SettingsInterface*>(sourceModel);
+        if (i) {
+            return i->getSettingsProperties(mapToSource(index));
+        }
+    } else if (role == SettingsProxyCellTypeRole) {
+        SettingsInterface* i = qobject_cast<SettingsInterface*>(sourceModel);
+        if (i) {
+            return i->getSettingsCellType(mapToSource(index));
+        }
+    }
+    else if (role == SettingsProxySectionRole) {
+        SettingsInterface* i = qobject_cast<SettingsInterface*>(sourceModel);
+        if (i) {
+            return i->getSettingsSection(mapToSource(index));
+        }
+    }
+
+    return QVariant();
+}
+
+void SettingsProxyModel::init(QString pageId)
+{
+    if (pageId == SETTINGS_PAGE_INITIAL) {
+        MainSettingsModel* m = new MainSettingsModel();
+        m->init();
+        sourceModel = m;
+        setSourceModel(sourceModel);
+        connect(m, SIGNAL(switchToSettingsPage(QString)), this, SIGNAL(switchToSettingsPage(QString)));
+    }
+    else if (pageId == SETTINGS_PAGE_WEIGHT) {
+        MainSettingsModel* m = new MainSettingsModel();
+        m->init(SETTINGS_PAGE_WEIGHT);
+        sourceModel = m;
+        setSourceModel(sourceModel);
+    }
+    else if (pageId == SETTINGS_PAGE_PLATES) {
+        PlatesModel* m = new PlatesModel();
+        m->init();
+        sourceModel = m;
+        setSourceModel(sourceModel);
+    }
+}
+
+void SettingsProxyModel::refresh()
+{
+    SettingsInterface* i = qobject_cast<SettingsInterface*>(sourceModel);
+    if (i) {
+        return i->refresh();
+    } else {
+        qWarning() << "Couldn't refresh source model of proxy model";
+    }
+}
+
+void SettingsProxyModel::clear()
+{
+    currentPageId = SETTINGS_PAGE_INITIAL;
+    if (sourceModel) {
+        setSourceModel(nullptr);
+        delete sourceModel;
+    }
+    sourceModel = nullptr;
+
+}
+
+void SettingsProxyModel::cellClicked(int row)
+{
+    SettingsInterface* i = qobject_cast<SettingsInterface*>(sourceModel);
+    if (i) {
+        return i->cellClicked(row);
+    } else {
+        qWarning() << "Couldn't delegate cellClicked slot to source model.";
+    }
+}
+
+void SettingsProxyModel::cellSwitchValueChanged(int row, bool checked)
+{
+    SettingsInterface* i = qobject_cast<SettingsInterface*>(sourceModel);
+    if (i) {
+        return i->cellSwitchValueChanged(row, checked);
+    } else {
+        qWarning() << "Couldn't delegate cellSwitchValueChanged slot to source model.";
+    }
+}
+
+void SettingsProxyModel::cellSliderValueChanged(int row, qreal value)
+{
+    SettingsInterface* i = qobject_cast<SettingsInterface*>(sourceModel);
+    if (i) {
+        return i->cellSliderValueChanged(row, value);
+    } else {
+        qWarning() << "Couldn't delegate cellSliderValueChanged slot to source model.";
+    }
+}
+
+void SettingsProxyModel::prependNewRow()
+{
+    SettingsInterface* i = qobject_cast<SettingsInterface*>(sourceModel);
+    if (i) {
+        return i->prependNewRow();
+    } else {
+        qWarning() << "Couldn't delegate prependNewRow slot to source model.";
     }
 }

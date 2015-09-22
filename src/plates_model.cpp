@@ -48,6 +48,16 @@ QVariant PlatesModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
+QHash<int, QByteArray> PlatesModel::roleNames() const
+{
+    QHash<int, QByteArray> roles;
+    roles[PlateWeightRole] = "weight";
+    roles[PlateMetricWeightRole] = "metricWeight";
+    roles[PlateImperialWeightRole] = "imperialWeight";
+    roles[PlateCountRole] = "count";
+    return roles;
+}
+
 QList<Plate> PlatesModel::getPlatesFromDB()
 {
     QList<Plate> dbPlateList;
@@ -92,19 +102,58 @@ void PlatesModel::prependNewPlate()
     endResetModel();
 }
 
+QVariant PlatesModel::getSettingsProperties(const QModelIndex &index) const
+{
+    QVariantMap settingsMap;
+    AppState* appState = AppState::getInstance();
+    User* user = appState->getCurrentUser();
+    User::WeightSystem system = user->getWeightSystem();
+
+    settingsMap.insert("cellType", "doubleTextEdit");
+    settingsMap.insert("section", tr("AVAILABLE PLATES"));
+    settingsMap.insert("value1", data(index, PlatesModel::PlateWeightRole));
+    settingsMap.insert("displayValue1Suffix", appState->getWeightSystemSuffix(system));
+    settingsMap.insert("value1ValidateAsWeight", true);
+    settingsMap.insert("value2", data(index, PlatesModel::PlateCountRole));
+    settingsMap.insert("displayValue2Suffix", "");
+    settingsMap.insert("value2ValidateAsInt", true);
+    return settingsMap;
+}
+
+QVariant PlatesModel::getSettingsCellType(const QModelIndex &index) const
+{
+    Q_UNUSED(index;)
+    return QString("doubleTextEdit");
+}
+
+QVariant PlatesModel::getSettingsSection(const QModelIndex &index) const
+{
+    Q_UNUSED(index;)
+    return tr("AVAILABLE PLATES");
+}
+
 void PlatesModel::refresh()
 {
     beginResetModel();
     endResetModel();
 }
 
-QHash<int, QByteArray> PlatesModel::roleNames() const
+void PlatesModel::cellClicked(int row)
 {
-    QHash<int, QByteArray> roles;
-    roles[PlateWeightRole] = "weight";
-    roles[PlateMetricWeightRole] = "metricWeight";
-    roles[PlateImperialWeightRole] = "imperialWeight";
-    roles[PlateCountRole] = "count";
-    return roles;
+
 }
 
+void PlatesModel::cellSliderValueChanged(int row, qreal value)
+{
+
+}
+
+void PlatesModel::cellSwitchValueChanged(int row, bool checked)
+{
+
+}
+
+void PlatesModel::prependNewRow()
+{
+    prependNewPlate();
+}

@@ -19,10 +19,10 @@ BasicPage {
 
     property string settingsPageId: "initial"
 
-    SettingsModel {
+    SettingsProxyModel {
         id: model
         Component.onCompleted: {
-            model.getSettingsData(settingsPageId);
+            model.init(settingsPageId);
         }
         onSwitchToSettingsPage: {
             pageStack.showSpecificSettingsPage(pageId)

@@ -339,7 +339,7 @@ QString WeightStringBuilder::build()
 
 bool AppEventFilter::eventFilter(QObject *obj, QEvent *event)
 {
-    static bool here = false;
+    //static bool here = false;
     if (event->type() == QEvent::InputMethodQuery) {
         QInputMethodQueryEvent* imEvent = static_cast<QInputMethodQueryEvent *>(event);
         QVariantMap platformData = imEvent->value(Qt::ImPlatformData).toMap();
