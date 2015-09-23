@@ -10,6 +10,8 @@ TextField {
     property bool validateAsInteger: false
     property string stringID: ""
 
+    signal valueModifiedAndIsDifferent
+
     property DoubleValidator weightValidator: DoubleValidator {
         bottom: 1.0
         decimals: 2
@@ -18,7 +20,7 @@ TextField {
     }
 
     property IntValidator intValidator: IntValidator {
-        bottom: 1
+        bottom: 0
         top: 50
     }
 
@@ -37,9 +39,13 @@ TextField {
 
     }
     onEditingFinished: {
+        var oldValue = value
         value = text
 //        console.log("editing finished active focus is", activeFocus, " focus is ", focus)
         text = value + suffix
+        if (oldValue != value) {
+            valueModifiedAndIsDifferent()
+        }
     }
     Keys.onReturnPressed: {
         var next = root.nextItemInFocusChain(true);

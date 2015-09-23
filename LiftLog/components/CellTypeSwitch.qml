@@ -39,6 +39,9 @@ CellTypeBase {
         anchors.verticalCenter: parent.verticalCenter
         checked: itemModelData.value == "1"
         Accessible.ignored: true
-        onClicked: settingsModel.cellSwitchValueChanged(itemModelIndex, checked);
+        onClicked: {
+            if (itemModelIndex != -1)
+                settingsModel.cellSwitchValueChanged(itemModelIndex, checked);
+        }
     }
 }
