@@ -588,6 +588,16 @@ void SettingsProxyModel::cellSliderValueChanged(int row, qreal value)
     }
 }
 
+void SettingsProxyModel::cellTextInputValueChanged(int row, int textInputDelta, QString value)
+{
+    SettingsInterface* i = qobject_cast<SettingsInterface*>(sourceModel);
+    if (i) {
+        return i->cellTextInputValueChanged(row, textInputDelta, value);
+    } else {
+        qWarning() << "Couldn't delegate cellTextInputValueChanged slot to source model.";
+    }
+}
+
 void SettingsProxyModel::prependNewRow()
 {
     SettingsInterface* i = qobject_cast<SettingsInterface*>(sourceModel);

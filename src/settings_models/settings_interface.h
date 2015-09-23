@@ -14,6 +14,7 @@ public:
     virtual void cellClicked(int row) { Q_UNUSED(row); }
     virtual void cellSwitchValueChanged(int row, bool checked) { Q_UNUSED(row); Q_UNUSED(checked); }
     virtual void cellSliderValueChanged(int row, qreal value) { Q_UNUSED(row); Q_UNUSED(value); }
+    virtual void cellTextInputValueChanged(int row, int textInputDelta, QString value) { Q_UNUSED(row); Q_UNUSED(textInputDelta); Q_UNUSED(value); }
     virtual void prependNewRow() {}
 
 signals:
