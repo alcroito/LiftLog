@@ -101,7 +101,7 @@ qreal User::getUserWeight()
 qint64 User::getNextUserId()
 {
     QSqlQuery query;
-    bool result = query.exec("SELECT id_user FROM user ORDER BY id_user DESC");
+    bool result = query.exec("SELECT id_user FROM user ORDER BY id_user DESC LIMIT 1");
     if (!result) {
         qDebug() << "Error getting next user id.";
         qDebug() << query.lastError();
