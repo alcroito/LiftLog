@@ -87,6 +87,7 @@ void MainSettingsModel::refresh() {
 }
 
 void MainSettingsModel::init(QString pageId) {
+    beginResetModel();
     currentPageId = pageId;
     User* currentUser = AppState::getInstance()->getCurrentUser();
     QVariantMap settingsMap;
@@ -245,6 +246,7 @@ void MainSettingsModel::init(QString pageId) {
         settingsList.append(settingsMap);
         settingsMap.clear();
     }
+    endResetModel();
 }
 
 bool MainSettingsModel::setData(const QModelIndex &index, const QVariant &value, int role)
