@@ -9,7 +9,11 @@ BasicPage {
     showNavigationBarBackButton: true
     showNavigationRightResetButton: true
     navigationBar.onBackClicked: goBack();
-    onGoBack: pageStack.goBack();
+    onGoBack: {
+        // Force active focus, to make sure that if any text field was focused and edited, it saves its value.
+        navigationBar.forceActiveFocus();
+        pageStack.goBack();
+    }
     rootBackground.color: "#ecf0f1"
     width: appState.windowWidth
     height: appState.windowHeight
