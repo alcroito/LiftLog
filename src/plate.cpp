@@ -6,14 +6,24 @@ qint64 Plate::getId() const
     return id;
 }
 
-qint32 Plate::getCount() const
-{
-    return count;
-}
-
 void Plate::setId(qint64 value)
 {
     id = value;
+}
+
+qint64 Plate::getUserId() const
+{
+    return idUser;
+}
+
+void Plate::setUserId(qint64 value)
+{
+    idUser = value;
+}
+
+qint32 Plate::getCount() const
+{
+    return count;
 }
 
 void Plate::setCount(qint32 value)
@@ -29,6 +39,11 @@ void Plate::setMetricWeight(qreal value)
 void Plate::setImperialWeight(qreal value)
 {
     imperialWeight = value;
+}
+
+void Plate::setWeight(qreal value, int system) {
+    if (system == User::Metric) setMetricWeight(value);
+    else setImperialWeight(value);
 }
 
 qreal Plate::getWeight(int system) const
