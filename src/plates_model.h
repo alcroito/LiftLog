@@ -28,23 +28,25 @@ public:
     QVariant getSettingsCellType(const QModelIndex &index) const;
     QVariant getSettingsSection(const QModelIndex &index) const;
     void refresh();
-    void cellClicked(int row);
-    void cellSliderValueChanged(int row, qreal value);
-    void cellSwitchValueChanged(int row, bool checked);
+    void cellTextInputValueChanged(int row, int textInputDelta, QString value);
     void prependNewRow();
 
+    qint64 getNextUserPlateId();
 public slots:
     int rowCount(const QModelIndex & parent = QModelIndex()) const;
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
 
     QList<Plate> getPlatesFromDB();
-
+    bool saveUserPlate(Plate &p);
+    bool deleteUserPlate(Plate &p);
+    void removeUserPlateDBAndCell(int row);
 protected:
      QHash<int, QByteArray> roleNames() const;
 
 signals:
     void switchToSettingsPage(QString pageId);
+    void willRemovePlate(int row);
 
 private:
     QList<Plate> plateList;

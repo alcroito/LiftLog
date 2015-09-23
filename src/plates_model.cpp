@@ -8,7 +8,7 @@
 
 PlatesModel::PlatesModel(QObject *parent) : QAbstractListModel(parent)
 {
-
+    connect(this, &PlatesModel::willRemovePlate, this, &PlatesModel::removeUserPlateDBAndCell, Qt::QueuedConnection);
 }
 
 int PlatesModel::rowCount(const QModelIndex &parent) const
@@ -37,7 +37,7 @@ QVariant PlatesModel::data(const QModelIndex &index, int role) const
     else if (role == PlateMetricWeightRole) {
         return plate.getWeight(User::Metric);
     }
-    else if (role == PlateMetricWeightRole) {
+    else if (role == PlateImperialWeightRole) {
         // - 2 because we don't take into account the All and Body weight entries that are in front
         return plate.getWeight(User::Imperial);
     }
@@ -63,20 +63,26 @@ QList<Plate> PlatesModel::getPlatesFromDB()
     QList<Plate> dbPlateList;
 
     QSqlQuery query;
-    query.prepare("SELECT id_plate, weight_metric, weight_imperial, plate_count "
+    query.prepare("SELECT id_plate, id_user, weight_metric, weight_imperial, plate_count "
                   "FROM plate_user "
+                  "WHERE id_user = :id_user "
                   "ORDER BY weight_metric DESC");
+
+    AppState* appState = AppState::getInstance();
+    User* user = appState->getCurrentUser();
+    query.bindValue(":id_user", user->getId());
 
     bool result = query.exec();
     if (!result) {
-        qDebug() << "Error getting user plate list.";
-        qDebug() << query.lastError();
+        qWarning() << "Error getting user plate list.";
+        qWarning() << query.lastError();
         return dbPlateList;
     }
 
     while (query.next()) {
         Plate plate;
         plate.setId(query.value("id_plate").toInt());
+        plate.setUserId(query.value("id_user").toInt());
         plate.setMetricWeight(query.value("weight_metric").toReal());
         plate.setImperialWeight(query.value("weight_imperial").toReal());
         plate.setCount(query.value("plate_count").toInt());
@@ -96,8 +102,15 @@ void PlatesModel::init()
 void PlatesModel::prependNewPlate()
 {
     beginResetModel();
-    Plate p(0, 0);
+
+    Plate p(1, 2);
     p.setCount(2);
+
+    AppState* appState = AppState::getInstance();
+    User* user = appState->getCurrentUser();
+    p.setUserId(user->getId());
+    saveUserPlate(p);
+
     plateList.prepend(p);
     endResetModel();
 }
@@ -138,19 +151,111 @@ void PlatesModel::refresh()
     endResetModel();
 }
 
-void PlatesModel::cellClicked(int row)
+void PlatesModel::cellTextInputValueChanged(int row, int textInputDelta, QString value)
 {
+    Plate p = plateList[row];
+    AppState* appState = AppState::getInstance();
+    User* user = appState->getCurrentUser();
+    auto weightSystem = user->getWeightSystem();
+    if (textInputDelta == 0) {
+        auto weightValue = value.toDouble();
+        p.setWeight(weightValue, weightSystem);
+        auto inverseWeightSystem = appState->getInverseWeightSystem(weightSystem);
+        auto inverseWeightSystemWeight = appState->truncToTwoDecimals(appState->getWeightTransformed(weightValue, weightSystem, inverseWeightSystem));
+        p.setWeight(inverseWeightSystemWeight, inverseWeightSystem);
+        saveUserPlate(p);
+    } else if (textInputDelta == 1) {
+        auto countValue = value.toInt();
+        if (countValue == 0) {
+            // Remove plate if it has 0 as the count of plates available.
+            emit willRemovePlate(row);
+        } else {
+            p.setCount(value.toInt());
+            saveUserPlate(p);
+        }
 
+    }
 }
 
-void PlatesModel::cellSliderValueChanged(int row, qreal value)
-{
-
+void PlatesModel::removeUserPlateDBAndCell(int row) {
+    beginResetModel();
+    Plate p = plateList[row];
+    bool result = deleteUserPlate(p);
+    if (result) {
+        plateList.removeAt(row);
+    }
+    endResetModel();
 }
 
-void PlatesModel::cellSwitchValueChanged(int row, bool checked)
+qint64 PlatesModel::getNextUserPlateId()
 {
+    QSqlQuery query;
+    bool result = query.exec("SELECT id_plate FROM plate_user ORDER BY id_plate DESC LIMIT 1");
+    if (!result) {
+        qWarning() << "Error getting next user plate id.";
+        qWarning() << query.lastError();
+    }
 
+    qint64 id = 1;
+    while (query.next()) {
+        if (query.value(0).isValid()) {
+            id = query.value(0).toInt() + 1;
+        }
+    }
+
+    return id;
+}
+
+bool PlatesModel::saveUserPlate(Plate& p) {
+    bool result;
+    QSqlQuery query;
+    if (!p.getId()) {
+        p.setId(getNextUserPlateId());
+        query.prepare("INSERT INTO plate_user (id_plate, id_user, weight_metric, weight_imperial, plate_count) "
+                      "VALUES (:id_plate, :id_user, :weight_metric, :weight_imperial, :plate_count)");
+    }
+    else {
+        query.prepare("UPDATE plate_user "
+                      "SET weight_metric = :weight_metric, weight_imperial = :weight_imperial, plate_count = :plate_count "
+                      "WHERE id_plate = :id_plate"
+                      );
+    }
+
+    query.bindValue(":id_plate", p.getId());
+    query.bindValue(":id_user", p.getUserId());
+    query.bindValue(":weight_metric", p.getWeight(User::Metric));
+    query.bindValue(":weight_imperial", p.getWeight(User::Imperial));
+    query.bindValue(":plate_count", p.getCount());
+    result = query.exec();
+
+    if (!result) {
+        qWarning() << "Error saving user plate.";
+        qWarning() << query.lastError();
+    }
+
+    return result;
+}
+
+bool PlatesModel::deleteUserPlate(Plate& p) {
+    bool result = false;
+    QSqlQuery query;
+    if (!p.getId()) {
+        qWarning() << "No plate ID to use for deletion.";
+    }
+    else {
+        query.prepare("DELETE FROM plate_user "
+                      "WHERE id_plate = :id_plate"
+                      );
+        query.bindValue(":id_plate", p.getId());
+        result = query.exec();
+
+        if (!result) {
+            qWarning() << "Error deleting user plate.";
+            qWarning() << query.lastError();
+        }
+    }
+
+    return result;
 }
 
 void PlatesModel::prependNewRow()
