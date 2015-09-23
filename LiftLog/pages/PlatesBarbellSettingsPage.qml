@@ -9,6 +9,11 @@ BasicPage {
     showNavigationBarBackButton: true
     showNavigationRightResetButton: true
     navigationBar.onBackClicked: goBack();
+    navigationBar.onResetClicked: {
+        showModalPopup()
+        modalPopup.prepare("resetUserPlates")
+    }
+
     onGoBack: {
         // Force active focus, to make sure that if any text field was focused and edited, it saves its value.
         navigationBar.forceActiveFocus();
@@ -85,6 +90,15 @@ BasicPage {
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 10 * units.scale
                 settingsModel: barbellModel
+            }
+        }
+    }
+
+    Connections {
+        target: modalPopup
+        onAcceptClicked: {
+            if (modalPopup.operation === modalPopup.popupResetUserPlatesOperation) {
+                platesModel.resetToDefaults()
             }
         }
     }

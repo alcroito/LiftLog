@@ -16,6 +16,7 @@ public:
     virtual void cellSliderValueChanged(int row, qreal value) { Q_UNUSED(row); Q_UNUSED(value); }
     virtual void cellTextInputValueChanged(int row, int textInputDelta, QString value) { Q_UNUSED(row); Q_UNUSED(textInputDelta); Q_UNUSED(value); }
     virtual void prependNewRow() {}
+    virtual void resetToDefaults() {}
 
 signals:
     virtual void switchToSettingsPage(QString pageId) = 0;

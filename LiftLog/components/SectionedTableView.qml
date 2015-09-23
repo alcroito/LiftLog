@@ -173,6 +173,14 @@ Rectangle {
                 }
             ]
 
+            onStateChanged: {
+                if (state === "pressed") {
+                    pressedMouseArea.enabled = false;
+                } else {
+                    mouseEnablingAnimation.start()
+                }
+            }
+
             MouseArea {
                 id: pressedMouseArea
                 anchors.fill: parent
@@ -187,6 +195,11 @@ Rectangle {
                     if (model.cellType !== "switch" && model.cellType !== "slider" && model.cellType !== "doubleTextEdit" && model.cellType !== "textEdit") {
                         settingsModel.cellClicked(index);
                     }
+                }
+                SequentialAnimation {
+                    id: mouseEnablingAnimation
+                    PauseAnimation { duration: 500 }
+                    PropertyAction { target: pressedMouseArea; property: "enabled"; value: true }
                 }
             }
 

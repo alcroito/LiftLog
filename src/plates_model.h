@@ -30,8 +30,11 @@ public:
     void refresh();
     void cellTextInputValueChanged(int row, int textInputDelta, QString value);
     void prependNewRow();
+    void resetToDefaults();
 
     qint64 getNextUserPlateId();
+    void checkAndSumUpSameWeightPlates();
+    void sortByWeightDesc();
 public slots:
     int rowCount(const QModelIndex & parent = QModelIndex()) const;
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
@@ -41,12 +44,14 @@ public slots:
     bool saveUserPlate(Plate &p);
     bool deleteUserPlate(Plate &p);
     void removeUserPlateDBAndCell(int row);
+    void resetUserPlates();
 protected:
      QHash<int, QByteArray> roleNames() const;
 
 signals:
     void switchToSettingsPage(QString pageId);
     void willRemovePlate(int row);
+    void willCheckAndSumUpSameWeightPlates();
 
 private:
     QList<Plate> plateList;

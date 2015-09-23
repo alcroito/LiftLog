@@ -34,12 +34,18 @@ Item {
                 bodyText = qsTr("Are you sure you want to delete the DB?")
                 operation = op
                 break
+            case popupResetUserPlatesOperation:
+                subjectText = qsTr("Reset")
+                bodyText = qsTr("Do you want to set the default plate weights?")
+                operation = op
+                break
         }
     }
 
     property string operation
     property string popupDeleteOperation: "delete"
     property string popupDeleteDBOperation: "deletedb"
+    property string popupResetUserPlatesOperation: "resetUserPlates"
 
     signal acceptClicked
     signal rejectClicked

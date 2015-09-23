@@ -29,8 +29,8 @@ public slots:
     void cellSwitchValueChanged(int row, bool checked);
     void cellSliderValueChanged(int row, qreal value);
     void cellTextInputValueChanged(int row, int textInputDelta, QString value);
-    void prependNewRow();
-
+    void prependNewRow();    
+    void resetToDefaults();
 protected:
     virtual QHash<int, QByteArray> roleNames() const;
 

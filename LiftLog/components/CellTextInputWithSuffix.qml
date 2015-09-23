@@ -10,10 +10,10 @@ TextField {
     property bool validateAsInteger: false
     property string stringID: ""
 
-    signal valueModifiedAndIsDifferent
+    signal valueModifiedAndIsDifferentOrIs0
 
     property DoubleValidator weightValidator: DoubleValidator {
-        bottom: 1.0
+        bottom: 0.0
         decimals: 2
         top: 999.0
         notation: DoubleValidator.StandardNotation
@@ -43,8 +43,8 @@ TextField {
         value = text
 //        console.log("editing finished active focus is", activeFocus, " focus is ", focus)
         text = value + suffix
-        if (oldValue != value) {
-            valueModifiedAndIsDifferent()
+        if (oldValue != value || value == 0) {
+            valueModifiedAndIsDifferentOrIs0()
         }
     }
     Keys.onReturnPressed: {

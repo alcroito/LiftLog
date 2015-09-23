@@ -607,3 +607,13 @@ void SettingsProxyModel::prependNewRow()
         qWarning() << "Couldn't delegate prependNewRow slot to source model.";
     }
 }
+
+void SettingsProxyModel::resetToDefaults()
+{
+    SettingsInterface* i = qobject_cast<SettingsInterface*>(sourceModel);
+    if (i) {
+        return i->resetToDefaults();
+    } else {
+        qWarning() << "Couldn't delegate resetToDefaults slot to source model.";
+    }
+}

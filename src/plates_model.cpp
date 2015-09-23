@@ -9,6 +9,7 @@
 PlatesModel::PlatesModel(QObject *parent) : QAbstractListModel(parent)
 {
     connect(this, &PlatesModel::willRemovePlate, this, &PlatesModel::removeUserPlateDBAndCell, Qt::QueuedConnection);
+    connect(this, &PlatesModel::willCheckAndSumUpSameWeightPlates, this, &PlatesModel::checkAndSumUpSameWeightPlates, Qt::QueuedConnection);
 }
 
 int PlatesModel::rowCount(const QModelIndex &parent) const
@@ -103,7 +104,7 @@ void PlatesModel::prependNewPlate()
 {
     beginResetModel();
 
-    Plate p(1, 2);
+    Plate p(0, 0);
     p.setCount(2);
 
     AppState* appState = AppState::getInstance();
@@ -153,17 +154,22 @@ void PlatesModel::refresh()
 
 void PlatesModel::cellTextInputValueChanged(int row, int textInputDelta, QString value)
 {
-    Plate p = plateList[row];
+    Plate& p = plateList[row];
     AppState* appState = AppState::getInstance();
     User* user = appState->getCurrentUser();
     auto weightSystem = user->getWeightSystem();
     if (textInputDelta == 0) {
         auto weightValue = value.toDouble();
-        p.setWeight(weightValue, weightSystem);
-        auto inverseWeightSystem = appState->getInverseWeightSystem(weightSystem);
-        auto inverseWeightSystemWeight = appState->truncToTwoDecimals(appState->getWeightTransformed(weightValue, weightSystem, inverseWeightSystem));
-        p.setWeight(inverseWeightSystemWeight, inverseWeightSystem);
-        saveUserPlate(p);
+        if (weightValue == 0) {
+            emit willRemovePlate(row);
+        } else {
+            p.setWeight(weightValue, weightSystem);
+            auto inverseWeightSystem = appState->getInverseWeightSystem(weightSystem);
+            auto inverseWeightSystemWeight = appState->truncToTwoDecimals(appState->getWeightTransformed(weightValue, weightSystem, inverseWeightSystem));
+            p.setWeight(inverseWeightSystemWeight, inverseWeightSystem);
+            saveUserPlate(p);
+            emit willCheckAndSumUpSameWeightPlates();
+        }
     } else if (textInputDelta == 1) {
         auto countValue = value.toInt();
         if (countValue == 0) {
@@ -177,6 +183,54 @@ void PlatesModel::cellTextInputValueChanged(int row, int textInputDelta, QString
     }
 }
 
+void PlatesModel::sortByWeightDesc() {
+    AppState* appState = AppState::getInstance();
+    User* user = appState->getCurrentUser();
+    auto weightSystem = user->getWeightSystem();
+    std::sort(plateList.begin(), plateList.end(), [&weightSystem](const Plate& a, const Plate& b) {
+        return a.getWeight(weightSystem) > b.getWeight(weightSystem);
+    });
+}
+
+void PlatesModel::checkAndSumUpSameWeightPlates() {
+    AppState* appState = AppState::getInstance();
+    User* user = appState->getCurrentUser();
+    auto weightSystem = user->getWeightSystem();
+
+    auto it = plateList.begin();
+    using Weight = qreal;
+    using ListIndex = int;
+    QHash<Weight, ListIndex> platesVisited;
+
+    beginResetModel();
+    int i = 0;
+    while (it != plateList.end()) {
+        auto weight = it->getWeight(weightSystem);
+        // If no plate with this weight was found, stores it's list index.
+        if (!platesVisited.contains(weight)) {
+            platesVisited.insert(weight, i);
+            ++it;
+            ++i;
+        } else {
+            // A plate with the same weight was found.
+            Plate p = *it;
+            Plate& existingPlate = plateList[platesVisited[weight]];
+
+            // Add this plate's count to the first encountered plate with the same weight.
+            existingPlate.setCount(existingPlate.getCount() + p.getCount());
+            saveUserPlate(existingPlate);
+
+            // Remove this plate.
+            bool result = deleteUserPlate(p);
+            if (result) {
+                it = plateList.erase(it);
+            }
+        }
+    }
+    sortByWeightDesc();
+    endResetModel();
+}
+
 void PlatesModel::removeUserPlateDBAndCell(int row) {
     beginResetModel();
     Plate p = plateList[row];
@@ -185,6 +239,30 @@ void PlatesModel::removeUserPlateDBAndCell(int row) {
         plateList.removeAt(row);
     }
     endResetModel();
+}
+
+void PlatesModel::resetToDefaults() {
+    resetUserPlates();
+}
+
+void PlatesModel::resetUserPlates()
+{
+    bool result;
+    QSqlQuery query;
+
+    query.prepare("DELETE FROM plate_user WHERE id_user = :id_user");
+    AppState* appState = AppState::getInstance();
+    User* user = appState->getCurrentUser();
+    query.bindValue(":id_user", user->getId());
+    result = query.exec();
+
+    if (!result) {
+        qWarning() << "Error removing user plates for reset operation.";
+        qWarning() << query.lastError();
+    } else {
+        user->copyDefaultPlatesIntoUserPlatesTable();
+        init();
+    }
 }
 
 qint64 PlatesModel::getNextUserPlateId()
