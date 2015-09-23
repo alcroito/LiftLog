@@ -155,6 +155,12 @@ QString AppState::getWeightSystemSuffix(User::WeightSystem system, bool lowercas
     return weightSuffix;
 }
 
+User::WeightSystem AppState::getInverseWeightSystem(const User::WeightSystem value) const
+{
+    if (value == User::Metric) return User::Imperial;
+    else return User::Metric;
+}
+
 qint32 AppState::getWindowHeight() const
 {
     return windowHeight;

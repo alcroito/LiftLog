@@ -67,6 +67,7 @@ public slots:
     WeightStringBuilder* getWeightStringBuilder(qreal weight);
     qreal getWeightTransformed(qreal weight, int from, int to);
     QString getWeightSystemSuffix(User::WeightSystem system = User::Metric, bool lowercase = false);
+    User::WeightSystem getInverseWeightSystem(const User::WeightSystem value) const;
 
     void recheckUncompletedWorkoutExistsValue();
 
