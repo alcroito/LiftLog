@@ -163,7 +163,7 @@ Item {
                 // because it's enabled property was set to false when the hide() method is called.
                 var releasedOverItem = cellTypeWrapper.childAt(mouse.x, mouse.y);
                 if (releasedOverItem !== deleteButton) {
-                    deleteButton.hide()
+                    deleteButton.hide(true)
                 } else {
                     // Workaround for MouseAreasand Flickable bug, which required clicking once on a row, before you can
                     // flick or slide the deleted button, which happens when propagateComposedEvents is set to true on the
@@ -232,7 +232,7 @@ Item {
             // Notify listView that a delete button is shown.
             itemIsShowingDeleteButton(itemModelIndex)
         }
-        function hide() {
+        function hide(restoreChildrenItemPositionImmediately) {
             deleteButton.state = ""
             innerItem.x = 0
             // Notify listView that the delete button is hidden.
@@ -242,7 +242,9 @@ Item {
             // The only case when it's 0 immediately, is when the dragging operation was ended at coordinate X = 0, in which case
             // we have to manually trigger the animation of childrenItem to go to it's default place, because
             // innerItem's behavior is not executed when the X value is 0 from the dragging operation.
-            if (innerItem.x == 0) {
+            // We also start the animation when explicitly requested, usually when istead of a drag, just a click is done on the dragging mouse area,
+            // to hide the delete button.
+            if (innerItem.x == 0 || restoreChildrenItemPositionImmediately) {
                 childrenGoToRightAnimation.stop()
                 childrenGoToDefaultStateAnimation.start()
             }
