@@ -11,7 +11,11 @@ BasicPage {
     navigationBar.onBackClicked: goBack();
     navigationBar.onResetClicked: {
         showModalPopup()
-        modalPopup.prepare("resetUserPlates")
+        if (tabView.currentIndex == 0) {
+            modalPopup.prepare(modalPopup.popupResetUserPlatesOperation)
+        } else if (tabView.currentIndex == 1) {
+            modalPopup.prepare(modalPopup.popupResetUserBarbellsOperation)
+        }
     }
 
     onGoBack: {
@@ -35,7 +39,7 @@ BasicPage {
         }
     }
 
-    SettingsModel {
+    SettingsProxyModel {
         id: barbellModel
         Component.onCompleted: {
             barbellModel.init("barbell");
@@ -99,6 +103,8 @@ BasicPage {
         onAcceptClicked: {
             if (modalPopup.operation === modalPopup.popupResetUserPlatesOperation) {
                 platesModel.resetToDefaults()
+            } else if (modalPopup.operation === modalPopup.popupResetUserBarbellsOperation) {
+                barbellModel.resetToDefaults()
             }
         }
     }

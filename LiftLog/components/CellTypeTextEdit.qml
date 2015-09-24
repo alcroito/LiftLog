@@ -26,6 +26,8 @@ CellTypeBase {
         stringID: "the X"
         validateAsWeight: itemModelData.value1ValidateAsWeight ? itemModelData.value1ValidateAsWeight : false
         validateAsInteger: itemModelData.value1ValidateAsInt ? itemModelData.value1ValidateAsInt : false
+        validatorBottomDouble: itemModelData.value1ValidatorBottomDouble ? itemModelData.value1ValidatorBottomDouble : 0.0
+        validatorTopDouble: itemModelData.value1ValidatorTopDouble ? itemModelData.value1ValidatorTopDouble : 999.0
         onValueModifiedAndIsDifferentOrIs0: {
             var textInputDelta = 0;
             if (itemModelIndex != -1)

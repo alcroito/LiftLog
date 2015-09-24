@@ -4,6 +4,7 @@
 #include "../user.h"
 #include "../icons.h"
 #include "plates_model.h"
+#include "barbell_model.h"
 #include "main_settings_model.h"
 #include "settings_interface.h"
 
@@ -531,6 +532,12 @@ void SettingsProxyModel::init(QString pageId)
     }
     else if (pageId == SETTINGS_PAGE_PLATES) {
         PlatesModel* m = new PlatesModel();
+        m->init();
+        sourceModel = m;
+        setSourceModel(sourceModel);
+    }
+    else if (pageId == SETTINGS_PAGE_BARBELL) {
+        BarbellModel* m = new BarbellModel();
         m->init();
         sourceModel = m;
         setSourceModel(sourceModel);

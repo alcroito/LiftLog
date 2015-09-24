@@ -60,6 +60,7 @@ public:
     void setTimerSoundVolume(const qreal &value);
 
     bool copyDefaultPlatesIntoUserPlatesTable();
+    bool copyDefaultBarbellsIntoUserPlatesTable();
 signals:
     void nameChanged();
     void weightSystemChanged(User::WeightSystem);

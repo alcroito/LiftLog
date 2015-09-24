@@ -39,11 +39,9 @@ QVariant PlatesModel::data(const QModelIndex &index, int role) const
         return plate.getWeight(User::Metric);
     }
     else if (role == PlateImperialWeightRole) {
-        // - 2 because we don't take into account the All and Body weight entries that are in front
         return plate.getWeight(User::Imperial);
     }
     else if (role == PlateCountRole) {
-        // - 2 because we don't take into account the All and Body weight entries that are in front
         return plate.getCount();
     }
     return QVariant();

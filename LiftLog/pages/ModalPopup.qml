@@ -39,6 +39,11 @@ Item {
                 bodyText = qsTr("Do you want to set the default plate weights?")
                 operation = op
                 break
+            case popupResetUserBarbellsOperation:
+                subjectText = qsTr("Reset")
+                bodyText = qsTr("Do you want to set the default barbell weights?")
+                operation = op
+                break
         }
     }
 
@@ -46,6 +51,7 @@ Item {
     property string popupDeleteOperation: "delete"
     property string popupDeleteDBOperation: "deletedb"
     property string popupResetUserPlatesOperation: "resetUserPlates"
+    property string popupResetUserBarbellsOperation: "resetUserBarbells"
 
     signal acceptClicked
     signal rejectClicked

@@ -9,14 +9,16 @@ TextField {
     property bool validateAsWeight: false
     property bool validateAsInteger: false
     property string stringID: ""
+    property real validatorBottomDouble: 0.0
+    property real validatorTopDouble: 999.0
 
     signal valueModifiedAndIsDifferentOrIs0
     signal pleaseUnfocus
 
     property DoubleValidator weightValidator: DoubleValidator {
-        bottom: 0.0
+        bottom: validatorBottomDouble
         decimals: 2
-        top: 999.0
+        top: validatorTopDouble
         notation: DoubleValidator.StandardNotation
     }
 

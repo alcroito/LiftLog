@@ -19,7 +19,9 @@ SOURCES += \
     $$PWD/plate.cpp \
     $$PWD/settings_models/settings_proxy_model.cpp \
     $$PWD/settings_models/main_settings_model.cpp \
-    $$PWD/settings_models/plates_model.cpp
+    $$PWD/settings_models/plates_model.cpp \
+    $$PWD/settings_models/barbell_model.cpp \
+    $$PWD/barbell.cpp
 
 HEADERS += \
 #    $$PWD/pieutilsplugin.h \
@@ -49,7 +51,9 @@ HEADERS += \
     $$PWD/settings_models/main_settings_model.h \
     $$PWD/settings_models/settings_pages.h \
     $$PWD/settings_models/settings_interface.h \
-    $$PWD/settings_models/plates_model.h
+    $$PWD/settings_models/plates_model.h \
+    $$PWD/settings_models/barbell_model.h \
+    $$PWD/barbell.h
 
 ios {
     HEADERS += \

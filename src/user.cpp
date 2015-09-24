@@ -179,6 +179,7 @@ bool User::save()
     } else {
         if (newUser) {
             copyDefaultPlatesIntoUserPlatesTable();
+            copyDefaultBarbellsIntoUserPlatesTable();
         }
     }
 
@@ -201,6 +202,31 @@ bool User::copyDefaultPlatesIntoUserPlatesTable() {
     result = query.exec();
     if (!result) {
         qWarning() << "Error copying default plates to user plates table.";
+        qWarning() << query.lastError();
+        return false;
+    }
+
+    return true;
+}
+
+bool User::copyDefaultBarbellsIntoUserPlatesTable()
+{
+    QSqlQuery query;
+    bool result;
+    result = query.prepare("INSERT INTO barbell_user (id_exercise, id_user, weight_metric, weight_imperial) "
+                  "SELECT id_exercise, :id_user, default_barbell_weight_metric, default_barbell_weight_imperial "
+                  "FROM exercise "
+                  "WHERE exercise_type = 0 "
+                  "ORDER BY id_exercise ");
+    if (!result) {
+        qWarning() << "Error preparing query to copy default barbells to user barbells table.";
+        qWarning() << query.lastError();
+        return false;
+    }
+    query.bindValue(":id_user", getId());
+    result = query.exec();
+    if (!result) {
+        qWarning() << "Error copying default barbells to user barbells table.";
         qWarning() << query.lastError();
         return false;
     }
