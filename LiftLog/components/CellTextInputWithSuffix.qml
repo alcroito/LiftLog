@@ -11,6 +11,7 @@ TextField {
     property string stringID: ""
 
     signal valueModifiedAndIsDifferentOrIs0
+    signal pleaseUnfocus
 
     property DoubleValidator weightValidator: DoubleValidator {
         bottom: 0.0
@@ -49,7 +50,8 @@ TextField {
     }
     Keys.onReturnPressed: {
         var next = root.nextItemInFocusChain(true);
-        next.forceActiveFocus();
+//        next.forceActiveFocus();
+        pleaseUnfocus()
     }
 
     inputMethodHints: {

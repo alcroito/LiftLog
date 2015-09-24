@@ -31,5 +31,6 @@ CellTypeBase {
             if (itemModelIndex != -1)
                 settingsModel.cellTextInputValueChanged(itemModelIndex, textInputDelta, value);
         }
+        onPleaseUnfocus: cellTypeWrapper.pleaseUnfocus()
     }
 }

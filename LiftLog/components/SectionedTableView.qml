@@ -133,6 +133,8 @@ Rectangle {
         section.delegate: sectionHeading
 
         property int cellHeight: 55 * units.scale
+        property int deletingIndex: -1
+        property var delegateWithActiveDeleteButton
 
         footer: footerComponent ? footerComponent : null
 
@@ -169,6 +171,9 @@ Rectangle {
                     }
                     PropertyChanges {
                         target: cellSeparator; color: "#dde0e1"
+                    }
+                    PropertyChanges {
+                        target: cellTypeLoader.item; cellBackgroundColor: "#dde0e1"
                     }
                 }
             ]
@@ -240,9 +245,31 @@ Rectangle {
                     property: "itemModelIndex"
                     value: index
                 }
+                Binding {
+                    id: binder3
+                    property: "itemIsAllowedToShowDeleteButton"
+                    value: listView.deletingIndex === -1 || listView.deletingIndex === index
+                }
                 onLoaded: {
                     binder.target = cellTypeLoader.item
                     binder2.target = cellTypeLoader.item
+                    binder3.target = cellTypeLoader.item
+                }
+                Connections {
+                    target: cellTypeLoader.item
+                    onItemIsShowingDeleteButton: {
+                        listView.deletingIndex = deletingIndex
+                        listView.delegateWithActiveDeleteButton = cellTypeLoader.item
+                    }
+                    onItemIsHidingDeleteButton: {
+                        listView.deletingIndex = -1
+                    }
+                    onPleaseHideAllDeleteButtons: {
+                        listView.delegateWithActiveDeleteButton.hideDeleteButton()
+                    }
+                    onPleaseUnfocus: {
+                        dummyFocusScope.forceActiveFocus()
+                    }
                 }
 
                 sourceComponent: componentChooser(model.cellType);
