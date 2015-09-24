@@ -5,6 +5,7 @@
 #include "../icons.h"
 #include "plates_model.h"
 #include "barbell_model.h"
+#include "weight_increments_model.h"
 #include "main_settings_model.h"
 #include "settings_interface.h"
 
@@ -77,6 +78,11 @@ void SettingsProxyModel::init(QString pageId)
         m->init();
         sourceModel = m;
         setSourceModel(sourceModel);
+    } else if (pageId == SETTINGS_PAGE_INCREMENTS) {
+        WeightIncrementsModel* m = new WeightIncrementsModel();
+        m->init();
+        sourceModel = m;
+        setSourceModel(sourceModel);
     }
 }
 
@@ -138,6 +144,16 @@ void SettingsProxyModel::cellTextInputValueChanged(int row, int textInputDelta, 
         return i->cellTextInputValueChanged(row, textInputDelta, value);
     } else {
         qWarning() << "Couldn't delegate cellTextInputValueChanged slot to source model.";
+    }
+}
+
+void SettingsProxyModel::cellIncrementChanged(int row, bool increase)
+{
+    SettingsInterface* i = qobject_cast<SettingsInterface*>(sourceModel);
+    if (i) {
+        return i->cellIncrementChanged(row, increase);
+    } else {
+        qWarning() << "Couldn't delegate cellIncrementChanged slot to source model.";
     }
 }
 

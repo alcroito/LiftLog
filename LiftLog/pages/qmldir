@@ -12,3 +12,4 @@ ExerciseWeightPage 1.0 ExerciseWeightPage.qml
 GraphPage 1.0 GraphPage.qml
 SettingsPage 1.0 SettingsPage.qml
 PlatesBarbellSettingsPage 1.0 PlatesBarbellSettingsPage.qml
+IncrementsSettingsPage 1.0 IncrementsSettingsPage.qml

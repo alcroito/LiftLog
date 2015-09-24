@@ -29,6 +29,7 @@ public slots:
     void cellSwitchValueChanged(int row, bool checked);
     void cellSliderValueChanged(int row, qreal value);
     void cellTextInputValueChanged(int row, int textInputDelta, QString value);
+    void cellIncrementChanged(int row, bool increase);
     void prependNewRow();    
     void removeRow(int row);
     void resetToDefaults();

@@ -61,8 +61,10 @@
         <file>components/CellTypeTextEdit.qml</file>
         <file>components/CellTypeDoubleTextEdit.qml</file>
         <file>pages/PlatesBarbellSettingsPage.qml</file>
+        <file>pages/IncrementsSettingsPage.qml</file>
         <file>components/TabViewStyleIOS.qml</file>
         <file>components/CellTextInputWithSuffix.qml</file>
+        <file>components/CellTypeIncrement.qml</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>

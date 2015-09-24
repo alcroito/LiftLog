@@ -104,6 +104,14 @@ Rectangle {
     }
 
     Component {
+        id: cellTypeIncrement
+        CellTypeIncrement {
+            width: listView.width
+            height: listView.cellHeight
+        }
+    }
+
+    Component {
         id: cellTypeDummy
         Item {
             anchors.fill: parent
@@ -190,14 +198,14 @@ Rectangle {
                 id: pressedMouseArea
                 anchors.fill: parent
                 onPressed: {
-                    if (model.cellType !== "switch" && model.cellType !== "slider" && model.cellType !== "doubleTextEdit" && model.cellType !== "textEdit")
+                    if (model.cellType !== "switch" && model.cellType !== "slider" && model.cellType !== "doubleTextEdit" && model.cellType !== "textEdit" && model.cellType !== "increment")
                         cellWrapper.state = "pressed"
                 }
                 onReleased: {
                     cellWrapper.state = ""
                 }
                 onClicked: {
-                    if (model.cellType !== "switch" && model.cellType !== "slider" && model.cellType !== "doubleTextEdit" && model.cellType !== "textEdit") {
+                    if (model.cellType !== "switch" && model.cellType !== "slider" && model.cellType !== "doubleTextEdit" && model.cellType !== "textEdit" && model.cellType !== "increment") {
                         settingsModel.cellClicked(index);
                     }
                 }
@@ -279,6 +287,7 @@ Rectangle {
                     if (type === "text") return cellTypeTextAndIcon;
                     if (type === "doubleTextEdit") return cellTypeDoubleTextEdit;
                     if (type === "textEdit") return cellTypeTextEdit;
+                    if (type === "increment") return cellTypeIncrement;
                     // Fix undefined errors.
                     console.warn("Trying to intantiate unknown cell type.");
                     return cellTypeDummy;

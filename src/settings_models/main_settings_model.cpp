@@ -148,6 +148,7 @@ void MainSettingsModel::init(QString pageId) {
         settingsMap.insert("showAccessory", true);
         settingsMap.insert("accessoryIcon", ICON_CHEVRON_RIGHT);
         settingsMap.insert("value", tr("On"));
+        settingsMap.insert("nextPageId", SETTINGS_PAGE_INCREMENTS);
         settingsList.append(settingsMap);
         settingsMap.clear();
 

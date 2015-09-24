@@ -61,6 +61,7 @@ public:
 
     bool copyDefaultPlatesIntoUserPlatesTable();
     bool copyDefaultBarbellsIntoUserPlatesTable();
+    bool copyDefaultExerciseCustomisationsIntoUserExerciseCustomisationsTable();
 signals:
     void nameChanged();
     void weightSystemChanged(User::WeightSystem);

@@ -36,12 +36,17 @@ Item {
                 break
             case popupResetUserPlatesOperation:
                 subjectText = qsTr("Reset")
-                bodyText = qsTr("Do you want to set the default plate weights?")
+                bodyText = qsTr("Do you want to restore the default plate weights?")
                 operation = op
                 break
             case popupResetUserBarbellsOperation:
                 subjectText = qsTr("Reset")
-                bodyText = qsTr("Do you want to set the default barbell weights?")
+                bodyText = qsTr("Do you want to restore the default barbell weights?")
+                operation = op
+                break
+            case popupResetUserIncrementsOperation:
+                subjectText = qsTr("Reset")
+                bodyText = qsTr("Do you want to restore the default weight increments?")
                 operation = op
                 break
         }
@@ -52,6 +57,7 @@ Item {
     property string popupDeleteDBOperation: "deletedb"
     property string popupResetUserPlatesOperation: "resetUserPlates"
     property string popupResetUserBarbellsOperation: "resetUserBarbells"
+    property string popupResetUserIncrementsOperation: "resetUserIncrements"
 
     signal acceptClicked
     signal rejectClicked

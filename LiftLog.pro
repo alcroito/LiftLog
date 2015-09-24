@@ -53,6 +53,7 @@ APP_QML_FILES += \
     LiftLog/components/CellTypeSwitch.qml\
     LiftLog/components/CellTypeTextEdit.qml\
     LiftLog/components/CellTypeDoubleTextEdit.qml\
+    LiftLog/components/CellTypeIncrement.qml\
     LiftLog/components/CellTextInputWithSuffix.qml\
     LiftLog/components/TabViewStyleIOS.qml\
     LiftLog/pages/qmldir \
@@ -69,6 +70,7 @@ APP_QML_FILES += \
     LiftLog/pages/GraphPage.qml \
     LiftLog/pages/SettingsPage.qml \
     LiftLog/pages/PlatesBarbellSettingsPage.qml \
+    LiftLog/pages/IncrementsSettingsPage.qml \
     LiftLog/extras/qmldir \
     LiftLog/extras/Tumbler.qml \
     LiftLog/extras/TumblerColumn.qml \
