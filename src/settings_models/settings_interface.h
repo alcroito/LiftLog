@@ -19,6 +19,7 @@ public:
     virtual void prependNewRow() {}
     virtual void removeRow(int row) { Q_UNUSED(row); }
     virtual void resetToDefaults() {}
+    virtual void clearAllRows() {}
 
 signals:
     virtual void switchToSettingsPage(QString pageId) = 0;

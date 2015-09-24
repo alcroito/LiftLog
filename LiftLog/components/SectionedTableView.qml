@@ -10,8 +10,16 @@ Rectangle {
     color: "#ecf0f1"
 
     property var settingsModel
-    property var footerComponent
+    property Component footerComponent
+    property Component headerComponent
+    property bool sectionAdditionalItemWillBeShown: false
+    property var sectionAdditionalItemComponent: null
+    property int sectionHeight: 35 * units.scale
+    property bool centerVerticalSectionItems: false
+    property bool showSections: true
+
     property alias cellWidth: listView.width
+    property alias internalListView: listView
 
     Item {
         // When a tab gets active focus in a TabView, the first child of a TableView gets forced active focus
@@ -112,9 +120,16 @@ Rectangle {
     }
 
     Component {
+        id: cellTypeFake
+        CellTypeBase {
+            visible: false
+            enabled: false
+        }
+    }
+
+    Component {
         id: cellTypeDummy
-        Item {
-            anchors.fill: parent
+        CellTypeBase {
         }
     }
 
@@ -122,13 +137,11 @@ Rectangle {
     ListView {
         id: listView
         height: parent.height
-//        boundsBehavior: Flickable.StopAtBounds
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.leftMargin: 6 * units.scale
         anchors.rightMargin: 6 * units.scale
         spacing: 0
-//        model: testModel
         model: settingsModel
 
         focus: true
@@ -138,37 +151,32 @@ Rectangle {
 
         section.property: "section"
         section.criteria: ViewSection.FullString
-        section.delegate: sectionHeading
+        section.delegate: showSections ? sectionHeading : null
+
+        Component {
+            id: sectionHeading
+            SectionedTableViewSection {
+                id: sectionContainer
+                width: listView.width
+                sectionAdditionalItemWillBeShown: root.sectionAdditionalItemWillBeShown
+                sectionAdditionalItemComponent: root.sectionAdditionalItemComponent
+                sectionHeight: root.sectionHeight
+                centerVerticalSectionItems: root.centerVerticalSectionItems
+            }
+        }
 
         property int cellHeight: 55 * units.scale
         property int deletingIndex: -1
         property var delegateWithActiveDeleteButton
 
+        header: headerComponent ? headerComponent : null
         footer: footerComponent ? footerComponent : null
-
-        Component {
-            id: sectionHeading
-            Item {
-                width: listView.width
-                height: 35 * units.scale
-
-                Label {
-                    anchors.left: parent.left
-                    anchors.leftMargin: 15 * units.scale
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 4 * units.scale
-                    text: section
-                    font.pixelSize: 9 * units.fontScale
-                    color: "#6d6d72"
-                }
-            }
-        }
 
         delegate: Rectangle {
             id: cellWrapper
             width: listView.width
             height: listView.cellHeight
-            color: "white"
+            color: model.cellType !== "fake" ? "white" : "transparent"
             property variant rowModel: model
 
             states: [
@@ -198,14 +206,16 @@ Rectangle {
                 id: pressedMouseArea
                 anchors.fill: parent
                 onPressed: {
-                    if (model.cellType !== "switch" && model.cellType !== "slider" && model.cellType !== "doubleTextEdit" && model.cellType !== "textEdit" && model.cellType !== "increment")
+                    if (model.cellType !== "switch" && model.cellType !== "slider" && model.cellType !== "doubleTextEdit" && model.cellType !== "textEdit" && model.cellType !== "increment"
+                            && model.cellType !== "fake")
                         cellWrapper.state = "pressed"
                 }
                 onReleased: {
                     cellWrapper.state = ""
                 }
                 onClicked: {
-                    if (model.cellType !== "switch" && model.cellType !== "slider" && model.cellType !== "doubleTextEdit" && model.cellType !== "textEdit" && model.cellType !== "increment") {
+                    if (model.cellType !== "switch" && model.cellType !== "slider" && model.cellType !== "doubleTextEdit" && model.cellType !== "textEdit" && model.cellType !== "increment"
+                            && model.cellType !== "fake") {
                         settingsModel.cellClicked(index);
                     }
                 }
@@ -288,6 +298,7 @@ Rectangle {
                     if (type === "doubleTextEdit") return cellTypeDoubleTextEdit;
                     if (type === "textEdit") return cellTypeTextEdit;
                     if (type === "increment") return cellTypeIncrement;
+                    if (type === "fake") return cellTypeFake;
                     // Fix undefined errors.
                     console.warn("Trying to intantiate unknown cell type.");
                     return cellTypeDummy;

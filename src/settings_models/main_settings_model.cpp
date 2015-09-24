@@ -147,7 +147,10 @@ void MainSettingsModel::init(QString pageId) {
         settingsMap.insert("showIcon", true);
         settingsMap.insert("showAccessory", true);
         settingsMap.insert("accessoryIcon", ICON_CHEVRON_RIGHT);
-        settingsMap.insert("value", tr("On"));
+        bool autoAddWeight = currentUser->getAutoAddWeight();
+        QString autoAddWeightLabelValue = tr("On");
+        if (!autoAddWeight) autoAddWeightLabelValue = tr("Off");
+        settingsMap.insert("value", autoAddWeightLabelValue);
         settingsMap.insert("nextPageId", SETTINGS_PAGE_INCREMENTS);
         settingsList.append(settingsMap);
         settingsMap.clear();

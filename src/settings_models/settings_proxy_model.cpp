@@ -186,3 +186,13 @@ void SettingsProxyModel::resetToDefaults()
         qWarning() << "Couldn't delegate resetToDefaults slot to source model.";
     }
 }
+
+void SettingsProxyModel::clearAllRows()
+{
+    SettingsInterface* i = qobject_cast<SettingsInterface*>(sourceModel);
+    if (i) {
+        return i->clearAllRows();
+    } else {
+        qWarning() << "Couldn't delegate clearAllRowsAndFakeFirstSectionOnly slot to source model.";
+    }
+}

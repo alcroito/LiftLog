@@ -56,6 +56,7 @@ APP_QML_FILES += \
     LiftLog/components/CellTypeIncrement.qml\
     LiftLog/components/CellTextInputWithSuffix.qml\
     LiftLog/components/TabViewStyleIOS.qml\
+    LiftLog/components/SectionedTableViewSection.qml\
     LiftLog/pages/qmldir \
     LiftLog/pages/DashboardPage.qml \
     LiftLog/pages/WelcomePage.qml \

@@ -33,6 +33,7 @@ public slots:
     void prependNewRow();    
     void removeRow(int row);
     void resetToDefaults();
+    void clearAllRows();
 protected:
     virtual QHash<int, QByteArray> roleNames() const;
 
@@ -40,8 +41,8 @@ signals:
     void switchToSettingsPage(QString pageId);
 
 private:
-    QAbstractItemModel* sourceModel;
-    QString currentPageId;
+    QAbstractItemModel* sourceModel = nullptr;
+    QString currentPageId = "";
 };
 
 #endif // SETTINGSMODEL_H

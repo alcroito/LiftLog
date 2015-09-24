@@ -65,6 +65,7 @@
         <file>components/TabViewStyleIOS.qml</file>
         <file>components/CellTextInputWithSuffix.qml</file>
         <file>components/CellTypeIncrement.qml</file>
+        <file>components/SectionedTableViewSection.qml</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>

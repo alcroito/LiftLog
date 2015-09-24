@@ -29,7 +29,7 @@ public:
     void refresh();
     void cellIncrementChanged(int row, bool increase);
     void resetToDefaults();
-
+    void clearAllRows();
 
 public slots:
     int rowCount(const QModelIndex & parent = QModelIndex()) const;

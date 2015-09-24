@@ -146,8 +146,9 @@ QVariant WeightIncrementsModel::getSettingsProperties(const QModelIndex &index) 
 
 QVariant WeightIncrementsModel::getSettingsCellType(const QModelIndex &index) const
 {
-    Q_UNUSED(index;)
-    return QString("increment");
+    Q_UNUSED(index);
+    auto type = QString("increment");
+    return type;
 }
 
 QVariant WeightIncrementsModel::getSettingsSection(const QModelIndex &index) const
@@ -183,6 +184,13 @@ void WeightIncrementsModel::cellIncrementChanged(int row, bool increase)
 
 void WeightIncrementsModel::resetToDefaults() {
     resetUserIncrements();
+}
+
+void WeightIncrementsModel::clearAllRows()
+{
+    beginResetModel();
+    incrementList.clear();
+    endResetModel();
 }
 
 QList<ExerciseWeightIncrement> WeightIncrementsModel::getDefaultIncrements() {
