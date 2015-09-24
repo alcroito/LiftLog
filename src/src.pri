@@ -16,10 +16,10 @@ SOURCES += \
     $$PWD/exercise_weight_diagram_model.cpp \
     $$PWD/stats_graph_data.cpp \
     $$PWD/stats_graph_slider_model.cpp \
-    $$PWD/plates_model.cpp \
     $$PWD/plate.cpp \
-    $$PWD/settings_proxy_model.cpp \
-    $$PWD/settings_models/main_settings_model.cpp
+    $$PWD/settings_models/settings_proxy_model.cpp \
+    $$PWD/settings_models/main_settings_model.cpp \
+    $$PWD/settings_models/plates_model.cpp
 
 HEADERS += \
 #    $$PWD/pieutilsplugin.h \
@@ -44,12 +44,12 @@ HEADERS += \
     $$PWD/stats_graph_slider_model.h \
     $$PWD/generic_tree_node.h \
     $$PWD/icons.h \
-    $$PWD/plates_model.h \
     $$PWD/plate.h \
-    $$PWD/settings_proxy_model.h \
+    $$PWD/settings_models/settings_proxy_model.h \
     $$PWD/settings_models/main_settings_model.h \
     $$PWD/settings_models/settings_pages.h \
-    $$PWD/settings_models/settings_interface.h
+    $$PWD/settings_models/settings_interface.h \
+    $$PWD/settings_models/plates_model.h
 
 ios {
     HEADERS += \

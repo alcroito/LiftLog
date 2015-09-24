@@ -1,6 +1,6 @@
 #include "plates_model.h"
-#include "app_state.h"
-#include "user.h"
+#include "../app_state.h"
+#include "../user.h"
 
 #include <QSqlQuery>
 #include <QSqlError>

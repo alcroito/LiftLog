@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QAbstractItemModel>
 #include <QIdentityProxyModel>
-#include "settings_models/settings_pages.h"
+#include "settings_pages.h"
 
 class SettingsProxyModel : public QIdentityProxyModel {
     Q_OBJECT

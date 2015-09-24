@@ -24,7 +24,7 @@
 #include "stats_graph_data.h"
 #include "weight_string_builder.h"
 #include "stats_graph_slider_model.h"
-#include "settings_proxy_model.h"
+#include "settings_models/settings_proxy_model.h"
 
 int main(int argc, char *argv[])
 {

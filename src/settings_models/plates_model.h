@@ -3,8 +3,8 @@
 
 #include <QObject>
 #include <QAbstractListModel>
-#include "plate.h"
-#include "settings_models/settings_interface.h"
+#include "../plate.h"
+#include "settings_interface.h"
 
 class PlatesModel : public QAbstractListModel, public SettingsInterface
 {

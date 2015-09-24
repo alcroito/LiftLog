@@ -1,11 +1,11 @@
 #include "settings_proxy_model.h"
-#include "generic_tree_node.h"
-#include "app_state.h"
-#include "user.h"
-#include "icons.h"
+#include "../generic_tree_node.h"
+#include "../app_state.h"
+#include "../user.h"
+#include "../icons.h"
 #include "plates_model.h"
-#include "settings_models/main_settings_model.h"
-#include "settings_models/settings_interface.h"
+#include "main_settings_model.h"
+#include "settings_interface.h"
 
 #include <QDebug>
 
