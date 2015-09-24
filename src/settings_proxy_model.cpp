@@ -608,6 +608,16 @@ void SettingsProxyModel::prependNewRow()
     }
 }
 
+void SettingsProxyModel::removeRow(int row)
+{
+    SettingsInterface* i = qobject_cast<SettingsInterface*>(sourceModel);
+    if (i) {
+        return i->removeRow(row);
+    } else {
+        qWarning() << "Couldn't delegate removeRow slot to source model.";
+    }
+}
+
 void SettingsProxyModel::resetToDefaults()
 {
     SettingsInterface* i = qobject_cast<SettingsInterface*>(sourceModel);

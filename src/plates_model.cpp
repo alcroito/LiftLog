@@ -131,6 +131,7 @@ QVariant PlatesModel::getSettingsProperties(const QModelIndex &index) const
     settingsMap.insert("value2", data(index, PlatesModel::PlateCountRole));
     settingsMap.insert("displayValue2Suffix", "");
     settingsMap.insert("value2ValidateAsInt", true);
+    settingsMap.insert("deletable", true);
     return settingsMap;
 }
 
@@ -339,4 +340,9 @@ bool PlatesModel::deleteUserPlate(Plate& p) {
 void PlatesModel::prependNewRow()
 {
     prependNewPlate();
+}
+
+void PlatesModel::removeRow(int row)
+{
+    emit willRemovePlate(row);
 }

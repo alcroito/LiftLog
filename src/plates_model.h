@@ -30,6 +30,7 @@ public:
     void refresh();
     void cellTextInputValueChanged(int row, int textInputDelta, QString value);
     void prependNewRow();
+    void removeRow(int row);
     void resetToDefaults();
 
     qint64 getNextUserPlateId();

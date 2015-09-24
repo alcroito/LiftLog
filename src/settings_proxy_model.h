@@ -30,6 +30,7 @@ public slots:
     void cellSliderValueChanged(int row, qreal value);
     void cellTextInputValueChanged(int row, int textInputDelta, QString value);
     void prependNewRow();    
+    void removeRow(int row);
     void resetToDefaults();
 protected:
     virtual QHash<int, QByteArray> roleNames() const;
