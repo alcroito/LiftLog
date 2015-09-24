@@ -65,7 +65,7 @@ public:
 signals:
     void nameChanged();
     void weightSystemChanged(User::WeightSystem);
-    void autoAddWeightChanged();
+    void autoAddWeightChanged(bool);
     void idChanged();
     void lastIdWorkoutTemplateChanged();
     void nextWorkoutTemplateDayChanged();

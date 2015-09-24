@@ -39,8 +39,10 @@ bool User::getAutoAddWeight() const
 
 void User::setAutoAddWeight(bool value)
 {
-    autoAddWeight = value;
-    emit autoAddWeightChanged();
+    if (value != autoAddWeight) {
+        autoAddWeight = value;
+        emit autoAddWeightChanged(value);
+    }
 }
 
 qint64 User::getId() const
