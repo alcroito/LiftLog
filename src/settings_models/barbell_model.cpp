@@ -68,7 +68,7 @@ QList<Barbell> BarbellModel::getBarbellsFromDB()
                   "INNER JOIN workout_template_exercises wte ON wte.id_exercise = bu.id_exercise AND wte.id_workout_template = :id_workout_template "
                   "INNER JOIN exercise e ON bu.id_exercise = e.id_exercise "
                   "WHERE bu.id_user = :id_user "
-                  "ORDER BY bu.weight_metric DESC");
+                  "ORDER BY wte.delta ASC");
 
     if (!result) {
         qWarning() << "Error preparing query to get user barbell list.";
