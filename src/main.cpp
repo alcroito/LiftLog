@@ -59,7 +59,6 @@ int main(int argc, char *argv[])
     qmlRegisterType<ExerciseWeightDiagramModel>(uri, 1, 0, "ExerciseWeightDiagramModel");
     qmlRegisterType<StatsGraphData>(uri, 1, 0, "StatsGraphData");
     qmlRegisterType<StatsGraphSliderModel>(uri, 1, 0, "StatsGraphSliderModel");
-    qmlRegisterType<SettingsModel>(uri, 1, 0, "SettingsModel");
     qmlRegisterType<SettingsProxyModel>(uri, 1, 0, "SettingsProxyModel");
     qmlRegisterUncreatableType<WeightStringBuilder>(uri, 1, 0, "WeightStringBuilder", "Not instantiable");
     qmlRegisterSingletonType<StatsGraphDataSingleton>(uri, 1, 0, "StatsGraphDataSingleton", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject* {
