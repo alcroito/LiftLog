@@ -90,7 +90,6 @@ QString ExerciseWeightDiagramModel::getPlatesBreakdownText()
     }
     if (plateCount != 0) {
         text += QString("%1 x %2%3\n").arg(plateCount).arg(prevPlate.getWeight(system)).arg(weightSystemSuffix);
-        plateCount = 0;
     }
 
     WorkoutExerciseEntity* entity = new WorkoutExerciseEntity();

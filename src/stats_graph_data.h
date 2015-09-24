@@ -132,7 +132,7 @@ public slots:
     qint32 getMinPointCountForAnyExerciseFromDB();
 };
 
-QDebug& operator<<(QDebug dbg, ExerciseStatPoint& p);
-QDebug& operator<<(QDebug dbg, const StatsGraphData::StatsQueryParams& p);
+QDebug operator<<(QDebug dbg, ExerciseStatPoint& p);
+QDebug operator<<(QDebug dbg, const StatsGraphData::StatsQueryParams& p);
 
 #endif // STATSGRAPHDATA_H

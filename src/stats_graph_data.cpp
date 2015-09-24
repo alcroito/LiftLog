@@ -628,11 +628,11 @@ QString StatsGraphData::repsDoneForExercisePoint(qint32 exerciseIndex, qint32 po
     return exercises[exerciseIndex].points[pointIndex].getRepsDone();
 }
 
-QDebug &operator<<(QDebug dbg, ExerciseStatPoint &p) {
+QDebug operator<<(QDebug dbg, ExerciseStatPoint &p) {
     return dbg << "Stat point" << p.weight << p.timestamp();
 }
 
-QDebug &operator<<(QDebug dbg, const StatsGraphData::StatsQueryParams &p) {
+QDebug operator<<(QDebug dbg, const StatsGraphData::StatsQueryParams &p) {
     return dbg << "Stats query params " << p.dataToShow << " " << p.idExerciseToShow;
 }
 
