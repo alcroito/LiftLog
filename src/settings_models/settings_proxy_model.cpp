@@ -6,6 +6,7 @@
 #include "plates_model.h"
 #include "barbell_model.h"
 #include "weight_increments_model.h"
+#include "exercise_sets_and_reps_model.h"
 #include "main_settings_model.h"
 #include "settings_interface.h"
 
@@ -78,8 +79,15 @@ void SettingsProxyModel::init(QString pageId)
         m->init();
         sourceModel = m;
         setSourceModel(sourceModel);
-    } else if (pageId == SETTINGS_PAGE_INCREMENTS) {
+    }
+    else if (pageId == SETTINGS_PAGE_INCREMENTS) {
         WeightIncrementsModel* m = new WeightIncrementsModel();
+        m->init();
+        sourceModel = m;
+        setSourceModel(sourceModel);
+    }
+    else if (pageId == SETTINGS_PAGE_EXERCISE_SETS_AND_REPS) {
+        ExerciseSetsAndRepsModel* m = new ExerciseSetsAndRepsModel();
         m->init();
         sourceModel = m;
         setSourceModel(sourceModel);

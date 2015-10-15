@@ -156,13 +156,14 @@ void MainSettingsModel::init(QString pageId) {
         settingsMap.clear();
 
         settingsMap.insert("cellType", "text");
-        settingsMap.insert("label", tr("Sets & Reps"));
+        settingsMap.insert("label", tr("Exercise Sets & Reps"));
         settingsMap.insert("section", tr("SETTINGS"));
         settingsMap.insert("icon", ICON_SETS_AND_REPS);
         settingsMap.insert("showIcon", true);
         settingsMap.insert("showAccessory", true);
         settingsMap.insert("accessoryIcon", ICON_CHEVRON_RIGHT);
         settingsMap.insert("value", "");
+        settingsMap.insert("nextPageId", SETTINGS_PAGE_EXERCISE_SETS_AND_REPS);
         settingsList.append(settingsMap);
         settingsMap.clear();
 

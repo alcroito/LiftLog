@@ -23,7 +23,8 @@ SOURCES += \
     $$PWD/settings_models/barbell_model.cpp \
     $$PWD/barbell.cpp \
     $$PWD/settings_models/weight_increments_model.cpp \
-    $$PWD/exercise_weight_increment.cpp
+    $$PWD/exercise_weight_increment.cpp \
+    $$PWD/settings_models/exercise_sets_and_reps_model.cpp
 
 HEADERS += \
 #    $$PWD/pieutilsplugin.h \
@@ -57,7 +58,8 @@ HEADERS += \
     $$PWD/settings_models/barbell_model.h \
     $$PWD/barbell.h \
     $$PWD/settings_models/weight_increments_model.h \
-    $$PWD/exercise_weight_increment.h
+    $$PWD/exercise_weight_increment.h \
+    $$PWD/settings_models/exercise_sets_and_reps_model.h
 
 ios {
     HEADERS += \
