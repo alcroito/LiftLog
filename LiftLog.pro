@@ -110,6 +110,7 @@ macx {
     QMAKE_INFO_PLIST = mac/Info.plist
     QTPLUGIN.imageformats=-
     ICON = mac/icon.icns
+    QMAKE_MAC_SDK = macosx10.11
 }
 
 ios {
@@ -117,6 +118,7 @@ ios {
     ios_resources.files += $$files($$PWD/ios/icons/Icon*.png)
     ios_resources.files += $$files($$PWD/ios/launch/LaunchImage*.png)
     QMAKE_BUNDLE_DATA += ios_resources
+    QMAKE_IOS_DEPLOYMENT_TARGET = 5.1
 
     QTPLUGIN.imageformats=-
 }

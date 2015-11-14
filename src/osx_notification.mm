@@ -1,7 +1,7 @@
 #include "osx_notification.h"
 #include "osx_and_ios_utils.h"
 #include <Cocoa/Cocoa.h>
-#include "Foundation.h"
+#include <Foundation/Foundation.h>
 #include "Appkit/AppKit.h"
 
 void scheduleNotificationImpl(NSString* id, NSDate* date, NSString* title, NSString* text, NSString* actionText, qint32 badgeNumber) {

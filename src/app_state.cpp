@@ -345,23 +345,23 @@ QString WeightStringBuilder::build()
 
 bool AppEventFilter::eventFilter(QObject *obj, QEvent *event)
 {
-    //static bool here = false;
     if (event->type() == QEvent::InputMethodQuery) {
-        QInputMethodQueryEvent* imEvent = static_cast<QInputMethodQueryEvent *>(event);
-        QVariantMap platformData = imEvent->value(Qt::ImPlatformData).toMap();
+//        QInputMethodQueryEvent* imEvent = static_cast<QInputMethodQueryEvent *>(event);
+//        QVariantMap platformData = imEvent->value(Qt::ImPlatformData).toMap();
 #ifdef Q_OS_IOS
-        platformData.insert("returnKeyType", 4);
-        imEvent->setValue(Qt::ImPlatformData, platformData);
-        qDebug() << "queries" << imEvent->queries() << "platformData" << platformData;
-        auto im = QGuiApplication::inputMethod();
-        if (!here) {
-            here = true;
-            im->update(imEvent->queries() | Qt::ImQueryAll);
-            here = false;
-        }
-        else {
-            int a = 1;
-        }
+//        static bool here = false;
+//        platformData.insert("returnKeyType", 4);
+//        imEvent->setValue(Qt::ImPlatformData, platformData);
+//        qDebug() << "queries" << imEvent->queries() << "platformData" << platformData;
+//        auto im = QGuiApplication::inputMethod();
+//        if (!here) {
+//            here = true;
+//            im->update(imEvent->queries() | Qt::ImQueryAll);
+//            here = false;
+//        }
+//        else {
+//            int a = 1;
+//        }
 #endif
         return QObject::eventFilter(obj, event);
     } else {

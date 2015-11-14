@@ -7,7 +7,7 @@
 #ifdef Q_OS_IOS
     #include <Foundation/Foundation.h>
 #elif defined(Q_OS_OSX)
-    #include <Foundation.h>
+    #include <Foundation/Foundation.h>
 #endif
 
 

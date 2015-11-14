@@ -74,8 +74,9 @@ ios {
 }
 
 macx {
-    LIBS += -framework Foundation -framework Appkit
-    INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Headers
+    LIBS += -framework Foundation
+    LIBS += -framework Appkit # Required for OSX Notifications
+    #INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Headers
 
 #    LIBS += -L/Users/placinta/Dev/Qt/5.4/clang_64/plugins/platforms -lqcocoa
 #    QMAKE_LFLAGS += -whyload -all_load -undefined dynamic_lookup
