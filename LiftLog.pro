@@ -129,3 +129,14 @@ android {
     OTHER_FILES += android/AndroidManifest.xml
     QTPLUGIN.imageformats=-
 }
+
+lupdate_only {
+SOURCES = LiftLog/components/*.qml \
+          LiftLog/components/*.js \
+          LiftLog/pages/*.qml \
+          LiftLog/pages/*.js \
+    QT -= androidextras
+}
+
+TRANSLATIONS    = i18n/liftlog_en.ts \
+                  i18n/liftlog_ru.ts

@@ -18,6 +18,7 @@ public class NotificationService extends org.qtproject.qt5.android.bindings.QtAc
     private static NotificationManager m_notificationManager;
     private static Notification.Builder m_builder;
     private static NotificationService m_instance;
+    private static int uniqueBroadcastCode = 0;
 
     public NotificationService()
     {
@@ -54,6 +55,9 @@ public class NotificationService extends org.qtproject.qt5.android.bindings.QtAc
         if (maybeId != null) {
             notificationFired(maybeId);
         }
+
+        // Clear the rest of the notifications from the status bar.
+        m_notificationManager.cancelAll();
     }
 
     private static native void notificationFired(String notificationId);
@@ -78,7 +82,8 @@ public class NotificationService extends org.qtproject.qt5.android.bindings.QtAc
         notificationIntent.putExtra(NotificationPublisher.NOTIFICATION_ID, 1);
         notificationIntent.putExtra(NotificationPublisher.NOTIFICATION_TAG, id);
         notificationIntent.putExtra(NotificationPublisher.NOTIFICATION, notification);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(m_instance, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(m_instance, uniqueBroadcastCode, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        uniqueBroadcastCode++;
 
         // Register the intent with the alarm manager.
         AlarmManager alarmManager = (AlarmManager) m_instance.getSystemService(Context.ALARM_SERVICE);
@@ -93,7 +98,8 @@ public class NotificationService extends org.qtproject.qt5.android.bindings.QtAc
         // It also contains the notification id.
         Intent resultIntent = new Intent(m_instance, NotificationService.class);
         resultIntent.putExtra(NotificationPublisher.NOTIFICATION_TAG, id);
-        PendingIntent resultPendingIntent = PendingIntent.getActivity(m_instance, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(m_instance, uniqueBroadcastCode, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        uniqueBroadcastCode++;
         m_builder.setContentIntent(resultPendingIntent);
 
         return m_builder.build();

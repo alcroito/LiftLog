@@ -20,8 +20,8 @@ void scheduleNotificationImpl(NSString* id, NSDate* date, NSString* title, NSStr
     [[NSUserNotificationCenter defaultUserNotificationCenter] scheduleNotification:notification];
     [notification release];
 
-    NSString* appClass = NSStringFromClass([[NSApplication sharedApplication].delegate class]);
-    NSLog(@"App class is %@", appClass);
+    //NSString* appClass = NSStringFromClass([[NSApplication sharedApplication].delegate class]);
+    //NSLog(@"App class is %@", appClass);
 
 }
 

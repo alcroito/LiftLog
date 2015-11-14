@@ -123,13 +123,6 @@ BasicPage {
             }
         }
 
-        Connections {
-            target: graphButton
-            onClicked: {
-                LocalNotificationService.cancelNotification("id5")
-            }
-        }
-
         RectangleButton {
             iconText: "\uea0c"
             labelText: "Help"

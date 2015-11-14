@@ -15,6 +15,9 @@ BasicPage {
     }
 
     onGoBack: {
+        // Cancel all set notifications, because we left the workout page.
+        LocalNotificationService.cancelAllNotifications();
+
         // If the model needs to be saved, don't delete the workout data when going back a page.
         if (!appState.currentWorkoutModel.workoutEntity.forceSave && !appState.currentWorkoutModel.workoutEntity.shouldBeSaved) {
             appState.currentWorkoutModel.deleteWorkoutData()
@@ -130,6 +133,9 @@ BasicPage {
                 // Display notification.
                 } else if (reps <= repsToDo) {
                     topNotification.hide(true)
+                    var successfulSet = appState.currentWorkoutModel.getSet(objectIndex, columnId).isSuccessful()
+                    topNotification.repsDone = reps
+                    topNotification.successState = successfulSet
                     topNotification.start()
                 }
             }

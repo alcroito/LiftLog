@@ -6,5 +6,7 @@
         <file>assets/fonts/open_sans_light.ttf</file>
         <file>assets/db/db_initial_install.sql</file>
         <file>assets/db/liftlog.sqlite3</file>
+        <file>i18n/liftlog_en.qm</file>
+        <file>i18n/liftlog_ru.qm</file>
     </qresource>
 </RCC>

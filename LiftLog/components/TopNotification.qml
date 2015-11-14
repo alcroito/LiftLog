@@ -1,15 +1,25 @@
 import QtQuick 2.0
 import QtQml 2.2
+import LiftLog 1.0
 
 Rectangle {
     id: root
     width: appState.windowWidth
     height: 64 * units.scale
     color: "#2f2f2f"
+
     property alias text: label.text
+    property string successText: qsTr("Well done for doing %1 reps.\n If it was easy, rest for 90 secs. If not, 3 min.", "0", repsDone).arg(repsDone)
+    property int repsDone: 0
+    property string failureText: "Don't worry, failing is part of the game.\n Rest for 5 mins."
+    property bool successState: true
+
     property alias bottomText: timerText.text
-    property date elapsedTime: new Date(2015, 1, 2, 0, 0, 0, 0)
+    property date templateElapsedTime: new Date(2015, 0, 1, 0, 0, 0, 0)
+    property date startTimerTime: templateElapsedTime
+    property date elapsedTime: templateElapsedTime
     property string timerFormat: "mm:ss"
+
     z: 2
     state: "hidden"
 
@@ -24,6 +34,18 @@ Rectangle {
         state = ""
         reset()
         timer.start()
+
+        // Schedule local notifications to OS.
+        var notificationTime = startTimerTime
+
+        notificationTime.setSeconds(notificationTime.getSeconds() + 91);
+        LocalNotificationService.scheduleNotification("first", notificationTime, "first", "first", "first", 0)
+
+        notificationTime.setSeconds(notificationTime.getSeconds() + 180);
+        LocalNotificationService.scheduleNotification("second", notificationTime, "second", "second", "second", 0)
+
+        notificationTime.setSeconds(notificationTime.getSeconds() + 300);
+        LocalNotificationService.scheduleNotification("third", notificationTime, "third", "third", "third", 0)
     }
 
     function hide(immediate) {
@@ -34,8 +56,12 @@ Rectangle {
     }
 
     function reset() {
-        elapsedTime = new Date(2015, 1, 2, 0, 0, 0, 0)
+        LocalNotificationService.cancelAllNotifications()
+
+        startTimerTime = LocalNotificationService.getCurrentDateTime()
+        elapsedTime = templateElapsedTime
         timerText.text = Qt.formatDateTime(elapsedTime, timerFormat)
+
     }
 
     states: [
@@ -70,7 +96,11 @@ Rectangle {
     Text {
         id: label
         color: "#ffffff"
-        text: "Well done for doing x reps.\n Rest for 90 sec."
+        text: {
+            if (successState) return successText
+            else return failureText
+        }
+
         horizontalAlignment: Text.AlignHCenter
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
@@ -84,9 +114,13 @@ Rectangle {
         running: true
         repeat: true
         onTriggered: {
-            var tempDate = elapsedTime
-            tempDate.setSeconds(tempDate.getSeconds() + 1)
-            elapsedTime = tempDate
+            var currentTime = LocalNotificationService.getCurrentDateTime()
+            var deltaMilliseconds = currentTime - startTimerTime
+
+            var finalTime = templateElapsedTime
+            finalTime.setSeconds(Math.floor(deltaMilliseconds / 1000))
+            elapsedTime = finalTime
+
             timerText.text = Qt.formatDateTime(elapsedTime, timerFormat)
         }
     }

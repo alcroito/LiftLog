@@ -61,6 +61,11 @@ void LocalNotificationService::cancelNotification(QString id)
     implementation->cancelNotification(id);
 }
 
+QDateTime LocalNotificationService::getCurrentDateTime()
+{
+    return QDateTime::currentDateTime();
+}
+
 LocalNotificationService* LocalNotificationService::data()
 {
     return LocalNotificationService::getInstance();

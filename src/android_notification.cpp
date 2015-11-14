@@ -10,7 +10,7 @@ void printAnyException() {
     QAndroidJniEnvironment env;
     if (env->ExceptionCheck()) {
         // Handle exception here.
-        qDebug() << "Java Exception occured";
+        qDebug() << "Java Exception occurred";
         env->ExceptionDescribe();
         env->ExceptionClear();
     }

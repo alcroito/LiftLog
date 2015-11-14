@@ -45,6 +45,7 @@ public slots:
     void scheduleNotification(QString id, qint64 interval, QString title, QString text, QString actionText, qint32 badgeNumber = 0);
     void cancelAllNotifications();
     void cancelNotification(QString id);
+    QDateTime getCurrentDateTime();
 
 private:
     LocalNotificationServiceImpl* implementation;

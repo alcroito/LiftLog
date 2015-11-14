@@ -34,6 +34,11 @@ int main(int argc, char *argv[])
 
     QtQuickControlsApplication app(argc, argv);
 
+    // i18n support.
+    QTranslator appTranslator;
+    qDebug() << "Load translation " << appTranslator.load("liftlog_" + QLocale::system().name(), ":/i18n");
+    qDebug() << "Installed translation " << app.installTranslator(&appTranslator);
+
     // Set up font.
     qDebug() << QFontDatabase().addApplicationFont(":/assets/fonts/open_sans.ttf");
     qDebug() << QFontDatabase().addApplicationFont(":/assets/fonts/open_sans_bold.ttf");
@@ -98,7 +103,6 @@ int main(int argc, char *argv[])
 
     // Init local notification service.
     LocalNotificationService* localNotificationService = LocalNotificationService::getInstance();
-    rootContext->setContextProperty("localNotificationService", localNotificationService);
 
 //    QDateTime currentDate = QDateTime::currentDateTime();
 //    QDateTime notificationDate = currentDate.addSecs(5);
@@ -107,6 +111,9 @@ int main(int argc, char *argv[])
 //    QLoggingCategory::setFilterRules("qt.qpa.input.methods=true");
 //    QSharedPointer<AppEventFilter> filter = QSharedPointer<AppEventFilter>(new AppEventFilter());
 //    app.installEventFilter(filter.data());
+
+    // Cancel all notifications set by the application, when the user quits the app.
+    QObject::connect(&app, &QCoreApplication::aboutToQuit, localNotificationService, &LocalNotificationService::cancelAllNotifications);
 
     return app.exec();
 }
