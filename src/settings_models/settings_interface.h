@@ -25,7 +25,7 @@ signals:
     virtual void switchToSettingsPage(QString pageId) = 0;
 };
 
-#define SettingsInterface_iid "eu.placinta.LiftLog.SettingsInterface"
+#define SettingsInterface_iid "eu.croitor.LiftLog.SettingsInterface"
 Q_DECLARE_INTERFACE(SettingsInterface, SettingsInterface_iid)
 
 #endif // SETTINGS_INTERFACE

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<manifest android:versionCode="1" android:installLocation="auto" xmlns:android="http://schemas.android.com/apk/res/android" package="eu.placinta.LiftLog" android:versionName="1.0">
+<manifest android:versionCode="1" android:installLocation="auto" xmlns:android="http://schemas.android.com/apk/res/android" package="eu.croitor.LiftLog" android:versionName="1.0">
     <application android:name="org.qtproject.qt5.android.bindings.QtApplication" android:label="LiftLog" android:icon="@drawable/icon">
-        <activity android:screenOrientation="unspecified" android:name="eu.placinta.LiftLog.NotificationService" android:label="@string/app_name" android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|locale|fontScale|keyboard|keyboardHidden|navigation" android:launchMode="singleTop">
+        <activity android:screenOrientation="unspecified" android:name="eu.croitor.LiftLog.NotificationService" android:label="@string/app_name" android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|locale|fontScale|keyboard|keyboardHidden|navigation" android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

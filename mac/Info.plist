@@ -15,7 +15,7 @@
 	<key>CFBundleExecutable</key>
 	<string>LiftLog</string>
 	<key>CFBundleIdentifier</key>
-	<string>eu.placinta.LiftLog</string>
+	<string>eu.croitor.LiftLog</string>
 	<key>NSHighResolutionCapable</key>
 	<string>True</string>
 </dict>

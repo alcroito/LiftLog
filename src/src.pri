@@ -76,11 +76,6 @@ ios {
 macx {
     LIBS += -framework Foundation
     LIBS += -framework Appkit # Required for OSX Notifications
-    #INCLUDEPATH += /System/Library/Frameworks/Foundation.framework/Versions/C/Headers
-
-#    LIBS += -L/Users/placinta/Dev/Qt/5.4/clang_64/plugins/platforms -lqcocoa
-#    QMAKE_LFLAGS += -whyload -all_load -undefined dynamic_lookup
-#    QMAKE_LFLAGS += -all_load -undefined dynamic_lookup
 
     HEADERS += \
         $$PWD/osx_notification.h \
@@ -106,6 +101,6 @@ android {
         $$PWD/android_notification.cpp
 
     OTHER_FILES += \
-        $$PWD/../android/src/eu/placinta/LiftLog/NotificationService.java \
-        $$PWD/../android/src/eu/placinta/LiftLog/NotificationPublisher.java
+        $$PWD/../android/src/eu/croitor/LiftLog/NotificationService.java \
+        $$PWD/../android/src/eu/croitor/LiftLog/NotificationPublisher.java
 }

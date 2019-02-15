@@ -14,7 +14,7 @@
 	<string>LiftLog</string>
 	
 	<key>CFBundleIdentifier</key>
-	<string>eu.placinta.${PRODUCT_NAME:rfc1034identifier}</string>
+        <string>eu.croitor.${PRODUCT_NAME:rfc1034identifier}</string>
 	<key>CFBundleDisplayName</key>
 	<string>${PRODUCT_NAME}</string>
 	<key>CFBundleName</key>

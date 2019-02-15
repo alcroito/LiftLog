@@ -4,7 +4,7 @@
 #include <QDebug>
 #include "application.h"
 
-const char * serviceClass = "eu/placinta/LiftLog/NotificationService";
+const char * serviceClass = "eu/croitor/LiftLog/NotificationService";
 
 void printAnyException() {
     QAndroidJniEnvironment env;

@@ -1,4 +1,4 @@
-package eu.placinta.LiftLog;
+package eu.croitor.LiftLog;
 
 import android.app.Notification;
 import android.app.NotificationManager;
