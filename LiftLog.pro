@@ -110,7 +110,6 @@ macx {
     QMAKE_INFO_PLIST = mac/Info.plist
     QTPLUGIN.imageformats=-
     ICON = mac/icon.icns
-    QMAKE_MAC_SDK = macosx10.11
 }
 
 ios {
