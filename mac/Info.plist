@@ -5,11 +5,11 @@
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>CFBundleIconFile</key>
-        <string>icon.icns</string>
+	<string>icon.icns</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Awesomeness</string>
+	<string>© 2019, croitor.eu</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleExecutable</key>
@@ -17,6 +17,8 @@
 	<key>CFBundleIdentifier</key>
 	<string>eu.croitor.LiftLog</string>
 	<key>NSHighResolutionCapable</key>
+	<string>True</string>
+	<key>NSSupportsAutomaticGraphicsSwitching</key>
 	<string>True</string>
 </dict>
 </plist>
