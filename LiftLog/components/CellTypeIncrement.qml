@@ -51,7 +51,6 @@ CellTypeBase {
             id: cellValueLabel
             text: itemModelData.value + itemModelData.displayValueSuffix
             font.pixelSize: 12 * units.fontScale
-            anchors.verticalCenter: parent.verticalCenter
             horizontalAlignment: Text.AlignHCenter
             Accessible.ignored: true
             Layout.minimumWidth: 75 * units.scale

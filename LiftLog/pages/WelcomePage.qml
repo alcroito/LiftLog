@@ -24,7 +24,6 @@ BasicPage {
             id: welcomeText
             text: qsTr("Welcome!<br/> Please fill out your profile to get started.")
             wrapMode: Text.WordWrap
-            anchors.horizontalCenter: parent.horizontalCenter
             textFormat: Text.RichText
             horizontalAlignment: Text.AlignHCenter
             font.pixelSize: 10 * units.fontScale
