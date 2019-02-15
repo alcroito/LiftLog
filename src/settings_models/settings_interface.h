@@ -1,7 +1,7 @@
 #ifndef SETTINGS_INTERFACE
 #define SETTINGS_INTERFACE
 
-#include <Qvariant>
+#include <QVariant>
 #include <QModelIndex>
 
 class SettingsInterface {
