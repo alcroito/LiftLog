@@ -1,4 +1,4 @@
-import QtQuick 2.4
+import QtQuick 2.7
 import LiftLog 1.0
 import QtQuick.Controls 1.2
 import QtQuick.Controls.Styles 1.2
@@ -189,7 +189,7 @@ Rectangle {
                         target: cellSeparator; color: "#dde0e1"
                     }
                     PropertyChanges {
-                        target: cellTypeLoader.item; cellBackgroundColor: "#dde0e1"
+                        target: cellReference; cellBackgroundColor: "#dde0e1"
                     }
                 }
             ]
@@ -233,64 +233,15 @@ Rectangle {
                 }
             }
 
-            // This currently does not work because itemModelData gets removed, before ListView delegate is being destryoed,
-            // which causes delegate bindings to evaluate to errors. Figure this out by building Qt from source, and try to
-            // find the cause of this. @TODO
-//            Component.onCompleted: {
-//                function componentChooser(type) {
-//                    if (type === "switch") return cellTypeSwitch;
-//                    if (type === "slider") return cellTypeSlider;
-//                    if (type === "text") return cellTypeTextAndIcon;
-//                    // Fix undefined errors.
-//                    return cellTypeDummy;
-//                }
-//                var component = componentChooser(model.type);
-//                component.createObject(cellWrapper, {itemModelData: Qt.binding(function() {
-//                    console.log("Model binding changed");
-//                    return model;
-//                }), itemModelIndex: index});
-//            }
+            // Holds reference to cell created by createObject.
+            property var cellReference: null
+            Component.onDestruction: {
+                if (cellReference) {
+                    cellReference.destroy();
+                }
+            }
 
-            Loader {
-                id: cellTypeLoader
-                Binding {
-                    id: binder
-                    property: "itemModelData"
-                    value: model.properties
-                }
-                Binding {
-                    id: binder2
-                    property: "itemModelIndex"
-                    value: index
-                }
-                Binding {
-                    id: binder3
-                    property: "itemIsAllowedToShowDeleteButton"
-                    value: listView.deletingIndex === -1 || listView.deletingIndex === index
-                }
-                onLoaded: {
-                    binder.target = cellTypeLoader.item
-                    binder2.target = cellTypeLoader.item
-                    binder3.target = cellTypeLoader.item
-                }
-                Connections {
-                    target: cellTypeLoader.item
-                    onItemIsShowingDeleteButton: {
-                        listView.deletingIndex = deletingIndex
-                        listView.delegateWithActiveDeleteButton = cellTypeLoader.item
-                    }
-                    onItemIsHidingDeleteButton: {
-                        listView.deletingIndex = -1
-                    }
-                    onPleaseHideAllDeleteButtons: {
-                        listView.delegateWithActiveDeleteButton.hideDeleteButton()
-                    }
-                    onPleaseUnfocus: {
-                        dummyFocusScope.forceActiveFocus()
-                    }
-                }
-
-                sourceComponent: componentChooser(model.cellType);
+            Component.onCompleted: {
                 function componentChooser(type) {
                     if (type === "switch") return cellTypeSwitch;
                     if (type === "slider") return cellTypeSlider;
@@ -299,9 +250,43 @@ Rectangle {
                     if (type === "textEdit") return cellTypeTextEdit;
                     if (type === "increment") return cellTypeIncrement;
                     if (type === "fake") return cellTypeFake;
+
                     // Fix undefined errors.
                     console.warn("Trying to intantiate unknown cell type.");
                     return cellTypeDummy;
+                }
+                var component = componentChooser(model.cellType);
+                var properties = {
+                    itemModelData: Qt.binding(function() {
+                        return model.properties;
+                    }),
+                    itemModelIndex: Qt.binding(function() {
+                        return index;
+                    }),
+                    itemIsAllowedToShowDeleteButton: Qt.binding(function() {
+                        return listView.deletingIndex === -1 || listView.deletingIndex === index;
+                    }),
+                };
+                cellReference = component.createObject(cellWrapper, properties);
+                cellConnections.enabled = true;
+            }
+
+            Connections {
+                id: cellConnections
+                target: cellReference
+                enabled: false
+                onItemIsShowingDeleteButton: {
+                    listView.deletingIndex = deletingIndex
+                    listView.delegateWithActiveDeleteButton = cellReference
+                }
+                onItemIsHidingDeleteButton: {
+                    listView.deletingIndex = -1
+                }
+                onPleaseHideAllDeleteButtons: {
+                    listView.delegateWithActiveDeleteButton.hideDeleteButton()
+                }
+                onPleaseUnfocus: {
+                    dummyFocusScope.forceActiveFocus()
                 }
             }
 
