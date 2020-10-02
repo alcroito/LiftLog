@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
+import QtQml 2.15
 import QtQml.Models 2.1
 import LiftLog 1.0
 
@@ -188,11 +189,13 @@ Item {
                 Binding on text {
                     value: successText.arg(nextWeightText)
                     when: exerciseIsSuccessful
+                    restoreMode: Binding.RestoreBinding
                 }
 
                 Binding on text {
                     value: failureText.arg(currentWeightText)
                     when: !exerciseIsSuccessful
+                    restoreMode: Binding.RestoreBinding
                 }
             }
 

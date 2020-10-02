@@ -248,7 +248,7 @@ BasicPage {
 
     Connections {
         target: datePickerDialog
-        onAcceptClicked: {
+        function onAcceptClicked() {
             appState.currentWorkoutModel.changeAndSaveStartDate(datePickerDialog.getSelectedDate())
         }
     }

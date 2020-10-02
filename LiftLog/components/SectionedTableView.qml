@@ -228,7 +228,7 @@ Rectangle {
 
             Connections {
                 target: listView
-                onMovingChanged: {
+                function onMovingChanged(moving) {
                     cellWrapper.state = ""
                 }
             }
@@ -275,17 +275,17 @@ Rectangle {
                 id: cellConnections
                 target: cellReference
                 enabled: false
-                onItemIsShowingDeleteButton: {
+                function onItemIsShowingDeleteButton(deletingIndex) {
                     listView.deletingIndex = deletingIndex
                     listView.delegateWithActiveDeleteButton = cellReference
                 }
-                onItemIsHidingDeleteButton: {
+                function onItemIsHidingDeleteButton(deletingIndex) {
                     listView.deletingIndex = -1
                 }
-                onPleaseHideAllDeleteButtons: {
+                function onPleaseHideAllDeleteButtons(deletingIndex) {
                     listView.delegateWithActiveDeleteButton.hideDeleteButton()
                 }
-                onPleaseUnfocus: {
+                function onPleaseUnfocus() {
                     dummyFocusScope.forceActiveFocus()
                 }
             }
