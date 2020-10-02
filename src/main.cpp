@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     app.setFont(QFont("Open Sans"));
 
     // Engine.
-    QQmlApplicationEngine engine;
+    QQmlApplicationEngine *engine = new QQmlApplicationEngine();
 
     // Set up QML types.
     const char* uri = "LiftLog";
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
     qmlRegisterSingletonType(QUrl("qrc:///LiftLog/extras/FlatStyle.qml"), "LiftLog.extras", 1, 0, "FlatStyle");
 
     // Initialize the units class.
-    QQmlContext* rootContext = engine.rootContext();
+    QQmlContext* rootContext = engine->rootContext();
     rootContext->setContextProperty("units", &PUnits::instance());
 
     // Create DB manager.
@@ -98,8 +98,8 @@ int main(int argc, char *argv[])
 
     // Add search path for QML modules and components.
     qDebug() << "Loading qml components.";
-    engine.addImportPath("qrc:///");
-    engine.load(QUrl(QStringLiteral("qrc:///LiftLog/main.qml")));    
+    engine->addImportPath("qrc:///");
+    engine->load(QUrl(QStringLiteral("qrc:///LiftLog/main.qml")));
 
     // Init local notification service.
     LocalNotificationService* localNotificationService = LocalNotificationService::getInstance();
@@ -115,5 +115,8 @@ int main(int argc, char *argv[])
     // Cancel all notifications set by the application, when the user quits the app.
     QObject::connect(&app, &QCoreApplication::aboutToQuit, localNotificationService, &LocalNotificationService::cancelAllNotifications);
 
-    return app.exec();
+    int exit_code = app.exec();
+    delete engine;
+
+    return exit_code;
 }
