@@ -118,7 +118,7 @@ BasicPage {
         //            }
         Connections {
             target: LocalNotificationService
-            onNotificationFired: {
+            function onNotificationFired(notificationId) {
                 console.log("Notification signal emitted with id " + notificationId)
             }
         }
