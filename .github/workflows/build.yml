@@ -1,0 +1,74 @@
+name: Build App
+
+on: push
+
+env:
+  QT_VERSION: "5.15.1"
+  QT_PACKAGE_NAME: "qt.qt5.5151"
+  QT_INSTALL_DIR_NAME: "official_qt"
+  CI_APP_NAME: 'LiftLog'
+  CI_ARCHIVE_EXT: '.tar.xz'
+
+jobs:
+  build:
+    name: Build app on ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {
+              name: "Ubuntu Latest GCC",
+              os: ubuntu-latest,
+            }
+          - {
+              name: "macOS Latest Clang",
+              os: macos-latest,
+              app_suffix: '.app',
+              artifact: "macOS"
+            }
+          - {
+              name: "Windows Latest MSVC 2019",
+              os: windows-latest,
+              environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
+            }
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Qt Installer dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get install libxkbcommon-x11-0 libgl1-mesa-dev
+
+      - name: Use cached Qt
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-qt
+        with:
+          path: ${{ env.QT_INSTALL_DIR_NAME }}
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ env.QT_PACKAGE_NAME }}
+
+      - name: Install Qt if not cached
+        run: cmake -DPACKAGE_NAME="${{ env.QT_PACKAGE_NAME }}" -DINSTALL_ROOT="${{ env.QT_INSTALL_DIR_NAME }}" -DREUSE_CACHED_QT=ON -P ci/install_qt.cmake 
+        env:
+          QT_INSTALLER_JWT_TOKEN: ${{ secrets.QT_INSTALLER_JWT_TOKEN }}
+
+      - name: Build app
+        run: cmake -DSOURCE_DIR="${{ github.workspace }}" -DQT_PREFIX_DIR="${{ env.QT_INSTALL_DIR_NAME }}/${{ env.QT_VERSION }}" -DENV_SCRIPT="${{ matrix.config.environment_script }}" -P ci/build_with_qmake.cmake
+
+      - name: Deploy app
+        if: runner.os == 'macOS'
+        run: cmake -DQT_PREFIX_DIR="${{ env.QT_INSTALL_DIR_NAME }}/${{ env.QT_VERSION }}" -DTARGET_APP_PATH="build/${{ env.CI_APP_NAME }}${{ matrix.config.app_suffix }}" -DVERBOSE=ON -DQML_DIR=${{ github.workspace }} -P ci/deploy_app.cmake
+
+      - name: Pack
+        if: runner.os == 'macOS'
+        working-directory: build
+        run: cmake -E tar cJfv ../${{ env.CI_APP_NAME }}-${{ matrix.config.artifact }}-${{ github.run_id }}${{ env.CI_ARCHIVE_EXT }} "${{ env.CI_APP_NAME }}${{ matrix.config.app_suffix }}"  
+
+      - name: Upload
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v1
+        with:
+          path: ${{ env.CI_APP_NAME }}-${{ matrix.config.artifact }}-${{ github.run_id }}${{ env.CI_ARCHIVE_EXT }}
+          name: ${{ env.CI_APP_NAME }}-${{ matrix.config.artifact }}-${{ github.run_id }}${{ env.CI_ARCHIVE_EXT }}

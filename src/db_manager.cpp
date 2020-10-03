@@ -153,7 +153,7 @@ QString DBManager::getDBFilePath() {
     qDebug() << locations;
     QString folder_path = locations.value(0);
     db_path = folder_path + QDir::separator() + db_file_name;
-#elif defined(Q_OS_OSX)
+#elif defined(Q_OS_OSX) || defined(Q_OS_LINUX) || defined(Q_OS_WIN)
     db_path = QDir::currentPath() + QDir::separator() + db_file_name;
 #elif defined(Q_OS_ANDROID)
     QStringList locations = QStandardPaths::standardLocations(QStandardPaths::AppDataLocation);
