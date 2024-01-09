@@ -5,10 +5,10 @@
 #include <QSharedPointer>
 #include "user.h"
 #include "weight_string_builder.h"
+#include "workout_model.h"
 
 class QScreen;
 class QtQuickControlsApplication;
-class WorkoutModel;
 
 class AppEventFilter : public QObject {
     Q_OBJECT

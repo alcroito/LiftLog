@@ -3,6 +3,7 @@
 #include "../app_state.h"
 #include "../icons.h"
 #include <QDebug>
+#include <QAssociativeIterable>
 
 MainSettingsModel::MainSettingsModel(QObject *parent) : QAbstractListModel(parent) {}
 
