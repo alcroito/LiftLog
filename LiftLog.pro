@@ -80,7 +80,7 @@ APP_QML_FILES += \
     LiftLog/extras/FlatStyle.qml
 
 FONTS += \
-    icomoon.ttf
+    icomoon.ttf \
     opensans.ttf
 
 SQL_FILES += \

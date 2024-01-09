@@ -74,11 +74,22 @@ QString DBManager::getLastExecutedQuery(const QSqlQuery &query)
 {
     QString str = query.lastQuery();
     qDebug() << query.boundValues();
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QMapIterator<QString, QVariant> it(query.boundValues());
     while (it.hasNext()) {
         it.next();
         str.replace(it.key(),it.value().toString());
     }
+#else
+    const QVariantList list = query.boundValues();
+    // Probably incorrect, but meh.
+    for (qsizetype i = 0; i < list.size(); ++i) {
+        str.replace(QString::number(i), list.at(i).toString());
+    }
+#endif
+
+
     return str;
 }
 

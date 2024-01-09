@@ -1,5 +1,5 @@
 import QtQuick 2.4
-import QtQuick.Controls 1.3
+import QtQuick.Controls
 import QtQuick.Window 2.0
 
 import LiftLog 1.0
